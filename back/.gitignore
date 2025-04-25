@@ -1,0 +1,11 @@
+
+# venv
+venv/
+
+# env
+.env.local
+
+# uvicorn
+__pycache__/
+routers/__pycache__/
+services/__pycache__/
