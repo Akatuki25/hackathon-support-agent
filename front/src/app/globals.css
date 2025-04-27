@@ -5,6 +5,27 @@
   --foreground: #171717;
 }
 
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  
+    /* 他のライトモード変数 */
+  }
+  
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    
+    /* 他のダークモード変数 */
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
