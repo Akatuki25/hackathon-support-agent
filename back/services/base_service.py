@@ -29,7 +29,7 @@ class BaseService:
         # AIモデルの初期化
         
         # proモデル
-        self.llm_pro = self._load_llm(defult_model_provider,"gemini-2.5-pro-exp-03-25")
+        self.llm_pro = self._load_llm(defult_model_provider,"gemini-2.5-flash-preview-04-17")
         # flashモデル
         self.llm_flash = self._load_llm(defult_model_provider,"gemini-2.0-flash")
         # flash-thinkingモデル 仕様運転版
