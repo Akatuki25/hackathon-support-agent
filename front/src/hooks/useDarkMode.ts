@@ -23,9 +23,6 @@ export function useDarkMode() {
   // resolvedThemeを使うことで "system" を自動判定
   const darkMode = resolvedTheme === 'dark'
 
-  const toggleDarkMode = () => {
-    setTheme(darkMode ? 'light' : 'dark')
-  }
 
-  return { darkMode, toggleDarkMode, mounted  }
+  return { darkMode }
 }

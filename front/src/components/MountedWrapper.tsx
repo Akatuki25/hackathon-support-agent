@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 
+import Loading from './PageLoading';
+
 export default function MountedWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
@@ -11,7 +13,7 @@ export default function MountedWrapper({ children }: { children: React.ReactNode
 
   if (!mounted) {
     // まだマウントしてなかったら何も出さない
-    return null
+    return <Loading/>
   }
 
   return <>{children}</>
