@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy import Column, String, Integer, Text, JSON
+
 from database import Base
 
 class Project(Base):
@@ -34,3 +35,9 @@ class Project(Base):
     
     # 環境構築ハンズオン
     envHanson = Column(Text, nullable=True)
+    
+
+
+
+
+
