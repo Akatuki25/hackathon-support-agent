@@ -16,5 +16,7 @@ export default function MountedWrapper({ children }: { children: React.ReactNode
     return <Loading/>
   }
 
-  return <>{children}</>
+  return (<>
+  
+  {children}</>)
 }

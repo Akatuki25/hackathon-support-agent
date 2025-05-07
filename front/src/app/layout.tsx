@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from 'next-themes'
 import DarkToggle from "@/components/theme-switcher";
 import MountedWrapper  from "@/components/MountedWrapper";
+import GridEdge from "@/components/GridEgde";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,8 +33,10 @@ export default function RootLayout({
       >
       <MountedWrapper>
         <ThemeProvider attribute="class" defaultTheme="system">
+          <GridEdge>
           <DarkToggle />
           {children}
+          </GridEdge>
         </ThemeProvider>
       </MountedWrapper>
       </body>

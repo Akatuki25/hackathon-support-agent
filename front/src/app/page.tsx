@@ -8,8 +8,7 @@ import { Zap, Clock, Users, ChevronRight } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { postQuestion } from "@/libs/fetchAPI";
 
-
-
+import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 
 export default function Home() {
   const {darkMode } = useDarkMode();
@@ -23,20 +22,17 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-  
-    // 入力内容をひとつのテキストにまとめる
-    const promptText = `アイデア: ${idea} 期間: ${duration} 人数: ${numPeople}`;
-  
+
     sessionStorage.setItem("duration", duration);
     sessionStorage.setItem("numPeople", numPeople);
     
     try {
 
       // APIを呼び出す
-      const formattedData = await postQuestion(promptText);
-  
+      const formattedData = await postQuestion(idea, duration, numPeople);
+
       // sessionStorage にアイデアと質問データを保存
-      sessionStorage.setItem("dream", idea);
+      sessionStorage.setItem("idea", idea);
       sessionStorage.setItem("questionData", JSON.stringify(formattedData));
       
       // 質問＆回答入力ページへ遷移
@@ -48,32 +44,8 @@ export default function Home() {
     }
   };
 
-
-
-
-
-
   return (
-    <div className={`min-h-screen font-mono transition-all duration-500 flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} relative overflow-hidden`}>
-      {/* Animated background grid */}
-      <div className={`absolute inset-0 overflow-hidden pointer-events-none ${darkMode ? 'opacity-20' : 'opacity-10'}`}>
-        <div className="absolute inset-0" style={{ 
-          backgroundImage: `linear-gradient(${darkMode ? '#00ffe1' : '#8a2be2'} 1px, transparent 1px), 
-                            linear-gradient(90deg, ${darkMode ? '#00ffe1' : '#8a2be2'} 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
-          backgroundPosition: '-1px -1px'
-        }}></div>
-      </div>
-
-      
-      {/* Glowing edges */}
-      <div className="fixed bottom-0 left-0 right-0 h-1 z-20">
-        <div className={`h-full ${darkMode ? 'bg-cyan-500' : 'bg-purple-500'} animate-pulse`}></div>
-      </div>
-      <div className="fixed top-0 bottom-0 right-0 w-1 z-20">
-        <div className={`w-full ${darkMode ? 'bg-pink-500' : 'bg-blue-500'} animate-pulse`}></div>
-      </div>
-      
+    <>
       <form
         onSubmit={handleSubmit}
         className={`relative z-10 backdrop-blur-md rounded-xl shadow-xl p-8 max-w-md w-full border transition-all ${
@@ -82,23 +54,29 @@ export default function Home() {
             : 'bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20'
         }`}
       >
-        <div className="flex items-center justify-center mb-6">
+        <div className="flex items-center justify-center mb-6 mt-5">
           <Zap className={`mr-2 ${darkMode ? 'text-cyan-400' : 'text-purple-600'}`} />
           <h1 className={`text-2xl font-bold tracking-wider ${darkMode ? 'text-cyan-400' : 'text-purple-700'}`}>
             プロジェクト<span className={darkMode ? 'text-pink-500' : 'text-blue-600'}>_コード</span>
           </h1>
         </div>
         
+        {/* input space  */}
         <div className="mb-5">
           <label className={`flex items-center ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
             <Zap size={16} className={`mr-2 ${darkMode ? 'text-pink-500' : 'text-blue-600'}`} />
             <span>アイデア</span>
           </label>
-          <input
-            type="text"
+          <textarea
             value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            placeholder="例: 新規SNSアプリを作りたい"
+            onChange={(e) => {
+              // これ入れないとサイズが変わったあとに内容を削除したときなど動きがおかしい
+              e.target.style.height = 'auto';
+              // 改行に合わせて高さを変える
+              e.target.style.height = e.target.scrollHeight + 'px';
+              setIdea(e.target.value);
+            }}
+            placeholder="例: AIを活用したプロジェクト"
             required
             className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
               darkMode 
@@ -135,6 +113,7 @@ export default function Home() {
           </label>
           <input
             type="number"
+            min="1"
             value={numPeople}
             onChange={(e) => setNumPeople(e.target.value)}
             placeholder="例: 3"
@@ -162,18 +141,15 @@ export default function Home() {
             <span className="animate-pulse">処理中...</span>
           ) : (
             <>
-              <span>プロジェクト登録</span>
+              <span>質問に答える</span>
               <ChevronRight size={18} className="ml-2" />
             </>
           )}
         </button>
         
-        <div className={`text-xs text-center mt-4 ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>
-          <span className={`${darkMode ? 'text-cyan-400' : 'text-purple-600'} mr-1`}>Hackathon</span>
-          <span className={`${darkMode ? 'text-cyan-200' : 'text-cyan-400'} mr-1`}>Suppport</span>
-          <span className={darkMode ? 'text-pink-500' : 'text-blue-600'}>Agent</span> v2.00
-        </div>
+        <HackthonSupportAgent />
+
       </form>
-    </div>
+    </>
   );
 }
