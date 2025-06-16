@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import uuid
 from pydantic import BaseModel
 from database import SessionLocal
-from models.project import Project
+from models.project_legacy import Project
 
 router = APIRouter()
 
