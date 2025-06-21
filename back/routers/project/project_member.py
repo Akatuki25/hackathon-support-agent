@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
 from sqlalchemy.orm import Session
 import uuid
 from pydantic import BaseModel
 from database import SessionLocal
-from models.project_base import ProjectBase, MemberBase, ProjectMember
+from models.project_base import MemberBase
 
 router = APIRouter()
 
@@ -12,6 +14,9 @@ class MemberType(BaseModel):
     member_name: str
     member_skill: str
     github_name: str
+
+    
+    
 
 # DBセッション取得用 dependency
 def get_db():
@@ -71,3 +76,5 @@ async def delete_member(github_name: str, db: Session = Depends(get_db)):
 async def list_members(db: Session = Depends(get_db)):
     members = db.query(MemberBase).all()
     return [{"member_id": m.member_id, "member_name": m.member_name, "github_name": m.github_name} for m in members]
+
+

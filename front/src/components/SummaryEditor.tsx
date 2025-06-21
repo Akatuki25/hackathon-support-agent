@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState,useRef,useEffect ,useCallback ,type ChangeEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import { Code, Terminal } from "lucide-react";
 
@@ -18,15 +18,29 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({ initialSummary, onSummary
   // 行数に基づいて動的に高さを調整
   const [lineCount, setLineCount] = useState(initialSummary.split('\n').length);
 
+    const taRef = useRef<HTMLTextAreaElement>(null);
+    const handleChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
+      const el = e.target;
+      const newValue = el.value;
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newMarkdown = e.target.value;
-    setMarkdown(newMarkdown);
-    // 行数を更新
-    setLineCount(newMarkdown.split('\n').length);
-    onSummaryChange?.(newMarkdown);
-  };
+      // 高さを自動で調整
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
 
+      // 状態を更新
+      setMarkdown(newValue);
+      setLineCount(newValue.split('\n').length);
+      onSummaryChange?.(newValue);
+    }, [onSummaryChange]);
+
+    useEffect(() => {
+      const el = taRef.current;
+      if (el) {
+        el.style.height = "auto";
+        el.style.height = `${el.scrollHeight}px`;
+      }
+      setLineCount(initialSummary.split('\n').length);
+    }, [initialSummary]);
 
   return (
     <div className="my-4">
@@ -43,14 +57,10 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({ initialSummary, onSummary
           </div>
           
           <div className="relative">
-            <textarea
+           <textarea
+              ref={taRef}
               value={markdown}
-              onChange={(e) =>{
-                // これ入れないとサイズが変わったあとに内容を削除したときなど動きがおかしい
-                e.target.style.height = 'auto';
-                // 改行に合わせて高さを変える
-                e.target.style.height = e.target.scrollHeight + 'px';
-                handleChange(e)}}
+              onChange={handleChange}
               className={`w-full p-4 rounded-md font-mono focus:outline-none transition-all ${
                 darkMode
                   ? "bg-gray-800 text-cyan-300 placeholder-gray-500 border border-pink-900 focus:ring-2 focus:ring-pink-500"
@@ -63,7 +73,9 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({ initialSummary, onSummary
                   ? "linear-gradient(to bottom, rgba(236, 72, 153, 0.05) 1px, transparent 1px)" 
                   : "linear-gradient(to bottom, rgba(147, 51, 234, 0.05) 1px, transparent 1px)",
                 backgroundSize: "1px 1.6em",
-                backgroundPosition: "0 1.6em"
+                backgroundPosition: "0 1.6em",
+                overflow: "hidden",
+                resize: "none"
               }}
             />
             

@@ -49,7 +49,8 @@ class ProjectBase(Base):
     __tablename__ ="projectBase"
     project_id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     idea = Column(String, nullable=False)
-    duration = Column(Date, nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
     num_people = Column(Integer, nullable=False)
 
     # ProjectDocumentとのリレーションシップ (任意ですが便利です)
