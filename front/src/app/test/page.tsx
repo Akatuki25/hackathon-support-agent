@@ -8,7 +8,7 @@ import PageLoading from "@/components/PageLoading";
 
     return (
         <>
-        <PageLoading/>
+            <PageLoading/>
         </>
     )
 }

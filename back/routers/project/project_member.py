@@ -5,18 +5,16 @@ from sqlalchemy.orm import Session
 import uuid
 from pydantic import BaseModel
 from database import SessionLocal
-from models.project_base import MemberBase
+from models.project_base import ProjectMember
 
 router = APIRouter()
 
 
-class MemberType(BaseModel):
-    member_name: str
-    member_skill: str
-    github_name: str
 
-    
-    
+class ProjectMemberType(BaseModel):
+    project_id: str
+    member_id: str
+    member_name:str 
 
 # DBセッション取得用 dependency
 def get_db():
@@ -26,55 +24,58 @@ def get_db():
     finally:
         db.close()
         
-@router.post("/member", summary="プロジェクト作成")
-async def create_member(member: MemberType, db: Session = Depends(get_db)):
-    member_id = str(uuid.uuid4())
-    db_member = MemberBase(
-        member_id=member_id,
-        member_name=member.member_name,
-        member_skill=member.member_skill,
-        github_name=member.github_name
+@router.post("/project_member", summary="プロジェクトメンバー作成")
+async def create_project_member(project_member: ProjectMemberType, db: Session = Depends(get_db)):
+    project_member_id = str(uuid.uuid4())
+    db_project_member = ProjectMember(
+        project_member_id=project_member_id,
+        project_id=project_member.project_id,
+        member_id=project_member.member_id,
+        menber_name=project_member.member_name
     )
-    db.add(db_member)
+    db.add(db_project_member)
     db.commit()
-    db.refresh(db_member)
-    return {"member_id": member_id, "message": "メンバーが作成されました"}
+    db.refresh(db_project_member)
+    return {"project_member_id": project_member_id, "message": "プロジェクトメンバーが作成されました"}
 
-# usernameからメンバーを取得
-@router.get("/member/{github_name}", summary="メンバー取得")
-async def get_member(github_name: str, db: Session = Depends(get_db)):
-    db_member = db.query(MemberBase).filter(MemberBase.github_name == github_name).first()
-    if db_member is None:
-        raise HTTPException(status_code=404, detail="Member not found")
-    return db_member
+@router.get("/project_member/{project_member_id}", summary="プロジェクトメンバー取得")
+async def get_project_member(project_member_id: str, db: Session = Depends(get_db)):
+    db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
+    if db_project_member is None:
+        raise HTTPException(status_code=404, detail="Project member not found")
+    return db_project_member
 
-@router.put("/member/{github_name}", summary="メンバー更新")
-async def update_member(github_name: str, member: MemberType, db: Session = Depends(get_db)):
-    db_member = db.query(MemberBase).filter(MemberBase.github_name == github_name).first()
-    if db_member is None:
-        raise HTTPException(status_code=404, detail="Member not found")
+# プロジェクトIDからプロジェクトメンバーを取得する
+@router.get("/project_member/project/{project_id}", summary="プロジェクトIDからプロジェクトメンバー取得")
+async def get_project_members_by_project_id(project_id: str, db: Session = Depends(get_db)):
+    db_project_members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
+    if not db_project_members:
+        raise HTTPException(status_code=404, detail="Project members not found")
+    return db_project_members
+
+@router.put("/project_member/{project_member_id}", summary="プロジェクトメンバー更新")
+async def update_project_member(project_member_id: str, project_member: ProjectMemberType, db: Session = Depends(get_db)):
+    db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
+    if db_project_member is None:
+        raise HTTPException(status_code=404, detail="Project member not found")
     
     # 更新処理
-    db_member.member_name = member.member_name
-    db_member.member_skill = member.member_skill
+    db_project_member.project_id = project_member.project_id
+    db_project_member.member_id = project_member.member_id
+    db_project_member.menber_name = project_member.member_name
     db.commit()
-    db.refresh(db_member)
-    return {"message": "Member updated successfully"}
-
-
-@router.delete("/member/{github_name}", summary="メンバー削除")
-async def delete_member(github_name: str, db: Session = Depends(get_db)):
-    db_member = db.query(MemberBase).filter(MemberBase.github_name == github_name).first()
-    if db_member is None:
-        raise HTTPException(status_code=404, detail="Member not found")
     
-    db.delete(db_member)
-    db.commit()
-    return {"message": "Member deleted successfully"}
+    return {"message": "プロジェクトメンバーが更新されました"}
 
-@router.get("/members", summary="全メンバー一覧取得")
-async def list_members(db: Session = Depends(get_db)):
-    members = db.query(MemberBase).all()
-    return [{"member_id": m.member_id, "member_name": m.member_name, "github_name": m.github_name} for m in members]
+@router.delete("/project_member/{project_member_id}", summary="プロジェクトメンバー削除")
+async def delete_project_member(project_member_id: str, db: Session = Depends(get_db)):
+    db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
+    if db_project_member is None:
+        raise HTTPException(status_code=404, detail="Project member not found")
+    
+    db.delete(db_project_member)
+    db.commit()
+    
+    return {"message": "プロジェクトメンバーが削除されました"}
 
 
