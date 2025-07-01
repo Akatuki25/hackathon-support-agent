@@ -16,7 +16,7 @@ class MemberBase(Base):
     member_skill = Column(String, nullable=False)
     # github Name （文字列）
     github_name = Column(String, nullable=False)
-    projects = relationship(                                # ★ 追加
+    projects = relationship( # ★ 追加
     "ProjectMember",
     back_populates="member_base",
     cascade="all, delete-orphan",
@@ -34,12 +34,10 @@ class ProjectMember(Base):
     project_id = Column(String, ForeignKey("projectBase.project_id"), nullable=False)
     # メンバーID（文字列型、外部キー）
     member_id = Column(String, ForeignKey("member.member_id"), nullable=False)
-    
-    
+    menber_name = Column(String, nullable=False)
+
     # MemberBaseとのリレーションシップ (任意ですが便利です)
     member_base = relationship("MemberBase", back_populates="projects")
-    
-    menber_name = Column(String, nullable=False)
     
     def __repr__(self):
         return f"<ProjectMember(id={self.project_member_id}, project_id={self.project_id}, member_id={self.member_id})>"
