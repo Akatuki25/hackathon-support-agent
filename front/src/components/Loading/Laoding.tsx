@@ -1,7 +1,8 @@
 import React from 'react';
+import {DarkModeType} from '@/types/componetsTypes';
 
 
-export default function Loading(darkMode: boolean) {
+export default function Loading({ darkMode }: DarkModeType) {
     return (
         <>
     <div className="flex flex-col justify-center items-center py-16">

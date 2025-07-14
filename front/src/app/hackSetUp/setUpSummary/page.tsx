@@ -90,6 +90,9 @@ const handleSummaryChange = (newSummary: string) => {
 const handleSave = () => {
     // 編集後の仕様書を sessionStorage に保存
     sessionStorage.setItem("specification", summary);
+
+
+
     router.push("/hackSetUp/selectFramework");
 };
 
