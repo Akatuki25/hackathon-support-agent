@@ -1,8 +1,8 @@
 {
-    "name": "hackson_support_agent",
+    "name": "hackathon_support_agent",
     "dockerComposeFile": "docker-compose.yml",
-    "service": "hackson_support_agent",
-    "workspaceFolder": "/workspaces/hackson_support_agent",
+    "service": "hackathon_support_agent",
+    "workspaceFolder": "/workspaces/hackathon_support_agent",
     "customizations": {
         "vscode": {
             "extensions": [

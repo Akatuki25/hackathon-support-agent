@@ -51,7 +51,7 @@ export default function CyberHeader() {
     
     return (
         <>
-      <header className="relative z-30 w-full">
+      <header className="absolute z-30 w-full">
         {/* Cyber glow effect */}
         <div className={`absolute inset-0 `}></div>
         

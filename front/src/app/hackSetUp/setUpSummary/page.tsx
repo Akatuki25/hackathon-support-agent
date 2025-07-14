@@ -107,6 +107,7 @@ return (
 
 return (
 <>
+    
     <div className="max-w-7xl mx-auto relative z-10">
     <div className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
         darkMode 
