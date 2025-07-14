@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { postMember } from "@/libs/member";
+import { postMember } from "@/libs/modelAPI/member";
 import { MemberType } from "@/types/modelTypes";
 import PageLoading from "@/components/PageLoading";
 
@@ -40,7 +40,7 @@ const MemberSettings = () => {
     await fetchMember(member); // ← ここで呼び出し！
   };
 
-  if (loading) return <PageLoading />;
+  if (loading) return <PageLoading/>;
 
   return (
     <div

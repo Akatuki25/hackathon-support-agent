@@ -51,16 +51,9 @@ export default function CyberHeader() {
     
     return (
         <>
-      <header className="absolute z-30 w-full">
+      <header className="absolute z-100 w-full">
         {/* Cyber glow effect */}
         <div className={`absolute inset-0 `}></div>
-        
-        {/* Animated border */}
-        <div className={`absolute bottom-0 left-0 right-0 h-px ${
-          darkMode 
-            ? 'bg-gradient-to-r from-transparent via-cyan-400 to-transparent' 
-            : 'bg-gradient-to-r from-transparent via-purple-500 to-transparent'
-        } animate-pulse`}></div>
         
         <div className="container mx-auto px-6 py-6 relative">
           <div className="flex items-center justify-between">
@@ -97,7 +90,12 @@ export default function CyberHeader() {
                 <span className={`text-2xl font-bold tracking-widest ${
                   darkMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400' : 'text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600'
                 } filter drop-shadow-lg`}>
-                  PLANNECT
+                  Hackathon
+                </span>
+                <span className={`text-2xl font-bold tracking-widest ${
+                  darkMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400' : 'text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600'
+                } filter drop-shadow-lg`}>
+                  SupportAgent
                 </span>
                 <span className={`text-xs font-mono tracking-wider ${
                   darkMode ? 'text-cyan-300/70' : 'text-purple-500/70'

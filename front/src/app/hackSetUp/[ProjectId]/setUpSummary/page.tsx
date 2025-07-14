@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter,usePathname } from "next/navigation";
 import SummaryEditor from "@/components/SummaryEditor";
 import {  FileText, Save, ChevronRight, Info } from "lucide-react";
-
-
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import  SaveButton  from "@/components/Buttons/SaveButton";
@@ -16,7 +14,7 @@ interface QAItem {
   Answer: string;
 }
 
-interface YumeAnswerRequest {
+interface QAItems {
     yume_answer: {
       Answer: QAItem[];
     };
@@ -24,7 +22,7 @@ interface YumeAnswerRequest {
 
 export default function SetUpSummaryPage() {
   const router = useRouter();
-  const [qaData, setQaData] = useState<YumeAnswerRequest | null>(null);
+  const [qaData, setQaData] = useState<QAItems | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +34,7 @@ const { darkMode } = useDarkMode();
       const storedQA = sessionStorage.getItem("answers");
       if (storedQA) {
         try {
-          const parsedQA: YumeAnswerRequest = JSON.parse(storedQA);
+          const parsedQA: QAItems= JSON.parse(storedQA);
           console.log("セッションストレージから読み込んだQ&Aデータ:", parsedQA);
           setQaData(parsedQA);
         } catch (error) {

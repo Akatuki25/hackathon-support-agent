@@ -1,4 +1,6 @@
-import { MemberResponseType, MemberType } from "@/types/modelTypes"
+import { MemberResponseType, MemberType} from "@/types/modelTypes"
+
+
 
 export const postMember = async (member: MemberType) => {
 

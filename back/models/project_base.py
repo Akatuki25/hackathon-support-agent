@@ -1,6 +1,6 @@
 import uuid
 from datetime import date
-from sqlalchemy import create_engine, Column, String, Integer, Text, JSON, Date, ForeignKey
+from sqlalchemy import create_engine, Column, String, Integer, Text, JSON, Date, ForeignKey,DateTime
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import os
@@ -46,9 +46,10 @@ class ProjectMember(Base):
 class ProjectBase(Base):
     __tablename__ ="projectBase"
     project_id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    title=Column(String, nullable=False)
     idea = Column(String, nullable=False)
     start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
+    end_date = Column(DateTime, nullable=False)
     num_people = Column(Integer, nullable=False)
 
     # ProjectDocumentとのリレーションシップ (任意ですが便利です)
@@ -56,7 +57,7 @@ class ProjectBase(Base):
     document = relationship("ProjectDocument", back_populates="project_base", uselist=False, cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f"<ProjectBase(id={self.project_id}, idea={self.idea}, duration={self.duration}, num_people={self.num_people})>"
+        return f"<ProjectBase(id={self.project_id}, idea={self.idea}, duration={self.start_date},{self.end_date}, num_people={self.num_people})>"
 
 class ProjectDocument(Base):
     __tablename__ = "projectDocument"

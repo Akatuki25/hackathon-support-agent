@@ -1,34 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter,usePathname } from "next/navigation";
 import {  ChevronRight, Terminal, Database, Cpu } from "lucide-react";
-
-
-
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { Question,Answers } from "@/components/AnswerText";
 import AnswerText from "@/components/AnswerText";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
+import { getProject } from "@/libs/modelAPI/project";
+import Header from "@/components/Session/Header";
 
 export default function HackQA() {
 const router = useRouter();
+const pathname = usePathname();
 const [idea, setIdea] = useState<string>("");
 const [questions, setQuestions] = useState<Question[]>([]);
 const [answers, setAnswers] = useState<Answers>({});
 const [loading, setLoading] = useState(true);
 const processingNext=false
 const { darkMode } = useDarkMode();
-
+const ProjectID = pathname.split("/")[2]; // パスから
 
 useEffect(() => {
     if (typeof window !== "undefined") {
-    const storedIdea = sessionStorage.getItem("idea");
+    const ProjectID = pathname.split("/")[2]; // パスからプロジェクトIDを取得    
+
     // キーを "questionData" で読み込むように修正
     const storedQA = sessionStorage.getItem("questionData");
-
-    if (storedIdea) {
-        setIdea(storedIdea);
+    const getProjectData = async (ProjectID:string) => {
+        try {
+            const projectData = await getProject(ProjectID);
+            console.log("プロジェクトデータ:", projectData);
+            setIdea(projectData.idea || "");
+        } catch (error) {
+            console.error("プロジェクトデータの取得に失敗:", error);
+            setIdea("プロジェクトのアイデアが取得できませんでした");
+        }
+    }
+    getProjectData(ProjectID);
+    if (ProjectID) {
         if (storedQA) {
         try {
             const data = JSON.parse(storedQA);
@@ -53,7 +63,7 @@ useEffect(() => {
         }
         setLoading(false);
     } else {
-        console.log("アイデアがセッションストレージにないため、ホームに戻ります");
+        console.log("IDを取得することができなかったです。");
         router.push("/");
     }
     }
@@ -76,11 +86,14 @@ const handleSave = () => {
     
     console.log("formattedQA:", formattedQA);
     // 画面遷移
-    router.push("/hackSetUp/setUpSummary");
+    router.push(`/hackSetUp/${ProjectID}/setUpSummary`);
 };
 
 return (
     <>
+    <div className="w-full top-0 left-0 right-0 z-99 absolute">
+            <Header />
+        </div>
 
     {/* mainのカラーを透明にする */}
     <main className="relative z-10">

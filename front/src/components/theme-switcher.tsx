@@ -21,7 +21,7 @@ export default function ThemeSwitcher() {
   return (
       <button 
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
-        className={`absolute top-6 right-6 p-3 rounded-full transition-all z-10 ${
+        className={`absolute top-6 right-6 p-3 rounded-full transition-all z-100 ${
           theme === 'dark' 
             ? 'bg-gray-800 hover:bg-gray-700 text-yellow-300' 
             : 'bg-gray-200 hover:bg-gray-300 text-indigo-600'

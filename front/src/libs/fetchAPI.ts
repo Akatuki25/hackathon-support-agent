@@ -1,10 +1,6 @@
 
 
-export const postQuestion = async ( idea: string, duration : string , numPeople : string) => {
-  
-    // 入力内容をひとつのテキストにまとめる
-    const promptText = `アイデア: ${idea} 期間: ${duration} 人数: ${numPeople}`;
-  
+export const postQuestion = async ( promptText:string) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     
     const response = await fetch(`${apiUrl}/api/question/`, {
@@ -29,3 +25,4 @@ export const postQuestion = async ( idea: string, duration : string , numPeople 
     }
     return formattedData;
 }
+

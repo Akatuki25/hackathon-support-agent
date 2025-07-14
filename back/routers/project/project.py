@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from datetime import date
+from datetime import date,datetime
 
 from sqlalchemy.orm import Session
 import uuid
@@ -10,9 +10,10 @@ from models.project_base import ProjectBase
 router = APIRouter()
     
 class ProjectBaseType(BaseModel):
+    title:str
     idea: str
     start_date: date
-    end_date: date
+    end_date: datetime
     num_people: int
 
 # DBセッション取得用 dependency
@@ -27,6 +28,7 @@ def get_db():
 async def create_project(project: ProjectBaseType, db: Session = Depends(get_db)):
     project_id = str(uuid.uuid4())
     db_project = ProjectBase(
+        title=project.title,
         project_id=project_id,
         idea=project.idea,
         start_date=project.start_date,
@@ -69,3 +71,11 @@ async def delete_project(project_id: str, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "プロジェクトが削除されました"}
+
+@router.get("/projectsAll", summary="全プロジェクト取得")
+async def get_all_projects(db: Session = Depends(get_db)):  
+    db_projects = db.query(ProjectBase).all()
+    if not db_projects:
+        raise HTTPException(status_code=404, detail="No projects found")
+    
+    return db_projects
