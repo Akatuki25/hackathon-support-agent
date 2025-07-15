@@ -15,8 +15,8 @@ export type ProjectType = {
     Id ?: UUID;
     title: string;
     idea: string;
-    start_date: String;
-    end_date: String;
+    start_date: string;
+    end_date: string;
     num_people: number;
 }
 
