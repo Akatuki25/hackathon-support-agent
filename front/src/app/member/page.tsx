@@ -17,9 +17,10 @@ const MemberSettings = () => {
     github_name: "",
   });
 
-  const handleChange = (field: keyof MemberType) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMember({ ...member, [field]: e.target.value });
-  };
+  const handleChange =
+    (field: keyof MemberType) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setMember({ ...member, [field]: e.target.value });
+    };
 
   const fetchMember = async (member: MemberType) => {
     try {
@@ -40,7 +41,7 @@ const MemberSettings = () => {
     await fetchMember(member); // ← ここで呼び出し！
   };
 
-  if (loading) return <PageLoading/>;
+  if (loading) return <PageLoading />;
 
   return (
     <div
@@ -90,7 +91,9 @@ const MemberSettings = () => {
         <button
           type="submit"
           className={`w-full py-2 rounded text-white font-semibold ${
-            darkMode ? "bg-cyan-500 hover:bg-cyan-600" : "bg-purple-500 hover:bg-purple-600"
+            darkMode
+              ? "bg-cyan-500 hover:bg-cyan-600"
+              : "bg-purple-500 hover:bg-purple-600"
           } transition`}
         >
           Register

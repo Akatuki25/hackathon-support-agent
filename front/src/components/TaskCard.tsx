@@ -57,11 +57,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isDarkMode = true }) => {
   };
 
   return (
-    <div 
+    <div
       className={`rounded-lg transition-all border-l-4 shadow-lg ${getPriorityStyles()} ${
-        isDarkMode 
-          ? 'bg-gray-800/80 hover:bg-gray-700/80' 
-          : 'bg-white hover:bg-gray-50'
+        isDarkMode
+          ? "bg-gray-800/80 hover:bg-gray-700/80"
+          : "bg-white hover:bg-gray-50"
       }`}
     >
       <div className="p-5 relative overflow-hidden">
@@ -71,41 +71,50 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isDarkMode = true }) => {
             <path d="M0,50 L50,0 L100,50 L50,100 Z" />
           </svg>
         </div>
-        
+
         {/* タイトルと優先度 */}
         <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-          <h2 className={`text-xl font-bold ${
-            isDarkMode ? 'text-cyan-300' : 'text-blue-700'
-          }`}>
+          <h2
+            className={`text-xl font-bold ${
+              isDarkMode ? "text-cyan-300" : "text-blue-700"
+            }`}
+          >
             {task.task_name}
           </h2>
-          
-          <div className={`inline-flex items-center px-2 py-1 rounded text-sm font-medium ${
-            isDarkMode 
-              ? 'bg-gray-700' 
-              : 'bg-gray-100'
-          }`}>
+
+          <div
+            className={`inline-flex items-center px-2 py-1 rounded text-sm font-medium ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-100"
+            }`}
+          >
             {getPriorityIcon()}
             <span>優先度: {task.priority}</span>
           </div>
         </div>
-        
+
         {/* タスク内容 */}
-        <div className={`mt-3 ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
+        <div
+          className={`mt-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+        >
           <div className="flex items-start">
-            <Check size={18} className={`mt-1 mr-2 flex-shrink-0 ${
-              isDarkMode ? 'text-pink-500' : 'text-purple-600'
-            }`} />
+            <Check
+              size={18}
+              className={`mt-1 mr-2 flex-shrink-0 ${
+                isDarkMode ? "text-pink-500" : "text-purple-600"
+              }`}
+            />
             <p>{task.content}</p>
           </div>
         </div>
-        
+
         {/* 下部デコレーション */}
-        <div className={`absolute bottom-0 left-0 right-0 h-px opacity-20 ${
-          isDarkMode ? 'bg-gradient-to-r from-cyan-500 via-transparent to-pink-500' : 'bg-gradient-to-r from-blue-500 via-transparent to-purple-500'
-        }`}></div>
+        <div
+          className={`absolute bottom-0 left-0 right-0 h-px opacity-20 ${
+            isDarkMode
+              ? "bg-gradient-to-r from-cyan-500 via-transparent to-pink-500"
+              : "bg-gradient-to-r from-blue-500 via-transparent to-purple-500"
+          }`}
+        ></div>
       </div>
     </div>
   );
