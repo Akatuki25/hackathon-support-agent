@@ -7,6 +7,9 @@ import {  FileText, Save, ChevronRight, Info } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import  SaveButton  from "@/components/Buttons/SaveButton";
+import { ProjectDocumentType } from "@/types/modelTypes";
+import { postDocument } from "@/libs/modelAPI/document";
+import path from "path";
 
 
 interface QAItem {
@@ -25,6 +28,9 @@ export default function SetUpSummaryPage() {
   const [qaData, setQaData] = useState<QAItems | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const projectId = pathname.split("/")[2]; // [ProjectId]の部分を
+  
 
 const { darkMode } = useDarkMode();
 
@@ -85,13 +91,26 @@ const handleSummaryChange = (newSummary: string) => {
     console.log("newSummary:", newSummary);
 };
 
-const handleSave = () => {
+const handleSave = async () => {
     // 編集後の仕様書を sessionStorage に保存
+
     sessionStorage.setItem("specification", summary);
+    // 仕様書をAPIに送信
+    const ID =await postDocument({
+        project_id: projectId,
+        specification_doc: summary,
+        frame_work_doc : "",
+        directory_info : "",
+    });
+    if (!ID) {
+        console.error("仕様書の保存に失敗しました");
+        return;
+    }
+    console.log("仕様書の保存に成功:", ID);
 
 
 
-    router.push("/hackSetUp/selectFramework");
+    router.push("/hackSetUp/{ID}/selectFramework");
 };
 
 if (loading) {

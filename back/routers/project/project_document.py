@@ -42,6 +42,7 @@ async def create_project_document(document: ProjectDocumentType, db: Session = D
 
 @router.get("/project_document/{project_id}", summary="プロジェクトドキュメント取得")
 async def get_project_document(project_id: uuid.UUID, db: Session = Depends(get_db)):
+    # project_idに基づいて最新のドキュメントを取得する
     db_document = db.query(ProjectDocument).filter(ProjectDocument.project_id == project_id).first()
     if db_document is None:
         raise HTTPException(status_code=404, detail="Project document not found")

@@ -21,7 +21,7 @@ export type ProjectType = {
 }
 
 export type ProjectDocumentType = {
-    project_id: UUID;
+    project_id ?: string;
     specification_doc: string;
     frame_work_doc: string;
     directory_info : string;
