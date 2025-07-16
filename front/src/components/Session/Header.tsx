@@ -112,7 +112,7 @@ export default function CyberHeader() {
 
               <div className="flex flex-col">
                 <span
-                  className={`text-2xl font-bold tracking-widest ${
+                  className={`text-xl font-bold tracking-widest ${
                     darkMode
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400"
                       : "text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600"
@@ -121,7 +121,7 @@ export default function CyberHeader() {
                   Hackathon
                 </span>
                 <span
-                  className={`text-2xl font-bold tracking-widest ${
+                  className={`text-1xl font-bold tracking-widest ${
                     darkMode
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400"
                       : "text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600"

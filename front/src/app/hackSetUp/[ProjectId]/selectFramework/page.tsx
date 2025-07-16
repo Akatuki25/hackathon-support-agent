@@ -207,7 +207,7 @@ export default function SelectFrameworkPage() {
     setSelectedNativeFramework(null);
   }, [platform]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     let frameworkInfo = "";
 
     if (platform === "Web") {
@@ -216,27 +216,29 @@ export default function SelectFrameworkPage() {
         return;
       }
       frameworkInfo = `
-【フレームワーク選定】
-プラットフォーム: Web
-フロントエンド: ${selectedFrontend.name}（優先順位: ${selectedFrontend.priority}、理由: ${selectedFrontend.reason}）
-バックエンド: ${selectedBackend.name}（優先順位: ${selectedBackend.priority}、理由: ${selectedBackend.reason}）
-`;
+              【フレームワーク選定】
+              プラットフォーム: Web
+              フロントエンド: ${selectedFrontend.name}（優先順位: ${selectedFrontend.priority}、理由: ${selectedFrontend.reason}）
+              バックエンド: ${selectedBackend.name}（優先順位: ${selectedBackend.priority}、理由: ${selectedBackend.reason}）
+              `;
     } else {
       if (!selectedNativeFramework) {
         alert("フレームワークを選択してください");
         return;
       }
       frameworkInfo = `
-【フレームワーク選定】
-プラットフォーム: ${platform}
-選択フレームワーク: ${selectedNativeFramework.name}
-説明: ${selectedNativeFramework.description}
-メリット: ${selectedNativeFramework.pros.join(", ")}
-デメリット: ${selectedNativeFramework.cons.join(", ")}
+            【フレームワーク選定】
+            プラットフォーム: ${platform}
+            選択フレームワーク: ${selectedNativeFramework.name}
+            説明: ${selectedNativeFramework.description}
+            メリット: ${selectedNativeFramework.pros.join(", ")}
+            デメリット: ${selectedNativeFramework.cons.join(", ")}
 `;
     }
 
     sessionStorage.setItem("framework", frameworkInfo);
+    
+    
     router.push("/hackSetUp/taskDivision");
   };
 
