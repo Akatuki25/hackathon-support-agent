@@ -7,7 +7,6 @@ import { FileText, Save, ChevronRight, Info } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import SaveButton from "@/components/Buttons/SaveButton";
-import { ProjectDocumentType } from "@/types/modelTypes";
 import { postDocument } from "@/libs/modelAPI/document";
 import Header from "@/components/Session/Header";
 
@@ -99,6 +98,7 @@ export default function SetUpSummaryPage() {
     const ID = await postDocument({
       project_id: projectId,
       specification_doc: summary,
+      specification: "",
       frame_work_doc: "",
       directory_info: "",
     });

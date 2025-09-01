@@ -2,6 +2,8 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import ResponseSchema
 from langchain_core.output_parsers import StrOutputParser
 from .base_service import BaseService
+# StructuredOutputParserをインポート
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 
 class FrameworkService(BaseService):
     def __init__(self):

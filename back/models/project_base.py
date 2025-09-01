@@ -70,6 +70,7 @@ class ProjectDocument(Base):
 
     doc_id      = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id  = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"), nullable=False, index=True)
+    specification = Column(Text, nullable=False)
     specification_doc = Column(Text, nullable=False)
     frame_work_doc    = Column(Text, nullable=False)
     directory_info    = Column(Text, nullable=False)

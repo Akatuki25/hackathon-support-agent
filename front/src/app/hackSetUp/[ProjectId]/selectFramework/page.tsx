@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter,usePathname } from "next/navigation";
 import {
   Code,
   Server,
@@ -12,20 +12,18 @@ import {
   Terminal,
   Database,
   Cpu,
+  Sparkles,
+  Book,
 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
+import { patchDocument } from "@/libs/modelAPI/document";
 
-type FrameworkProposal = {
+type Framework = {
   name: string;
-  priority: number;
-  reason: string;
-};
-
-type FrameworkResponse = {
-  frontend: FrameworkProposal[];
-  backend: FrameworkProposal[];
+  description: string;
+  category: "frontend" | "backend";
 };
 
 type NativeFramework = {
@@ -35,24 +33,71 @@ type NativeFramework = {
   cons: string[];
 };
 
+// Webフレームワークの定義（フロントエンド・バックエンド各20個）
+const webFrameworks: Framework[] = [
+  // フロントエンド
+  { name: "React", description: "Facebookが開発したコンポーネントベースのUIライブラリ。仮想DOMによる高速レンダリング", category: "frontend" },
+  { name: "Vue.js", description: "段階的に採用可能な進歩的なJavaScriptフレームワーク。学習曲線が緩やか", category: "frontend" },
+  { name: "Angular", description: "Googleが開発したTypeScript製の本格的なフロントエンドフレームワーク", category: "frontend" },
+  { name: "Next.js", description: "React用のフルスタックフレームワーク。SSR/SSG対応で高速", category: "frontend" },
+  { name: "Nuxt.js", description: "Vue.js用のフルスタックフレームワーク。自動ルーティング機能付き", category: "frontend" },
+  { name: "Svelte", description: "コンパイル時に最適化される革新的なフレームワーク。軽量で高速", category: "frontend" },
+  { name: "SvelteKit", description: "Svelteのフルスタックフレームワーク。モダンなWeb開発に最適", category: "frontend" },
+  { name: "Remix", description: "React用の新しいフルスタックフレームワーク。Web標準に準拠", category: "frontend" },
+  { name: "Gatsby", description: "React製の静的サイトジェネレーター。高速なパフォーマンス", category: "frontend" },
+  { name: "Astro", description: "マルチフレームワーク対応の静的サイトビルダー。アイランドアーキテクチャ採用", category: "frontend" },
+  { name: "Solid.js", description: "リアクティブで高性能なUIライブラリ。仮想DOMを使わない", category: "frontend" },
+  { name: "Alpine.js", description: "軽量なJavaScriptフレームワーク。HTMLに直接記述可能", category: "frontend" },
+  { name: "Preact", description: "Reactの軽量版代替。3KBの超軽量サイズ", category: "frontend" },
+  { name: "Ember.js", description: "規約重視の成熟したフレームワーク。大規模アプリに適合", category: "frontend" },
+  { name: "Lit", description: "Web Componentsベースの軽量フレームワーク。標準準拠", category: "frontend" },
+  { name: "Qwik", description: "レジューマビリティを実現する革新的フレームワーク", category: "frontend" },
+  { name: "Vite", description: "高速な開発環境を提供するビルドツール。HMR対応", category: "frontend" },
+  { name: "Webpack", description: "強力で柔軟なモジュールバンドラー。高度なカスタマイズ可能", category: "frontend" },
+  { name: "Parcel", description: "設定不要のWebアプリケーションバンドラー", category: "frontend" },
+  { name: "Turbopack", description: "Next.js用の高速バンドラー。Rustで実装", category: "frontend" },
+  
+  // バックエンド
+  { name: "Node.js + Express", description: "JavaScriptでサーバーサイド開発。軽量で柔軟なWebフレームワーク", category: "backend" },
+  { name: "Django", description: "Python製の高機能Webフレームワーク。管理画面付き", category: "backend" },
+  { name: "Ruby on Rails", description: "Ruby製のフルスタックWebフレームワーク。規約重視で生産性が高い", category: "backend" },
+  { name: "Spring Boot", description: "Java製のエンタープライズ向けフレームワーク。マイクロサービス対応", category: "backend" },
+  { name: "FastAPI", description: "Python製の高速APIフレームワーク。自動ドキュメント生成", category: "backend" },
+  { name: "NestJS", description: "TypeScript製のNode.jsフレームワーク。エンタープライズ対応", category: "backend" },
+  { name: "Laravel", description: "PHP製の人気Webフレームワーク。エレガントな構文", category: "backend" },
+  { name: "ASP.NET Core", description: "Microsoft製のクロスプラットフォームフレームワーク", category: "backend" },
+  { name: "Flask", description: "Python製の軽量Webフレームワーク。シンプルで拡張性が高い", category: "backend" },
+  { name: "Gin", description: "Go言語製の高速Webフレームワーク。マイクロサービス向け", category: "backend" },
+  { name: "Fiber", description: "Go言語製のExpress風フレームワーク。超高速", category: "backend" },
+  { name: "Phoenix", description: "Elixir製のリアルタイムWebフレームワーク。高い並行性", category: "backend" },
+  { name: "Koa", description: "Express開発チームによる次世代Node.jsフレームワーク", category: "backend" },
+  { name: "Fastify", description: "Node.js製の高速Webフレームワーク。プラグインアーキテクチャ", category: "backend" },
+  { name: "Hono", description: "エッジ環境対応の超軽量Webフレームワーク", category: "backend" },
+  { name: "Deno", description: "TypeScript/JavaScript用の安全なランタイム", category: "backend" },
+  { name: "Bun", description: "JavaScript/TypeScript用の高速オールインワンツールキット", category: "backend" },
+  { name: "Actix Web", description: "Rust製の高性能Webフレームワーク", category: "backend" },
+  { name: "Rocket", description: "Rust製の使いやすいWebフレームワーク", category: "backend" },
+  { name: "Echo", description: "Go言語製のミニマルで高性能なWebフレームワーク", category: "backend" },
+];
+
 export default function SelectFrameworkPage() {
   const router = useRouter();
   const { darkMode } = useDarkMode();
   const [platform, setPlatform] = useState<
     "Web" | "Android" | "iOS" | "MultiPlatform"
   >("Web");
-  const [frameworkData, setFrameworkData] = useState<FrameworkResponse | null>(
-    null,
-  );
-  const [loading, setLoading] = useState(false);
-  const [selectedFrontend, setSelectedFrontend] =
-    useState<FrameworkProposal | null>(null);
-  const [selectedBackend, setSelectedBackend] =
-    useState<FrameworkProposal | null>(null);
-  const [selectedNativeFramework, setSelectedNativeFramework] =
-    useState<NativeFramework | null>(null);
+  const [selectedFrontend, setSelectedFrontend] = useState<Framework | null>(null);
+  const [selectedBackend, setSelectedBackend] = useState<Framework | null>(null);
+  const [selectedNativeFramework, setSelectedNativeFramework] = useState<NativeFramework | null>(null);
   const [specification, setSpecification] = useState<string>("");
-  const processingNext = false;
+  const [activeTab, setActiveTab] = useState<"ai" | "manual">("ai");
+  const [path, setPath] = usePathname();
+
+  // AIのおすすめ（モック）
+  const [aiRecommendations] = useState({
+    frontend: ["Next.js", "React", "Vue.js"],
+    backend: ["Node.js + Express", "FastAPI", "Django"]
+  });
 
   // プラットフォーム別のフレームワーク定義
   const nativeFrameworks = {
@@ -180,26 +225,6 @@ export default function SelectFrameworkPage() {
     }
   }, [router]);
 
-  // Webプラットフォーム選択時のAPI呼び出し
-  useEffect(() => {
-    if (specification && platform === "Web" && !frameworkData) {
-      setLoading(true);
-      fetch(process.env.NEXT_PUBLIC_API_URL + "/api/framework/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ specification }),
-      })
-        .then((res) => res.json())
-        .then((data: FrameworkResponse) => {
-          data.frontend.sort((a, b) => a.priority - b.priority);
-          data.backend.sort((a, b) => a.priority - b.priority);
-          setFrameworkData(data);
-        })
-        .catch((err) => console.error("Framework API エラー:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [specification, platform, frameworkData]);
-
   // プラットフォーム変更時の状態リセット
   useEffect(() => {
     setSelectedFrontend(null);
@@ -216,30 +241,32 @@ export default function SelectFrameworkPage() {
         return;
       }
       frameworkInfo = `
-              【フレームワーク選定】
-              プラットフォーム: Web
-              フロントエンド: ${selectedFrontend.name}（優先順位: ${selectedFrontend.priority}、理由: ${selectedFrontend.reason}）
-              バックエンド: ${selectedBackend.name}（優先順位: ${selectedBackend.priority}、理由: ${selectedBackend.reason}）
-              `;
+      【フレームワーク選定】
+      プラットフォーム: Web
+      フロントエンド: ${selectedFrontend.name}
+      説明: ${selectedFrontend.description}
+      バックエンド: ${selectedBackend.name}
+      説明: ${selectedBackend.description}
+      `;
     } else {
       if (!selectedNativeFramework) {
         alert("フレームワークを選択してください");
         return;
       }
       frameworkInfo = `
-            【フレームワーク選定】
-            プラットフォーム: ${platform}
-            選択フレームワーク: ${selectedNativeFramework.name}
-            説明: ${selectedNativeFramework.description}
-            メリット: ${selectedNativeFramework.pros.join(", ")}
-            デメリット: ${selectedNativeFramework.cons.join(", ")}
-`;
+      【フレームワーク選定】
+      プラットフォーム: ${platform}
+      選択フレームワーク: ${selectedNativeFramework.name}
+      説明: ${selectedNativeFramework.description}
+      メリット: ${selectedNativeFramework.pros.join(", ")}
+      デメリット: ${selectedNativeFramework.cons.join(", ")}
+      `;
     }
-
-    sessionStorage.setItem("framework", frameworkInfo);
-    
-    
-    router.push("/hackSetUp/taskDivision");
+    const projectId = path.split("/")[2];
+    patchDocument(projectId, {
+      specification: frameworkInfo,
+    });
+    router.push(`/hackSetUp/${projectId}/frameWorkSummary`);
   };
 
   const currentNativeFrameworks =
@@ -247,13 +274,16 @@ export default function SelectFrameworkPage() {
       ? nativeFrameworks[platform as keyof typeof nativeFrameworks]
       : [];
 
+  // フロントエンドとバックエンドのフレームワークを分離
+  const frontendFrameworks = webFrameworks.filter(fw => fw.category === "frontend");
+  const backendFrameworks = webFrameworks.filter(fw => fw.category === "backend");
+
   return (
     <>
       <div className="w-full top-0 left-0 right-0 z-99 absolute">
         <Header />
       </div>
 
-      {/* mainのカラーを透明にする */}
       <main className="relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -273,7 +303,7 @@ export default function SelectFrameworkPage() {
             <p
               className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
             >
-              プロジェクトに最適なフレームワークを選択してください。推奨順にリストアップされています。
+              プロジェクトに最適なフレームワークを選択してください
             </p>
           </div>
 
@@ -332,23 +362,46 @@ export default function SelectFrameworkPage() {
 
             {/* Framework Selection */}
             {platform === "Web" ? (
-              loading ? (
-                <div className="flex flex-col justify-center items-center py-16">
-                  <div
-                    className={`animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${
-                      darkMode ? "border-cyan-500" : "border-purple-500"
-                    }`}
-                  ></div>
-                  <p
-                    className={`mt-4 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
-                  >
-                    フレームワーク情報を解析中...
-                  </p>
+              <>
+                {/* Tab Selection */}
+                <div className="mb-6">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setActiveTab("ai")}
+                      className={`px-6 py-3 rounded-lg flex items-center transition-all ${
+                        activeTab === "ai"
+                          ? darkMode
+                            ? "bg-gradient-to-r from-cyan-500 to-pink-500 text-gray-900"
+                            : "bg-gradient-to-r from-purple-500 to-blue-600 text-white"
+                          : darkMode
+                            ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            : "bg-gray-200 hover:bg-gray-300"
+                      }`}
+                    >
+                      <Sparkles size={16} className="mr-2" />
+                      AIおすすめ
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("manual")}
+                      className={`px-6 py-3 rounded-lg flex items-center transition-all ${
+                        activeTab === "manual"
+                          ? darkMode
+                            ? "bg-gradient-to-r from-cyan-500 to-pink-500 text-gray-900"
+                            : "bg-gradient-to-r from-purple-500 to-blue-600 text-white"
+                          : darkMode
+                            ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            : "bg-gray-200 hover:bg-gray-300"
+                      }`}
+                    >
+                      <Book size={16} className="mr-2" />
+                      手動選択
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                frameworkData && (
+
+                {activeTab === "ai" ? (
+                  // AI Recommendations Tab
                   <>
-                    {/* Frontend */}
                     <div className="mb-8">
                       <h2
                         className={`text-xl font-medium mb-4 flex items-center ${
@@ -361,10 +414,135 @@ export default function SelectFrameworkPage() {
                             darkMode ? "text-pink-500" : "text-blue-600"
                           }`}
                         />
-                        フロントエンド：
+                        AIおすすめフロントエンド：
                       </h2>
                       <div className="space-y-4">
-                        {frameworkData.frontend.map((fw, idx) => (
+                        {aiRecommendations.frontend.map((fwName, idx) => {
+                          const fw = frontendFrameworks.find(f => f.name === fwName);
+                          if (!fw) return null;
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => setSelectedFrontend(fw)}
+                              className={`p-4 rounded-lg transition-all cursor-pointer border-l-4 ${
+                                selectedFrontend?.name === fw.name
+                                  ? darkMode
+                                    ? "bg-gray-700 border-cyan-500 shadow-lg shadow-cyan-500/10"
+                                    : "bg-white border-blue-500 shadow-lg shadow-blue-500/10"
+                                  : darkMode
+                                    ? "bg-gray-800 border-gray-700 hover:bg-gray-700"
+                                    : "bg-gray-50 border-gray-200 hover:bg-white"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <div
+                                    className={`font-bold text-lg ${darkMode ? "text-cyan-300" : "text-blue-700"}`}
+                                  >
+                                    {fw.name}
+                                  </div>
+                                  <p
+                                    className={`mt-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                                  >
+                                    {fw.description}
+                                  </p>
+                                </div>
+                                <div
+                                  className={`px-3 py-1 rounded-full text-sm ${
+                                    darkMode
+                                      ? "bg-pink-900 text-pink-300"
+                                      : "bg-purple-100 text-purple-800"
+                                  }`}
+                                >
+                                  推奨 #{idx + 1}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="mb-8">
+                      <h2
+                        className={`text-xl font-medium mb-4 flex items-center ${
+                          darkMode ? "text-cyan-400" : "text-purple-700"
+                        }`}
+                      >
+                        <Server
+                          size={18}
+                          className={`mr-2 ${
+                            darkMode ? "text-pink-500" : "text-blue-600"
+                          }`}
+                        />
+                        AIおすすめバックエンド：
+                      </h2>
+                      <div className="space-y-4">
+                        {aiRecommendations.backend.map((fwName, idx) => {
+                          const fw = backendFrameworks.find(f => f.name === fwName);
+                          if (!fw) return null;
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => setSelectedBackend(fw)}
+                              className={`p-4 rounded-lg transition-all cursor-pointer border-l-4 ${
+                                selectedBackend?.name === fw.name
+                                  ? darkMode
+                                    ? "bg-gray-700 border-pink-500 shadow-lg shadow-pink-500/10"
+                                    : "bg-white border-purple-500 shadow-lg shadow-purple-500/10"
+                                  : darkMode
+                                    ? "bg-gray-800 border-gray-700 hover:bg-gray-700"
+                                    : "bg-gray-50 border-gray-200 hover:bg-white"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <div
+                                    className={`font-bold text-lg ${darkMode ? "text-pink-300" : "text-purple-700"}`}
+                                  >
+                                    {fw.name}
+                                  </div>
+                                  <p
+                                    className={`mt-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                                  >
+                                    {fw.description}
+                                  </p>
+                                </div>
+                                <div
+                                  className={`px-3 py-1 rounded-full text-sm ${
+                                    darkMode
+                                      ? "bg-cyan-900 text-cyan-300"
+                                      : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  推奨 #{idx + 1}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  // Manual Selection Tab
+                  <>
+                    <div className="mb-8">
+                      <h2
+                        className={`text-xl font-medium mb-4 flex items-center ${
+                          darkMode ? "text-cyan-400" : "text-purple-700"
+                        }`}
+                      >
+                        <Code
+                          size={18}
+                          className={`mr-2 ${
+                            darkMode ? "text-pink-500" : "text-blue-600"
+                          }`}
+                        />
+                        フロントエンドフレームワーク：
+                      </h2>
+                      <div className="grid gap-3 max-h-96 overflow-y-auto pr-2">
+                        {frontendFrameworks.map((fw, idx) => (
                           <div
                             key={idx}
                             onClick={() => setSelectedFrontend(fw)}
@@ -378,33 +556,21 @@ export default function SelectFrameworkPage() {
                                   : "bg-gray-50 border-gray-200 hover:bg-white"
                             }`}
                           >
-                            <div className="flex flex-wrap justify-between items-start gap-2">
-                              <div
-                                className={`font-bold text-lg ${darkMode ? "text-cyan-300" : "text-blue-700"}`}
-                              >
-                                {fw.name}
-                              </div>
-                              <div
-                                className={`px-2 py-0.5 rounded text-sm ${
-                                  darkMode
-                                    ? "bg-pink-900 text-pink-300"
-                                    : "bg-purple-100 text-purple-800"
-                                }`}
-                              >
-                                優先度: {fw.priority}
-                              </div>
+                            <div
+                              className={`font-bold text-lg ${darkMode ? "text-cyan-300" : "text-blue-700"}`}
+                            >
+                              {fw.name}
                             </div>
                             <p
-                              className={`mt-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                              className={`mt-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
                             >
-                              {fw.reason}
+                              {fw.description}
                             </p>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Backend */}
                     <div className="mb-8">
                       <h2
                         className={`text-xl font-medium mb-4 flex items-center ${
@@ -417,10 +583,10 @@ export default function SelectFrameworkPage() {
                             darkMode ? "text-pink-500" : "text-blue-600"
                           }`}
                         />
-                        バックエンド：
+                        バックエンドフレームワーク：
                       </h2>
-                      <div className="space-y-4">
-                        {frameworkData.backend.map((fw, idx) => (
+                      <div className="grid gap-3 max-h-96 overflow-y-auto pr-2">
+                        {backendFrameworks.map((fw, idx) => (
                           <div
                             key={idx}
                             onClick={() => setSelectedBackend(fw)}
@@ -434,34 +600,23 @@ export default function SelectFrameworkPage() {
                                   : "bg-gray-50 border-gray-200 hover:bg-white"
                             }`}
                           >
-                            <div className="flex flex-wrap justify-between items-start gap-2">
-                              <div
-                                className={`font-bold text-lg ${darkMode ? "text-pink-300" : "text-purple-700"}`}
-                              >
-                                {fw.name}
-                              </div>
-                              <div
-                                className={`px-2 py-0.5 rounded text-sm ${
-                                  darkMode
-                                    ? "bg-cyan-900 text-cyan-300"
-                                    : "bg-blue-100 text-blue-800"
-                                }`}
-                              >
-                                優先度: {fw.priority}
-                              </div>
+                            <div
+                              className={`font-bold text-lg ${darkMode ? "text-pink-300" : "text-purple-700"}`}
+                            >
+                              {fw.name}
                             </div>
                             <p
-                              className={`mt-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                              className={`mt-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
                             >
-                              {fw.reason}
+                              {fw.description}
                             </p>
                           </div>
                         ))}
                       </div>
                     </div>
                   </>
-                )
-              )
+                )}
+              </>
             ) : (
               <div className="mb-8">
                 <h2
@@ -568,36 +723,59 @@ export default function SelectFrameworkPage() {
               </div>
             )}
 
+            {/* Selected Frameworks Display */}
+            {platform === "Web" && (selectedFrontend || selectedBackend) && (
+              <div className={`mt-6 p-4 rounded-lg ${
+                darkMode 
+                  ? "bg-gray-900 bg-opacity-50 border border-cyan-500/20"
+                  : "bg-gray-100 bg-opacity-50 border border-purple-500/20"
+              }`}>
+                <h3 className={`text-sm font-bold mb-2 ${
+                  darkMode ? "text-cyan-400" : "text-purple-700"
+                }`}>
+                  現在の選択:
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {selectedFrontend && (
+                    <div className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      <span className={`font-medium ${darkMode ? "text-pink-400" : "text-blue-600"}`}>
+                        フロントエンド: 
+                      </span> {selectedFrontend.name}
+                    </div>
+                  )}
+                  {selectedBackend && (
+                    <div className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      <span className={`font-medium ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>
+                        バックエンド: 
+                      </span> {selectedBackend.name}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Confirm Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-8">
               <button
                 onClick={handleConfirm}
                 className={`px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
                   darkMode
                     ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
                     : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                } ${
+                  (platform === "Web" && (!selectedFrontend || !selectedBackend)) ||
+                  (platform !== "Web" && !selectedNativeFramework)
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
                 disabled={
                   platform === "Web"
                     ? !selectedFrontend || !selectedBackend
-                    : !selectedNativeFramework || processingNext
+                    : !selectedNativeFramework
                 }
               >
-                {processingNext ? (
-                  <div className="flex items-center">
-                    <div
-                      className={`animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 ${
-                        darkMode ? "border-gray-900" : "border-white"
-                      } mr-2`}
-                    ></div>
-                    処理中...
-                  </div>
-                ) : (
-                  <>
-                    <span>決定</span>
-                    <ChevronRight size={18} className="ml-2" />
-                  </>
-                )}
+                <span>決定</span>
+                <ChevronRight size={18} className="ml-2" />
               </button>
             </div>
           </div>
