@@ -1,6 +1,9 @@
 from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain.output_parsers import ResponseSchema
+from langchain_core.output_parsers import StrOutputParser
 from .base_service import BaseService
+# StructuredOutputParserをインポート
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 
 class FrameworkService(BaseService):
     def __init__(self):
@@ -42,4 +45,30 @@ class FrameworkService(BaseService):
 
         chain = prompt_template | self.llm_flash | parser
         result = chain.invoke({"specification": specification})
+        return result
+    def generate_framework_document(self, specification: str,framework:str):
+        """
+        仕様書の内容に基づき、固定のフロントエンド候補
+        およびバックエンド候補の選択肢かを選んだものからそのフレームワークに沿った技術要件書を作成する。
+        """
+        
+        prompt_template = ChatPromptTemplate.from_template(
+            template="""
+                あなたはプロダクト開発のエキスパートです。以下の仕様書の内容と、今回ユーザーが選定した技術要件の内容からフレームワークに沿った技術要件書を作成してください。
+                以下は仕様書と技術要件書の内容です。
+                仕様書:
+                {specification}
+                技術選定：
+                {frame_work}
+                技術要件書のフォーマット:
+                マークダウン形式の仕様書のみを返してください。それ以外を含めてはいけません。
+                ```markdown
+                ```
+                という風に囲むの必要はありません。
+                
+            """
+        )
+
+        chain = prompt_template | self.llm_flash | StrOutputParser()
+        result = chain.invoke({"specification": specification,"frame_work":framework})
         return result

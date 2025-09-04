@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+- 技術選定の部分はAIが選んでくれた方が圧倒的にUXとしていいな。これとこれがいいですよと推薦してくれる感じだとなおよい。
+そう考えるとここの部分は小さなモデルを使ってもよい。先に十分な量の選択を用意していて、AIが推薦してくれた奴が不服なら自分で選びなおすることが出来るような設計にしたほうが筋がいいきがする
 
-## Getting Started
 
-First, run the development server:
+#  要件定義書
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. 最初のページ : アイディアと期間とプロジェクトタイトルなどを設定する。 
+2. QAセッションを行う。オープンなクエッションを用いていいものを作る。QAセッションでメンターの方や上級者からプラスする。 
+3. 第一の要件定義書を作る。（MVP)に特化する。（よりどのような状況なのか？みたいな最終的に提供する価値などを定義する。） 
+4. その後に機能要件を作る。(どのような機能が必要かどうかを作る）（機能を要件定義から作る） 
+5. その後に実装のための技術を生成する。 
+6. 技術を実装するための技術を考える。 
+7. タスクを全て生成する。 
+8. 技術選定とその技術の環境構築を生成する。 
+9. 開発タスクを全体的に考えてどのような順番でそのアプリを実装するかをグラフ的に見せる。 
+10. タスクの一覧を見せる。タスクを看板ボードとして見せる。
+11. AIサポートの導入（QAファシリテーション、技術選定、タスク優先度付け）
+12. ビジュアル要素の追加（マインドマップ、依存関係グラフ、ガントチャート切り替え）
+13. ハッカソンらしい時間圧縮支援（カウントダウン、簡易テンプレート、即時アドバイス）
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -16,7 +16,7 @@ class SummaryService(BaseService):
         )
 
 
-        yume_summary_system_prompt = ChatPromptTemplate.from_template(
+        summary_system_prompt = ChatPromptTemplate.from_template(
             template="""
             あなたはプログラミング初心者のプロダクト開発を補助するハッカソン支援エージェントです。
             あなたは、プロダクト制作のための具体的な必要になる仕様の質問をして次のような回答をユーザーから得ることが出来ました。
@@ -31,6 +31,6 @@ class SummaryService(BaseService):
             """
         )
 
-        chain = yume_summary_system_prompt | self.llm_pro | StrOutputParser()
-        yume_summary = chain.invoke({"question_answer": question_answer_str})
-        return yume_summary
+        chain = summary_system_prompt | self.llm_pro | StrOutputParser()
+        summary = chain.invoke({"question_answer": question_answer_str})
+        return summary

@@ -1,5 +1,5 @@
 from database import engine, Base
-from models.project import Project
+from models.project_base import MemberBase, ProjectBase, ProjectMember
 
 def reset_db():
     # 既存のテーブルをすべて削除

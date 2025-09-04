@@ -29,14 +29,14 @@ class BaseService:
         # AIモデルの初期化
         
         # proモデル
-        self.llm_pro = self._load_llm(defult_model_provider,"gemini-2.5-flash-preview-04-17")
+        self.llm_pro = self._load_llm(defult_model_provider,"gemini-2.5-flash-lite")
         # flashモデル
-        self.llm_flash = self._load_llm(defult_model_provider,"gemini-2.0-flash")
+        self.llm_flash = self._load_llm(defult_model_provider,"gemini-2.5-flash-lite")
         # flash-thinkingモデル 仕様運転版
-        self.llm_flash_thinking = self._load_llm(defult_model_provider,"gemini-2.0-flash-thinking-exp")
+        self.llm_flash_thinking = self._load_llm(defult_model_provider,"gemini-2.5-flash-lite")
         # flash-liteモデル
-        self.llm_lite = self._load_llm(defult_model_provider,"ggemini-2.0-flash-lite")
-    
+        self.llm_lite = self._load_llm(defult_model_provider,"gemini-2.5-flash-lite")
+
     def _load_llm(self,model_provider ,model_type: str,temperature=0.5):
         
         match model_provider:
