@@ -6,7 +6,7 @@ import { FileText, Code, FolderTree, Download, Copy, RefreshCw, Terminal, Databa
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
-import { getDocument } from "@/libs/modelAPI/document";
+import { getProjectDocument } from "@/libs/modelAPI/document";
 
 export type ProjectDocumentType = {
   document_id?: string;
@@ -40,7 +40,7 @@ export default function DocumentDashboard() {
     try {
       setLoading(true);
       setError("");
-      const data = await getDocument(projectId);
+      const data = await getProjectDocument(projectId);
       setDocumentData(data);
     } catch (error) {
       console.error("ドキュメントデータの取得に失敗:", error);

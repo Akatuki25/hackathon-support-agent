@@ -18,7 +18,7 @@ import {
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
-import { patchDocument } from "@/libs/modelAPI/document";
+import { patchProjectDocument } from "@/libs/modelAPI/document";
 
 type Framework = {
   name: string;
@@ -263,7 +263,7 @@ export default function SelectFrameworkPage() {
       `;
     }
     const projectId = path.split("/")[2];
-    patchDocument(projectId, {
+    patchProjectDocument(projectId, {
       specification: frameworkInfo,
     });
     router.push(`/hackSetUp/${projectId}/frameWorkSummary`);

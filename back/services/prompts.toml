@@ -1,0 +1,271 @@
+
+[deploy_service]
+generate_deploy_service = """
+あなたは、ハッカソンの支援をするためのAIエージェントです。
+あなたは以下の情報を元に最適なdeployサービスを提案してください。
+以下はフレームワーク情報です。 : {framework}
+次が仕様書です。 : {specification}
+その際、選択したdeployサービスの情報を以下の形式で出力してください。
+あなたはjson形式で出力することが求められています。それ以外のについては、システムに障害が発生するため、出力しないでください。
+{format_instructions}
+"""
+
+[directory_service]
+generate_directory_structure = """
+あなたはプロジェクトのディレクトリ構成のエキスパートです。以下の仕様書と使用するフレームワークに基づいて、最適なディレクトリ構成を考案してください。
+仕様書:
+{specification}
+使用するフレームワーク:
+{framework}
+回答は、以下のようなコードブロック形式で、ディレクトリ構造のみをテキストで出力してください。
+ディレクトリ構造以外の情報を含めたら不正解となります。
+
+Webフレームワークの場合:
+ディレクトリ構造の基本はルートに/devcontainer,/frontend,/backendを置くことです。
+
+例:
+```
+project/
+  ├── src/
+  │   ├── components/
+  │   ├── pages/
+  │   ├── styles/
+  │   └── utils/
+  ├── public/
+  ├── README.md
+  ├── package.json
+  └── .gitignore
+```
+
+Androidの場合:
+ディレクトリ構造の基本はルートに/app,/gradle,/build.gradleを置くことです。
+例:
+```
+YourApp/
+  ├── app/
+  │   ├── build.gradle.kts
+  │   ├── proguard-rules.pro
+  │   └── src/
+  │       ├── androidTest/
+  │       ├── test/
+  │       └── main/
+  │           ├── AndroidManifest.xml
+  │           ├── java/com/example/yourapp/
+  │           │   ├── data/
+  │           │   ├── domain/
+  │           │   ├── ui/
+  │           │   ├── di/
+  │           │   └── util/
+  │           └── res/
+  ├── build.gradle.kts
+  ├── settings.gradle.kts
+  ├── gradle/
+  │   └── wrapper/
+  ├── gradlew
+  ├── gradlew.bat
+  ├── README.md
+  └── .gitignore
+```
+
+iOSの場合:
+ディレクトリ構造の基本はルートに/iosを置くことです。
+例:
+```
+project/
+  ├── ios/
+  │   ├── AppDelegate.swift
+  │   ├── Info.plist
+  │   ├── ViewController.swift
+  │   └── Main.storyboard
+  ├── Podfile
+  ├── Podfile.lock
+  ├── project.pbxproj
+  ├── project.xcworkspace/
+  └── xcuserdata/
+```
+"""
+
+[duration_task_service]
+generate_task_durations = """
+あなたはプロジェクトタスクの期間算出のエキスパートです。
+以下は全体のプロジェクト期間 {duration} と、各タスクの情報です。
+タスク情報は task_id, task_name, content のみが提供されています。
+タスクの内容から、それぞれの作業期間（開始日と終了日）を算出してください。
+
+タスク一覧:
+{tasks_input}
+
+回答は、厳密に以下のような形式の**JSON形式のみ**で出力してください:
+回答例（イメージ）: 
+{{
+"durations": [
+    {{ "task_id": 0, "start": 1, "end": 5 }},
+    {{ "task_id": 1, "start": 2, "end": 4 }}
+]
+}}
+"""
+
+[environment_service]
+generate_hands_on = """
+以下の情報をもとに、環境構築ハンズオンの説明を生成してください。回答はMarkdown形式で出力してください。
+ただし、Markdown形式の文字列がJSON形式の形を壊さないように注意してください。
+【仕様書】
+{specification}
+【ディレクトリ構成】
+{directory}
+【フレームワーク情報】
+{framework}
+Webフレームワークの場合、
+以下の項目ごとに、詳細なハンズオンの説明を出力してください：
+1. overall: プロジェクト全体の環境構築ハンズオンの概要説明
+2. devcontainer: .devcontainer の使い方および具体的な設定内容の説明。中身のDockerfileとdevcontainer.jsonの具体的なコード内容まで含めてください。
+3. frontend: フロントエンドの初期環境構築手順の詳細な説明（.devcontainerで整う環境構築を再度ローカルで整えるような説明をしないでください。）
+4. backend: バックエンドの初期環境構築手順の詳細な説明（.devcontainerで整う環境構築を再度ローカルで整えるような説明をしないでください。）
+
+Androidの場合、
+以下の項目ごとに、詳細なハンズオンの説明を出力してください：
+1. overall: プロジェクト全体の環境構築ハンズオンの概要説明。Android Studioのインストール手順や、必要なSDKのインストール手順を含めてください。
+2. devcontainer: Android開発では.devcontainerは使用しないため、.devcontainerの説明は不要です。使わない旨の説明をしてください。
+3. frontend: フロントエンドの初期環境構築手順の詳細な説明
+4. backend: バックエンドの初期環境構築手順の詳細な説明
+
+iOSの場合、
+以下の項目ごとに、詳細なハンズオンの説明を出力してください：
+1. overall: プロジェクト全体の環境構築ハンズオンの概要説明。Xcodeのインストール手順や、必要なSDKのインストール手順を含めてください。
+2. devcontainer: iOS開発では.devcontainerは使用しないため、.devcontainerの説明は不要です。使わない旨の説明をしてください。
+3. frontend: フロントエンドの初期環境構築手順の詳細な説明
+4. backend: バックエンドの初期環境構築手順の詳細な説明
+出力は以下のJSON形式に従ってください:
+{format_instructions}
+"""
+
+[framework_service]
+generate_framework_priority = """
+あなたはプロダクト開発のエキスパートです。以下の仕様書の内容に基づいて、固定のフロントエンド候補（React, Vue, Next, Astro）とバックエンド候補（Nest, Flask, FastAPI, Rails, Gin）について、各候補の優先順位とその理由を評価してください。
+各候補に対して、プロジェクトにおける適合性を考慮し、優先順位（数字が小さいほど高い）を付け、理由を記述してください。
+回答は以下のフォーマットに従って、JSON 形式で出力してください。
+ここで日本語で出力してください。
+
+{format_instructions}
+仕様書:
+{specification}
+"""
+generate_framework_document = """
+あなたはプロダクト開発のエキスパートです。以下の仕様書の内容と、今回ユーザーが選定した技術要件の内容からフレームワークに沿った技術要件書を作成してください。
+以下は仕様書と技術要件書の内容です。
+仕様書:
+{specification}
+技術選定：
+{frame_work}
+技術要件書のフォーマット:
+マークダウン形式の仕様書のみを返してください。それ以外を含めてはいけません。
+```markdown
+```
+という風に囲むの必要はありません。
+"""
+
+[graph_task_service]
+generate_task_graph = """
+あなたはプロのプロジェクトマネージャーです。
+以下のタスクリストに基づき、以下のような要件でタスク間の依存関係を推論してください。
+それぞれのタスクの内容から、タスクのフロー図を考え、構造木として表現します。API設計-API1の構築-API2の構築のように開発のフローを作ることを想定しています。
+タスクの情報は task_id, task_name, content のみが提供されています。
+ただし、タスクの親子関係は一方通行であり、循環依存は存在しないものとします。
+タスクは基本的に木の中に一つだけになるようにしてください。
+ドキュメント確認などのタスクは、他のタスクに依存しないものとします。
+また、タスクの親子関係は必ず小さいタスクIDから大きいタスクIDへの依存関係として出力してください。
+出力は以下のJSON形式に従い、各エッジを {{parent: タスクID, child: タスクID}} の形式で、
+エッジのリストとして返してください。
+
+タスク一覧:
+{tasks_input}
+
+回答は以下のJSON形式で出力してください:
+{format_instructions}
+"""
+
+[question_service]
+generate_question = """
+あなたはプログラミング初心者のプロダクト開発を補助するハッカソン支援エージェントです。
+...アイデア、期間、人数:{idea_prompt}
+これに基づいたアイデアを仕様に落とし込む上での質問をしてください。アイデアが仕様に触れるような具体的な内容であれば3から5個で、抽象的であればそれ以上生成してください。
+ただし、フレームワークの記述は不要です。なんの言語が書けるかなどユーザーのコーディング力には触れても問題ないです。
+また、回答例をAnswerの欄に含めてください。Questionの欄には解答例を書かないでください。
+回答は以下のフォーマットを参照してください。
+{format_instructions}
+"""
+
+[summary_service]
+generate_summary_document = """
+あなたはプログラミング初心者のプロダクト開発を補助するハッカソン支援エージェントです。
+あなたは、プロダクト制作のための具体的な必要になる仕様の質問をして次のような回答をユーザーから得ることが出来ました。
+この時に、ユーザーから得た回答をもとに、プロダクト開発のための完全な仕様書を作成してください。
+この仕様書をもとにフレームワークを決定するのでフレームワークの記述は不要です。
+マークダウン形式の仕様書のみを返してください。それ以外を含めてはいけません。
+```markdown
+```
+という風に囲むの必要はありません。
+以下の回答をもとに、プロダクト開発のための完全な仕様書を作成してください。
+{question_answer}
+"""
+
+[task_chat_service]
+generate_response = """
+あなたはエンジニアを補助するプロフェッショナルなChatBotです。以下の情報を元に、ユーザーの質問に対して最適な回答をテキスト形式で提供してください。
+ユーザーが着手しているのはタスク詳細の内容で、仕様書、ディレクトリ構造などは全体を包括したものです。
+また、マークダウン形式で回答してください。
+現在のタスク詳細:
+{taskDetail}
+仕様書:
+{specification}
+ディレクトリ構造:
+{directory_structure}
+チャット履歴:
+{chat_history}
+新たなユーザーからのチャットでの質問内容:
+{user_question}
+使用しているフレームワーク:
+{framework}
+回答は、他の情報を含まずに、テキストのみで回答してください。
+"""
+
+[task_detail_service]
+generate_task_details = """
+あなたはタスク詳細化のエキスパートです。以下のタスクリストについて、各タスクに対して具体的なハンズオンの手順を「detail」として生成してください。
+detailは、タスクの内容をさらに具体化したもので、この形式を必ず守ってください。
+具体的なハンズオンは、詳細な手順やコマンド、コードの記述などを含めてください。
+また、マークダウン形式でこれを見るだけでこのタスクを完了できるほどの詳細さで出力してください。
+ただし、コードに関しては最小限の記述で十分です。ある程度は読者の自力で考えられるようにしてください。
+ユーザーはハッカソンに参加する初心者です。
+重要: 応答は必ず有効なJSONである必要があります。特殊文字（バックスラッシュ、引用符など）は適切にエスケープしてください。Markdownのコードブロック内でも引用符とバックスラッシュには特に注意が必要です。
+以下の制約を厳密に守ってください:
+1. 出力は単純な構造を持つ必要があります: "tasks"キーの配列のみです
+2. 各タスクには task_name, priority, content, detail フィールドのみを含めてください
+3. 改行は文字列内で "\n" としてエスケープしてください
+4. コードブロックを含める場合は、Markdown記法の ```の代わりに "```" とエスケープしてください
+5. JSON文字列として有効であることを優先し、必要に応じて内容を簡略化してください
+JSON の例:
+{format_instructions}
+
+仕様書(全体内のタスクの位置を把握するのに参考にしてください):
+{specification}
+
+入力は以下の形式のタスク情報です:
+{tasks_input}
+"""
+
+[tasks_service]
+generate_tasks = """
+あなたはアプリ制作のプロフェッショナルです。以下の情報に基づいて、アプリ制作に必要な全タスクを具体的にリストアップしてください。
+ただし、環境構築に関するタスクは含めないでください。
+仕様書:
+{specification}
+ディレクトリ構成:
+{directory}
+フレームワーク:
+{framework}
+各タスクには、タスク名、優先度（Must, Should, Could）、具体的な内容を含めてください。
+具体的に言うと、task_name: str 、priority: str ("Must", "Should", "Could") のいずれか 、content: strの全てを必ず含むものです。
+回答は以下のフォーマットに従い、JSON形式で出力してください。
+{format_instructions}
+"""

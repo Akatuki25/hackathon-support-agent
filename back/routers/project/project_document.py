@@ -101,7 +101,7 @@ async def patch_project_document(
     # 送られてきたフィールドだけ更新
     update_data = document.model_dump(exclude_unset=True)
     # 念のため許可フィールドを限定
-    allowed_fields = {"specification_doc", "frame_work_doc", "directory_info"}
+    allowed_fields = {"specification_doc", "frame_work_doc", "directory_info", "specification"}
     for key, value in update_data.items():
         if key in allowed_fields:
             setattr(db_document, key, value)
@@ -110,3 +110,35 @@ async def patch_project_document(
     return {"project_id": project_id, "message": "プロジェクトドキュメントが部分更新されました"}
 
 
+# doc_id (UUID) を使用したCRUD操作
+@router.get("/project_document/id/{doc_id}", summary="プロジェクトドキュメントをIDで取得")
+async def get_project_document_by_id(doc_id: uuid.UUID, db: Session = Depends(get_db)):
+    db_document = db.query(ProjectDocument).filter(ProjectDocument.doc_id == doc_id).first()
+    if db_document is None:
+        raise HTTPException(status_code=404, detail="Project document not found")
+    return db_document
+
+@router.put("/project_document/id/{doc_id}", summary="プロジェクトドキュメントをIDで更新")
+async def update_project_document_by_id(doc_id: uuid.UUID, document: ProjectDocumentType, db: Session = Depends(get_db)):
+    db_document = db.query(ProjectDocument).filter(ProjectDocument.doc_id == doc_id).first()
+    if db_document is None:
+        raise HTTPException(status_code=404, detail="Project document not found")
+    
+    db_document.project_id = document.project_id
+    db_document.specification_doc = document.specification_doc
+    db_document.specification = document.specification
+    db_document.frame_work_doc = document.frame_work_doc
+    db_document.directory_info = document.directory_info
+    db.commit()
+    db.refresh(db_document)
+    return {"doc_id": doc_id, "message": "プロジェクトドキュメントが更新されました"}
+
+@router.delete("/project_document/id/{doc_id}", summary="プロジェクトドキュメントをIDで削除")
+async def delete_project_document_by_id(doc_id: uuid.UUID, db: Session = Depends(get_db)):
+    db_document = db.query(ProjectDocument).filter(ProjectDocument.doc_id == doc_id).first()
+    if db_document is None:
+        raise HTTPException(status_code=404, detail="Project document not found")
+    
+    db.delete(db_document)
+    db.commit()
+    return {"doc_id": doc_id, "message": "プロジェクトドキュメントが削除されました"}

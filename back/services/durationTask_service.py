@@ -39,25 +39,7 @@ class DurationTaskService(BaseService):
         parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-            あなたはプロジェクトタスクの期間算出のエキスパートです。
-            以下は全体のプロジェクト期間 {duration} と、各タスクの情報です。
-            タスク情報は task_id, task_name, content のみが提供されています。
-            タスクの内容から、それぞれの作業期間（開始日と終了日）を算出してください。
-            
-            タスク一覧:
-            {tasks_input}
-            
-            回答は、厳密に以下のような形式の**JSON形式のみ**で出力してください:
-            回答例（イメージ）:
-            {{
-            "durations": [
-                {{ "task_id": 0, "start": 1, "end": 5 }},
-                {{ "task_id": 1, "start": 2, "end": 4 }}
-            ]
-            }}
-            
-            """,
+            template=self.get_prompt("duration_task_service", "generate_task_durations"),
         )
         # tasks_input: タスク情報リストをJSON形式（見やすい整形付き）に変換
         tasks_input = json.dumps(tasks, ensure_ascii=False, indent=2)

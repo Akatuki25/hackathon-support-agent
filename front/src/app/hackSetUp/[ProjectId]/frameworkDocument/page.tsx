@@ -8,7 +8,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import SaveButton from "@/components/Buttons/SaveButton";
 import { ProjectDocumentType } from "@/types/modelTypes";
-import { postDocument, getDocument,patchDocument  } from "@/libs/modelAPI/document";
+import { postProjectDocument, getProjectDocument,patchProjectDocument  } from "@/libs/modelAPI/document";
 import Header from "@/components/Session/Header";
 import { getServerSession } from "next-auth";
 import { ca } from "zod/locales";
@@ -39,7 +39,7 @@ export default function SetUpSummaryPage() {
       const storedFramework = sessionStorage.getItem("frameworkInfo")
       if (!storedFramework) {
        try{
-        const storedFramework = getDocument(projectId);
+        const storedFramework = getProjectDocument(projectId);
         storedFramework
             .then((data) => {
                 const frameworkInfo = data.frame_work_doc;
@@ -66,7 +66,7 @@ export default function SetUpSummaryPage() {
 
     // 仕様書をAPIに送信
     const specificationDoc = sessionStorage.getItem("specification");
-   const ID = await patchDocument(
+   const ID = await patchProjectDocument(
     projectId,
     {
         frame_work_doc: frameworkDocument,

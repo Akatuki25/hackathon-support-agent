@@ -23,8 +23,8 @@ class BaseService:
         """
         
         # プロンプトの読み込み
-        # with open("./prompts.toml", "rb") as f:
-        #     self.prompts = tomllib.load(f)
+        with open(os.path.join(os.path.dirname(__file__), "prompts.toml"), "rb") as f:
+            self.prompts = tomllib.load(f)
         
         # AIモデルの初期化
         
@@ -61,6 +61,15 @@ class BaseService:
                     temperature=temperature,
                     anthropic_api_key=api_key
                 )
+    
+    def get_prompt(self, service_name: str, prompt_name: str) -> str:
+        """
+        TOMLファイルからプロンプトを取得する。
+        """
+        try:
+            return self.prompts[service_name][prompt_name]
+        except KeyError:
+            raise ValueError(f"Prompt '{prompt_name}' not found in service '{service_name}' in prompts.toml")
 
 
 

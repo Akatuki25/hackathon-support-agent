@@ -1,60 +1,52 @@
-import { ProjectDocumentType } from "@/types/modelTypes";
+import axios from 'axios';
+import { ProjectDocumentType, ProjectDocumentResponseType, ProjectDocumentPatch } from '@/types/modelTypes';
 
-export const postDocument = async (document: ProjectDocumentType) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  const response = await fetch(`${apiUrl}/project_document`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(document),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  const ID: string = data.project_id;
-  return ID;
+// --- GET Project Document by Project ID ---
+export const getProjectDocument = async (projectId: string): Promise<ProjectDocumentType> => {
+  const response = await axios.get<ProjectDocumentType>(`${API_URL}/project_document/${projectId}`);
+  return response.data;
 };
 
-export const getDocument = async (projectId: string) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  const response = await fetch(`${apiUrl}/project_document/${projectId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data as ProjectDocumentType;
+// --- GET Project Document by Document ID ---
+export const getProjectDocumentById = async (docId: string): Promise<ProjectDocumentType> => {
+  const response = await axios.get<ProjectDocumentType>(`${API_URL}/project_document/id/${docId}`);
+  return response.data;
 };
 
+// --- POST Project Document ---
+export const postProjectDocument = async (document: ProjectDocumentType): Promise<string> => {
+  const response = await axios.post<ProjectDocumentResponseType>(`${API_URL}/project_document`, document);
+  return response.data.project_id;
+};
 
-export const patchDocument = async (projectId:string,document: Partial<ProjectDocumentType>) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+// --- PUT Project Document by Project ID ---
+export const putProjectDocument = async (projectId: string, document: ProjectDocumentType): Promise<string> => {
+  const response = await axios.put<ProjectDocumentResponseType>(`${API_URL}/project_document/${projectId}`, document);
+  return response.data.message;
+};
 
-  const response = await fetch(`${apiUrl}/project_document/${projectId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(document),
-  });
+// --- PUT Project Document by Document ID ---
+export const putProjectDocumentById = async (docId: string, document: ProjectDocumentType): Promise<string> => {
+  const response = await axios.put<ProjectDocumentResponseType>(`${API_URL}/project_document/id/${docId}`, document);
+  return response.data.message;
+};
 
-  if (!response.ok) {
-    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
-  }
+// --- PATCH Project Document by Project ID ---
+export const patchProjectDocument = async (projectId: string, documentPatch: ProjectDocumentPatch): Promise<string> => {
+  const response = await axios.patch<ProjectDocumentResponseType>(`${API_URL}/project_document/${projectId}`, documentPatch);
+  return response.data.message;
+};
 
-  const data = await response.json();
-  const ID: string = data.project_id;
-  return ID;
-}
+// --- DELETE Project Document by Project ID ---
+export const deleteProjectDocument = async (projectId: string): Promise<{ message: string }> => {
+  const response = await axios.delete(`${API_URL}/project_document/${projectId}`);
+  return response.data;
+};
+
+// --- DELETE Project Document by Document ID ---
+export const deleteProjectDocumentById = async (docId: string): Promise<{ message: string }> => {
+  const response = await axios.delete(`${API_URL}/project_document/id/${docId}`);
+  return response.data;
+};

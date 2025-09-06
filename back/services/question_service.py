@@ -21,17 +21,7 @@ class QuestionService(BaseService):
         parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-            あなたはプログラミング初心者のプロダクト開発を補助するハッカソン支援エージェントです。
-            ...
-            アイデア、期間、人数:{idea_prompt}
-            これに基づいたアイデアを仕様に落とし込む上での質問をしてください。
-            アイデアが仕様に触れるような具体的な内容であれば3から5個で、抽象的であればそれ以上生成してください。
-            ただし、フレームワークの記述は不要です。なんの言語が書けるかなどユーザーのコーディング力には触れても問題ないです。
-            また、回答例をAnswerの欄に含めてください。Questionの欄には解答例を書かないでください。
-            回答は以下のフォーマットを参照してください。
-            {format_instructions}
-            """,
+            template=self.get_prompt("question_service", "generate_question"),
             partial_variables={"format_instructions": parser.get_format_instructions()},
         )
 

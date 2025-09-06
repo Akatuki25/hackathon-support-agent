@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import date,datetime
+from typing import Optional
 
 from sqlalchemy.orm import Session
 import uuid
@@ -15,6 +16,13 @@ class ProjectBaseType(BaseModel):
     start_date: date
     end_date: datetime
     num_people: int
+
+class ProjectPatch(BaseModel):
+    title: Optional[str] = None
+    idea: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[datetime] = None
+    num_people: Optional[int] = None
 
 # DBセッション取得用 dependency
 def get_db():
@@ -54,11 +62,13 @@ async def update_project(project_id: str, project: ProjectBaseType, db: Session 
         raise HTTPException(status_code=404, detail="Project not found")
     
     # 更新処理
+    db_project.title = project.title
     db_project.idea = project.idea
-    db_project.duration = project.duration
+    db_project.start_date = project.start_date
+    db_project.end_date = project.end_date
     db_project.num_people = project.num_people
     db.commit()
-    
+    db.refresh(db_project)
     return {"message": "プロジェクトが更新されました"}
 
 @router.delete("/project/{project_id}", summary="プロジェクト削除")
@@ -79,3 +89,17 @@ async def get_all_projects(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No projects found")
     
     return db_projects
+
+@router.patch("/project/{project_id}", summary="プロジェクト部分更新")
+async def patch_project(project_id: str, project: ProjectPatch, db: Session = Depends(get_db)):
+    db_project = db.query(ProjectBase).filter(ProjectBase.project_id == project_id).first()
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    update_data = project.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_project, key, value)
+    
+    db.commit()
+    db.refresh(db_project)
+    return {"message": "Project partially updated successfully"}

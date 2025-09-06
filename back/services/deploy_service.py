@@ -23,16 +23,7 @@ class DeployService(BaseService):
         parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-            あなたは、ハッカソンの支援をするためのAIエージェントです。
-            あなたは以下の情報を元に最適なdeployサービスを提案してください。
-            以下はフレームワーク情報です。 : {framework}
-            次が仕様書です。 : {specification}
-            その際、選択したdeployサービスの情報を以下の形式で出力してください。
-            あなたはjson形式で出力することが求められています。それ以外のについては、システムに障害が発生するため、出力しないでください。
-            {format_instructions}
-            
-            """,
+            template=self.get_prompt("deploy_service", "generate_deploy_service"),
             partial_variables={"format_instructions": parser.get_format_instructions()},
         )
         

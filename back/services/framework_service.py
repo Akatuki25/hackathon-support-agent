@@ -30,16 +30,7 @@ class FrameworkService(BaseService):
         parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-                あなたはプロダクト開発のエキスパートです。以下の仕様書の内容に基づいて、固定のフロントエンド候補（React, Vue, Next, Astro）とバックエンド候補（Nest, Flask, FastAPI, Rails, Gin）について、各候補の優先順位とその理由を評価してください。
-                各候補に対して、プロジェクトにおける適合性を考慮し、優先順位（数字が小さいほど高い）を付け、理由を記述してください。
-                回答は以下のフォーマットに従って、JSON 形式で出力してください。
-                ここで日本語で出力してください。
-
-                {format_instructions}
-                仕様書:
-                {specification}
-            """,
+            template=self.get_prompt("framework_service", "generate_framework_priority"),
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
 
@@ -53,20 +44,7 @@ class FrameworkService(BaseService):
         """
         
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-                あなたはプロダクト開発のエキスパートです。以下の仕様書の内容と、今回ユーザーが選定した技術要件の内容からフレームワークに沿った技術要件書を作成してください。
-                以下は仕様書と技術要件書の内容です。
-                仕様書:
-                {specification}
-                技術選定：
-                {frame_work}
-                技術要件書のフォーマット:
-                マークダウン形式の仕様書のみを返してください。それ以外を含めてはいけません。
-                ```markdown
-                ```
-                という風に囲むの必要はありません。
-                
-            """
+            template=self.get_prompt("framework_service", "generate_framework_document")
         )
 
         chain = prompt_template | self.llm_flash | StrOutputParser()
