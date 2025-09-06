@@ -51,13 +51,6 @@ class TaskPatch(BaseModel):
         if self.priority is not None:
             self.priority = PriorityEnum(self.priority)
 
-# DBセッション取得用 dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/task", summary="タスク作成")
 async def create_task(task: TaskType, db: Session = Depends(get_db)):
