@@ -121,3 +121,31 @@ export type TaskAssignmentResponseType = {
 };
 
 export type TaskAssignmentPatch = Partial<TaskAssignmentType>; // All fields optional for PATCH
+
+// --- QA Types ---
+export interface QAType {
+  qa_id?: string;
+  project_id: string;
+  question: string;
+  answer?: string | null;
+  is_ai: boolean;
+  source_doc_id?: string | null;
+  follows_qa_id?: string | null;
+  importance: number;
+  created_at?: string;
+}
+
+export interface QAPatch {
+  project_id?: string;
+  question?: string;
+  answer?: string | null;
+  is_ai?: boolean;
+  source_doc_id?: string | null;
+  follows_qa_id?: string | null;
+  importance?: number;
+}
+
+export interface QAResponseType {
+  qa_id: string;
+  message: string;
+}

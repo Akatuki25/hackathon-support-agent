@@ -24,13 +24,7 @@ class ProjectPatch(BaseModel):
     end_date: Optional[datetime] = None
     num_people: Optional[int] = None
 
-# DBセッション取得用 dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from database import get_db
         
 @router.post("/project", summary="プロジェクト作成")
 async def create_project(project: ProjectBaseType, db: Session = Depends(get_db)):

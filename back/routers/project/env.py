@@ -7,6 +7,8 @@ from typing import Optional
 from database import SessionLocal
 from models.project_base import Env
 
+from database import get_db
+
 router = APIRouter()
 
 class EnvType(BaseModel):
@@ -24,14 +26,6 @@ class EnvPatch(BaseModel):
     devcontainer: Optional[str] = None
     database: Optional[str] = None
     deploy: Optional[str] = None
-
-# DBセッション取得用 dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/env", summary="環境情報作成")
 async def create_env(env: EnvType, db: Session = Depends(get_db)):

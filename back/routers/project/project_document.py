@@ -6,7 +6,7 @@ import uuid
 from pydantic import BaseModel
 from database import SessionLocal
 from models.project_base import ProjectDocument
-
+from database import get_db
 router = APIRouter()
 
 class ProjectDocumentType(BaseModel):
@@ -20,13 +20,6 @@ class CreateProjectDocumentResponse(BaseModel):
     project_id: uuid.UUID
     message: str
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        
 
 @router.post("/project_document", summary="プロジェクトドキュメント作成")
 async def create_project_document(document: ProjectDocumentType, db: Session = Depends(get_db))->CreateProjectDocumentResponse:

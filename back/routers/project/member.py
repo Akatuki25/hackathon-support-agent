@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 import uuid
 from pydantic import BaseModel
-from database import SessionLocal
+from database import get_db
 from models.project_base import MemberBase
 
 router = APIRouter()
@@ -24,14 +24,7 @@ class MemberPatch(BaseModel):
     email: Optional[str] = None
     
 
-# DBセッション取得用 dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        
+
 @router.post("/member", summary="プロジェクト作成")
 async def create_member(member: MemberType, db: Session = Depends(get_db)):
     member_id = str(uuid.uuid4())

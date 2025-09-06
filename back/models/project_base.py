@@ -68,6 +68,12 @@ class ProjectBase(Base):
         back_populates="project",
         cascade="all, delete-orphan",
     )
+    # NEW: QA と紐づけ
+    qas = relationship(
+        "QA",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     def __repr__(self):
         return f"<Project(id={self.project_id}, title={self.title})>"
 
@@ -112,6 +118,9 @@ class ProjectDocument(Base):
     directory_info     = Column(Text, nullable=False)
 
     project_base = relationship("ProjectBase", back_populates="document")
+    # NEW: Referenced by Tasks and QAs
+    tasks = relationship("Task", back_populates="source_doc")
+    qas = relationship("QA", back_populates="source_doc")
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -171,7 +180,7 @@ class Task(Base):
     # どのドキュメントから生まれたタスクか（任意）
     source_doc_id = Column(UUID(as_uuid=True), ForeignKey("projectDocument.doc_id", ondelete="SET NULL"),
                            nullable=True)
-    source_doc = relationship("ProjectDocument")
+    source_doc = relationship("ProjectDocument", back_populates="tasks")
 
     # 割当（M:N）
     assignees = relationship(
@@ -213,3 +222,38 @@ class TaskAssignment(Base):
 
     def __repr__(self):
         return f"<TaskAssignment(task_id={self.task_id}, project_member_id={self.project_member_id})>"
+
+
+# =========================
+# NEW: QA
+# =========================
+class QA(Base):
+    __tablename__ = "qa"
+
+    qa_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    # About which project
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"), nullable=False, index=True)
+
+    question = Column(Text, nullable=False)
+    answer = Column(Text, nullable=True)
+    is_ai = Column(Boolean, default=False, nullable=False)
+
+    # Referenced from which document (optional)
+    source_doc_id = Column(UUID(as_uuid=True), ForeignKey("projectDocument.doc_id", ondelete="SET NULL"), nullable=True)
+
+    # Follow-up from which QA (optional)
+    follows_qa_id = Column(UUID(as_uuid=True), ForeignKey("qa.qa_id", ondelete="SET NULL"), nullable=True)
+    
+    importance = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    project = relationship("ProjectBase", back_populates="qas")
+    source_doc = relationship("ProjectDocument", back_populates="qas")
+
+    parent_qa = relationship("QA", remote_side=[qa_id], back_populates="follow_ups", foreign_keys=[follows_qa_id])
+    follow_ups = relationship("QA", back_populates="parent_qa")
+
+    def __repr__(self):
+        return f"<QA(id={self.qa_id}, project_id={self.project_id})>"

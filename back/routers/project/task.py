@@ -4,7 +4,7 @@ import uuid
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-from database import SessionLocal
+from database import get_db
 from models.project_base import Task, TaskStatusEnum, PriorityEnum
 
 router = APIRouter()

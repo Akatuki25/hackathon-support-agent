@@ -28,3 +28,5 @@ class QuestionService(BaseService):
         chain = prompt_template | self.llm_flash_thinking | parser
         result = chain.invoke({"idea_prompt": idea_prompt})
         return {"result": {"Question": result["Question"]}}
+    
+    

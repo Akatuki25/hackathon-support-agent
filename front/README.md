@@ -26,21 +26,26 @@
 
 ```mermaid
 erDiagram
+  %% Core
   MEMBER ||--o{ PROJECT_MEMBER : participates
   PROJECTBASE ||--o{ PROJECT_MEMBER : has
   PROJECTBASE ||--o| PROJECTDOCUMENT : has
   PROJECTBASE ||--o{ TASK : has
+  PROJECTBASE ||--o{ ENV : has
+  PROJECTBASE ||--o{ QA : has
 
   %% Task assignments (M:N)
   PROJECT_MEMBER ||--o{ TASK_ASSIGNMENT : assigned
   TASK ||--o{ TASK_ASSIGNMENT : has
 
-  %% Self-dependency & doc trace
+  %% Dependencies
   TASK ||--o| TASK : depends_on
+  QA ||--o| QA : follows_from
   PROJECTDOCUMENT ||--o{ TASK : referenced_by
-  
-  %% env 
-  PROJECTBASE ||--o{ ENV : has
+  PROJECTDOCUMENT ||--o{ QA : referenced_by
+
+
+  QA ||--o{ PROJECTBASE : about
 
   MEMBER {
     UUID member_id PK
@@ -86,16 +91,30 @@ erDiagram
     timestamptz created_at
   }
 
+  %% --- QA with dependencies & trace ---
+  QA {
+    UUID qa_id PK
+    UUID project_id FK          "-> PROJECTBASE.project_id"
+    text question
+    text answer
+    bool is_ai
+    UUID source_doc_id FK       "-> PROJECTDOCUMENT.doc_id (任意: どの文書由来か)"
+    UUID follows_qa_id FK       "self reference (任意: どのQAに続くか)"
+    int  importance             "任意: 重要度/投票集計"
+    timestamptz created_at
+  }
+
   TASK {
     UUID task_id PK
     UUID project_id FK          "-> PROJECTBASE.project_id"
     string title
     text   description
-    text detail
+    text   detail
     string status               "TODO|DOING|DONE (enum想定)"
     string priority             "LOW|MEDIUM|HIGH|CRITICAL (enum想定)"
     timestamptz due_at
     UUID source_doc_id FK       "-> PROJECTDOCUMENT.doc_id (任意)"
+    UUID source_qa_id  FK       "-> QA.qa_id (任意: QAから起票)"
     UUID depends_on_task_id FK  "self reference (任意)"
   }
 
@@ -106,7 +125,6 @@ erDiagram
     timestamptz assigned_at
     string role                 "owner|contrib 等 任意"
   }
-
 
 %%   %% Stripe/Billing 追加
 %%   MEMBER ||--o| BILLING_ACCOUNT : owns

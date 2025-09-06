@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from database import get_db
 from services.summary_service import SummaryService
 
 router = APIRouter()
-summary_service = SummaryService()
 
 class YumeQA(BaseModel):
     Question: str
@@ -14,10 +15,11 @@ class YumeAnswer(BaseModel):
 
 
 @router.post("/")
-def generate_summary_document(yume_answer: YumeAnswer):
+def generate_summary_document(yume_answer: YumeAnswer, db: Session = Depends(get_db)):
     """
     yume_answer.Answer = [{"Question":"...","Answer":"..."}, ...]
     """
+    summary_service = SummaryService(db=db)
     # Q&Aリストを取得
     answer_list = yume_answer.Answer  
     # サマリー生成

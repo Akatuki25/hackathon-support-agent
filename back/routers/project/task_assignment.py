@@ -4,7 +4,7 @@ import uuid
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-from database import SessionLocal
+from database import get_db
 from models.project_base import TaskAssignment
 
 router = APIRouter()
@@ -18,14 +18,6 @@ class TaskAssignmentPatch(BaseModel):
     task_id: Optional[uuid.UUID] = None
     project_member_id: Optional[uuid.UUID] = None
     role: Optional[str] = None
-
-# DBセッション取得用 dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/task_assignment", summary="タスク割り当て作成")
 async def create_task_assignment(task_assignment: TaskAssignmentType, db: Session = Depends(get_db)):
