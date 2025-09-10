@@ -1,0 +1,384 @@
+2025-09-07 13:23:20,893 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:23:36,022 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:23:37,119 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:24:44,800 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:26:25,715 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:28:08,921 | DEBUG | hackson_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 13:28:08,922 | INFO | hackson_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 13:28:08,922 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:28:08,946 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:28:08,946 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:28:08,947 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:28:08,948 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:28:08,948 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:28:08,948 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:28:08,949 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:28:08,949 | DEBUG | hackson_support_agent.QuestionService | LLMs initialized
+2025-09-07 13:28:08,950 | DEBUG | hackson_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 13:30:43,710 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:30:47,568 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:30:49,798 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:30:55,499 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:30:58,698 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:31:01,177 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:31:14,735 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:31:19,680 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:31:23,048 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:31:30,236 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:32:32,727 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:37:09,655 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:37:12,858 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:38:14,435 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:40:57,147 | DEBUG | hackson_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 13:40:57,149 | INFO | hackson_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 13:40:57,149 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:40:57,159 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:40:57,159 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:40:57,160 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:40:57,160 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:40:57,161 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:40:57,161 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:40:57,162 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:40:57,162 | DEBUG | hackson_support_agent.QuestionService | LLMs initialized
+2025-09-07 13:40:57,162 | DEBUG | hackson_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 13:42:30,765 | DEBUG | hackson_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 13:42:30,766 | INFO | hackson_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 13:42:30,766 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:42:30,767 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:42:30,767 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:42:30,768 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:42:30,768 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:42:30,769 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:42:30,769 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:42:30,770 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:42:30,770 | DEBUG | hackson_support_agent.QuestionService | LLMs initialized
+2025-09-07 13:42:30,770 | DEBUG | hackson_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 13:44:03,467 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:44:04,507 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:44:12,556 | DEBUG | hackson_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 13:44:12,557 | INFO | hackson_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 13:44:12,557 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:44:12,567 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:44:12,567 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:44:12,568 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:44:12,568 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:44:12,569 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:44:12,569 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:44:12,570 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:44:12,570 | DEBUG | hackson_support_agent.QuestionService | LLMs initialized
+2025-09-07 13:44:12,570 | DEBUG | hackson_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 13:48:23,328 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:48:24,427 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:48:54,741 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:48:55,799 | INFO | hackson_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:51:24,296 | DEBUG | hackson_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 13:51:24,297 | INFO | hackson_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 13:51:24,297 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:51:24,307 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:51:24,307 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:51:24,308 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:51:24,309 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:51:24,310 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:51:24,310 | DEBUG | hackson_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:51:24,311 | INFO | hackson_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:51:24,311 | DEBUG | hackson_support_agent.QuestionService | LLMs initialized
+2025-09-07 13:51:24,312 | DEBUG | hackson_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 13:52:58,376 | INFO | hackt_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:53:00,439 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackson_support_agent/back/.env.local
+2025-09-07 13:53:05,052 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 13:53:45,888 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 13:53:45,890 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 13:53:45,890 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:53:45,901 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:53:45,901 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:53:45,902 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:53:45,902 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:53:45,903 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:53:45,903 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 13:53:45,904 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 13:53:45,904 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 13:53:45,904 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:08:41,549 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:08:42,643 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:09:36,865 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:09:36,866 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:09:36,866 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:09:36,889 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:09:36,889 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:09:36,890 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:09:36,890 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:09:36,891 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:09:36,891 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:09:36,892 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:09:36,892 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:09:36,892 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:10:54,138 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:10:55,267 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:10:59,253 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:10:59,254 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:10:59,254 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:10:59,264 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:10:59,264 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:10:59,265 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:10:59,265 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:10:59,266 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:10:59,266 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:10:59,267 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:10:59,267 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:10:59,267 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:12:43,135 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:12:44,785 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:12:51,984 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:12:54,746 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:13:01,859 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:13:03,136 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:13:06,537 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:13:06,537 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:13:06,538 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:13:06,548 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:13:06,549 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:13:06,550 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:13:06,550 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:13:06,551 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:13:06,551 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:13:06,552 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:13:06,552 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:13:06,552 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:13:10,164 | INFO | hackthon_support_agent.QuestionService | Questions saved successfully
+2025-09-07 14:19:27,789 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:21:01,633 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:21:01,634 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:21:01,634 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:21:01,643 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:21:01,644 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:21:01,645 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:21:01,645 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:21:01,646 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:21:01,646 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:21:01,647 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:21:01,647 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:21:01,647 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:21:05,634 | INFO | hackthon_support_agent.QuestionService | Questions saved successfully
+2025-09-07 14:21:59,017 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:22:29,047 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:22:29,047 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:22:29,048 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:22:29,057 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:22:29,058 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:22:29,059 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:22:29,059 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:22:29,060 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:22:29,060 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:22:29,061 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:22:29,061 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:22:29,061 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:22:33,036 | ERROR | hackthon_support_agent.QuestionService | Failed to save questions
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2114, in _exec_insertmany_context
+    dialect.do_execute(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.ForeignKeyViolation: insert or update on table "qa" violates foreign key constraint "qa_project_id_fkey"
+DETAIL:  Key (project_id)=(7db0a417-9717-44c2-aa7f-28a308740f33) is not present in table "projectBase".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/question_service.py", line 112, in save_question
+    self.db.commit()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4345, in flush
+    self._flush(objects)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4480, in _flush
+    with util.safe_reraise():
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4441, in _flush
+    flush_context.execute()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1143, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+    return meth(
+           ^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1840, in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2122, in _exec_insertmany_context
+    self._handle_dbapi_exception(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2351, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2114, in _exec_insertmany_context
+    dialect.do_execute(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "qa" violates foreign key constraint "qa_project_id_fkey"
+DETAIL:  Key (project_id)=(7db0a417-9717-44c2-aa7f-28a308740f33) is not present in table "projectBase".
+
+[SQL: INSERT INTO qa (qa_id, project_id, question, answer, is_ai, source_doc_id, follows_qa_id, importance) VALUES (%(qa_id__0)s::UUID, %(project_id__0)s::UUID, %(question__0)s, %(answer__0)s, %(is_ai__0)s, %(source_doc_id__0)s::UUID, %(follows_qa_id__0)s: ... 967 characters truncated ... _doc_id__6)s::UUID, %(follows_qa_id__6)s::UUID, %(importance__6)s) RETURNING qa.created_at, qa.qa_id]
+[parameters: {'importance__0': 5, 'project_id__0': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__0': None, 'question__0': '「面白いアプリ」とは、具体的にどのような面白さを指しますか？例えば、ゲームのようなエンターテイメント性、日常を便利にするような実用性、あるいは新しい発見や学びを提供するような知的好奇心を刺激するものなど、どのような方向性の面白さをイメージされていますか？', 'qa_id__0': UUID('ad5183a5-e682-411d-88dc-12a9577f6639'), 'source_doc_id__0': None, 'answer__0': 'まだ具体的には決まっていませんが、友達とワイワイ楽しめるような、ちょっと変わったゲーム要素のあるアプリが面白そうだと考えています。あるいは、普段の生活で「こんなアプリがあったら便利なのに」と思うような、ニッチだけど役立つものも良いですね。', 'is_ai__0': True, 'importance__1': 5, 'project_id__1': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__1': None, 'question__1': 'ハッカソン期間はどのくらいを想定されていますか？また、参加される人数は何名くらいでしょうか？この情報があると、実現可能な機能の範囲や、チームでの役割分担などを具体的に検討しやすくなります。', 'qa_id__1': UUID('d4169449-265e-4533-aea2-3df3f95deeac'), 'source_doc_id__1': None, 'answer__1': '期間は2日間、人数は3〜4名で参加する予定です。短期間なので、あまり複雑すぎないものが良いかもしれません。', 'is_ai__1': True, 'importance__2': 4, 'project_id__2': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__2': None, 'question__2': 'ターゲットユーザーはどのような層を想定していますか？例えば、学生、社会人、特定の趣味を持つ人々など、誰に使ってもらいたいかによって、アプリの機能やデザインの方向性が大きく変わってきます。', 'qa_id__2': UUID('f1c558c4-dcb3-4a36-93b4-323442714cdd'), 'source_doc_id__2': None, 'answer__2': '主に同世代の学生や、気軽に遊べるアプリを探している若年層を想定しています。友達同士で盛り上がれるようなものが良いですね。', 'is_ai__2': True, 'importance__3': 4, 'project_id__3': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__3': None, 'question__3': 'もし、アイデアがまだ漠然としている場合、どのようなテーマやジャンルに興味がありますか？例えば、コミュニケーション、学習、エンターテイメント、ライフログ、クリエイティブツールなど、いくつか候補を挙げていただくと、そこから具体的なアイデアを膨らませることができます。', 'qa_id__3': UUID('8f93729d-fc66-4419-894b-3ccd882ac0d7'), 'source_doc_id__3': None, 'answer__3': 'コミュニケーション系は面白そうですね。あとは、ちょっとしたゲーム要素があるものや、写真・動画を加工するようなクリエイティブなものにも興味があります。', 'is_ai__3': True, 'importance__4': 3, 'project_id__4': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__4': None, 'question__4': '現在、どのようなプログラミング言語や技術に触れた経験がありますか？例えば、Web開発（HTML, CSS, JavaScript）、モバイルアプリ開発（Swift, Kotlin, React Native）、バックエンド開発（Python, Ruby, Node.js）など、得意な分野や学習したい分野があれば教えてください。', 'qa_id__4': UUID('0cf3d149-2758-48cd-84ad-9f5d684f83ec'), 'source_doc_id__4': None, 'answer__4': '私はHTMLとCSS、JavaScriptの基本的な知識があります。Pythonも少し触ったことがあります。他のメンバーは、SwiftやJavaを少し勉強したことがあるようです。', 'is_ai__4': True, 'importance__5': 4, 'project_id__5': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__5': None, 'question__5': 'アプリを通じて、ユーザーにどのような体験を提供したいですか？例えば、驚き、感動、共感、達成感など、ユーザーがアプリを使った後にどのような気持ちになってほしいかを想像してみてください。', 'qa_id__5': UUID('b463005f-274c-4e6c-8ceb-e7f20f287ca1'), 'source_doc_id__5': None, 'answer__5': '友達と遊んでいる時に「これ面白いね！」と盛り上がったり、思わず笑ってしまうような体験を提供したいです。', 'is_ai__5': True, 'importance__6': 3, 'project_id__6': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__6': None, 'question__6': '既存のアプリで「こんな機能があったらもっと良いのに」と感じたことはありますか？あるいは、「このアプリのこの部分が面白い」と感じた点はありますか？参考にしたい既存のアプリがあれば教えてください。', 'qa_id__6': UUID('4330ec05-4496-411f-bb54-00b474f69d4b'), 'source_doc_id__6': None, 'answer__6': 'SNSで友達と共有する際に、もっとユニークなスタンプやエフェクトがあったら楽しいのに、と思います。あと、簡単なミニゲームを友達とすぐに遊べるようなアプリも良いですね。', 'is_ai__6': True}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-09-07 14:22:33,041 | ERROR | hackthon_support_agent.QuestionService | Error details: (psycopg2.errors.ForeignKeyViolation) insert or update on table "qa" violates foreign key constraint "qa_project_id_fkey"
+DETAIL:  Key (project_id)=(7db0a417-9717-44c2-aa7f-28a308740f33) is not present in table "projectBase".
+
+[SQL: INSERT INTO qa (qa_id, project_id, question, answer, is_ai, source_doc_id, follows_qa_id, importance) VALUES (%(qa_id__0)s::UUID, %(project_id__0)s::UUID, %(question__0)s, %(answer__0)s, %(is_ai__0)s, %(source_doc_id__0)s::UUID, %(follows_qa_id__0)s: ... 967 characters truncated ... _doc_id__6)s::UUID, %(follows_qa_id__6)s::UUID, %(importance__6)s) RETURNING qa.created_at, qa.qa_id]
+[parameters: {'importance__0': 5, 'project_id__0': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__0': None, 'question__0': '「面白いアプリ」とは、具体的にどのような面白さを指しますか？例えば、ゲームのようなエンターテイメント性、日常を便利にするような実用性、あるいは新しい発見や学びを提供するような知的好奇心を刺激するものなど、どのような方向性の面白さをイメージされていますか？', 'qa_id__0': UUID('ad5183a5-e682-411d-88dc-12a9577f6639'), 'source_doc_id__0': None, 'answer__0': 'まだ具体的には決まっていませんが、友達とワイワイ楽しめるような、ちょっと変わったゲーム要素のあるアプリが面白そうだと考えています。あるいは、普段の生活で「こんなアプリがあったら便利なのに」と思うような、ニッチだけど役立つものも良いですね。', 'is_ai__0': True, 'importance__1': 5, 'project_id__1': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__1': None, 'question__1': 'ハッカソン期間はどのくらいを想定されていますか？また、参加される人数は何名くらいでしょうか？この情報があると、実現可能な機能の範囲や、チームでの役割分担などを具体的に検討しやすくなります。', 'qa_id__1': UUID('d4169449-265e-4533-aea2-3df3f95deeac'), 'source_doc_id__1': None, 'answer__1': '期間は2日間、人数は3〜4名で参加する予定です。短期間なので、あまり複雑すぎないものが良いかもしれません。', 'is_ai__1': True, 'importance__2': 4, 'project_id__2': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__2': None, 'question__2': 'ターゲットユーザーはどのような層を想定していますか？例えば、学生、社会人、特定の趣味を持つ人々など、誰に使ってもらいたいかによって、アプリの機能やデザインの方向性が大きく変わってきます。', 'qa_id__2': UUID('f1c558c4-dcb3-4a36-93b4-323442714cdd'), 'source_doc_id__2': None, 'answer__2': '主に同世代の学生や、気軽に遊べるアプリを探している若年層を想定しています。友達同士で盛り上がれるようなものが良いですね。', 'is_ai__2': True, 'importance__3': 4, 'project_id__3': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__3': None, 'question__3': 'もし、アイデアがまだ漠然としている場合、どのようなテーマやジャンルに興味がありますか？例えば、コミュニケーション、学習、エンターテイメント、ライフログ、クリエイティブツールなど、いくつか候補を挙げていただくと、そこから具体的なアイデアを膨らませることができます。', 'qa_id__3': UUID('8f93729d-fc66-4419-894b-3ccd882ac0d7'), 'source_doc_id__3': None, 'answer__3': 'コミュニケーション系は面白そうですね。あとは、ちょっとしたゲーム要素があるものや、写真・動画を加工するようなクリエイティブなものにも興味があります。', 'is_ai__3': True, 'importance__4': 3, 'project_id__4': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__4': None, 'question__4': '現在、どのようなプログラミング言語や技術に触れた経験がありますか？例えば、Web開発（HTML, CSS, JavaScript）、モバイルアプリ開発（Swift, Kotlin, React Native）、バックエンド開発（Python, Ruby, Node.js）など、得意な分野や学習したい分野があれば教えてください。', 'qa_id__4': UUID('0cf3d149-2758-48cd-84ad-9f5d684f83ec'), 'source_doc_id__4': None, 'answer__4': '私はHTMLとCSS、JavaScriptの基本的な知識があります。Pythonも少し触ったことがあります。他のメンバーは、SwiftやJavaを少し勉強したことがあるようです。', 'is_ai__4': True, 'importance__5': 4, 'project_id__5': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__5': None, 'question__5': 'アプリを通じて、ユーザーにどのような体験を提供したいですか？例えば、驚き、感動、共感、達成感など、ユーザーがアプリを使った後にどのような気持ちになってほしいかを想像してみてください。', 'qa_id__5': UUID('b463005f-274c-4e6c-8ceb-e7f20f287ca1'), 'source_doc_id__5': None, 'answer__5': '友達と遊んでいる時に「これ面白いね！」と盛り上がったり、思わず笑ってしまうような体験を提供したいです。', 'is_ai__5': True, 'importance__6': 3, 'project_id__6': UUID('7db0a417-9717-44c2-aa7f-28a308740f33'), 'follows_qa_id__6': None, 'question__6': '既存のアプリで「こんな機能があったらもっと良いのに」と感じたことはありますか？あるいは、「このアプリのこの部分が面白い」と感じた点はありますか？参考にしたい既存のアプリがあれば教えてください。', 'qa_id__6': UUID('4330ec05-4496-411f-bb54-00b474f69d4b'), 'source_doc_id__6': None, 'answer__6': 'SNSで友達と共有する際に、もっとユニークなスタンプやエフェクトがあったら楽しいのに、と思います。あと、簡単なミニゲームを友達とすぐに遊べるようなアプリも良いですね。', 'is_ai__6': True}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-09-07 14:25:09,614 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:25:13,302 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:25:33,988 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:25:33,988 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:25:33,988 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:25:34,000 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:25:34,000 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:25:34,002 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:25:34,002 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:25:34,003 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:25:34,003 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:25:34,004 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:25:34,004 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:25:34,004 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:25:37,678 | ERROR | hackthon_support_agent.QuestionService | Failed to save questions
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/question_service.py", line 100, in save_question
+    project_uuid = uuid.UUID(project_uuid)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/uuid.py", line 178, in __init__
+    raise ValueError('badly formed hexadecimal UUID string')
+ValueError: badly formed hexadecimal UUID string
+2025-09-07 14:25:37,678 | ERROR | hackthon_support_agent.QuestionService | Error details: badly formed hexadecimal UUID string
+2025-09-07 14:26:14,023 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:27:07,456 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:27:30,319 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:27:30,320 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:27:30,320 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:27:30,332 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:27:30,332 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:27:30,333 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:27:30,333 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:27:30,334 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:27:30,334 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:27:30,335 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:27:30,335 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:27:30,335 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:27:35,032 | INFO | hackthon_support_agent.QuestionService | Questions saved successfully
+2025-09-07 14:28:34,692 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-07 14:29:10,380 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-07 14:29:10,381 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-07 14:29:10,381 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:29:10,391 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:29:10,392 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:29:10,393 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:29:10,393 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:29:10,394 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:29:10,394 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-07 14:29:10,395 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-07 14:29:10,395 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-07 14:29:10,395 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-07 14:29:13,986 | INFO | hackthon_support_agent.QuestionService | Questions saved successfully
+2025-09-08 04:38:07,081 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 04:51:48,584 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 04:52:02,236 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 04:52:03,474 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 04:53:25,024 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 04:53:49,752 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 04:53:51,949 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:03:12,101 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:03:13,940 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:03:16,205 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:03:18,989 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:03:41,329 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:03:44,526 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:04:59,789 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-08 06:05:18,059 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:28:26,734 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:28:46,678 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:28:48,840 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:29:05,914 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:29:08,760 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:29:15,866 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:29:18,993 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:29:21,456 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 02:30:01,077 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 05:30:44,538 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-10 05:30:44,540 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-10 05:30:44,540 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:30:44,575 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:30:44,575 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:30:44,577 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:30:44,577 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:30:44,578 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:30:44,578 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:30:44,578 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:30:44,578 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-10 05:30:44,579 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-10 05:30:47,971 | INFO | hackthon_support_agent.QuestionService | Questions saved successfully
+2025-09-10 05:56:13,085 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-10 05:56:13,086 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-10 05:56:13,086 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:56:13,090 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:56:13,090 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:56:13,091 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:56:13,091 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:56:13,092 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:56:13,092 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-10 05:56:13,093 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-10 05:56:13,093 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-10 05:56:13,093 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-10 05:56:17,178 | INFO | hackthon_support_agent.QuestionService | Questions saved successfully
+2025-09-10 06:02:20,656 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:02:27,641 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:02:29,693 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:02:33,481 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:02:37,989 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:11:12,002 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:11:21,781 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:11:31,525 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:11:35,271 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:11:39,399 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:11:41,990 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:12:20,147 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:12:22,183 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:12:48,495 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:12:56,833 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:02,256 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:12,477 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:15,153 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:18,489 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:23,391 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:25,206 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:26,928 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:28,103 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 06:13:33,796 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 07:14:50,790 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 07:14:57,215 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 07:24:13,477 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 07:24:34,023 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 07:59:04,635 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-10 08:00:04,557 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local

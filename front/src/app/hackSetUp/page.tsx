@@ -1,12 +1,11 @@
 "use client";
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Zap, Clock, Users, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { postQuestion } from "@/libs/fetchAPI";
+import { generateQuestions } from "@/libs/service/qa";
 import { postProject } from "@/libs/modelAPI/project";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
@@ -43,9 +42,7 @@ export default function Home() {
 
       // プロジェクト作成後、質問を投稿
       const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}\n人数: ${numPeople}`;
-      const questionResponse = await postQuestion(questionData);
-
-      sessionStorage.setItem("questionData", JSON.stringify(questionResponse));
+      const questionResponse = await generateQuestions(projectId, questionData);
       // 質問＆回答入力ページへ遷移
       router.push(`/hackSetUp/${projectId}/hackQA`);
     } catch (error) {

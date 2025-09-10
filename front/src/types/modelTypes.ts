@@ -124,7 +124,7 @@ export type TaskAssignmentPatch = Partial<TaskAssignmentType>; // All fields opt
 
 // --- QA Types ---
 export interface QAType {
-  qa_id?: string;
+  qa_id: string;
   project_id: string;
   question: string;
   answer?: string | null;
@@ -149,3 +149,85 @@ export interface QAResponseType {
   qa_id: string;
   message: string;
 }
+
+/**
+ * AIによるQ&A生成API (`POST /qas/{project_id}`) のリクエストボディ
+ */
+export interface IdeaPromptType {
+  Prompt: string;
+}
+
+/**
+ * AIによるQ&A生成API (`POST /qas/{project_id}`) のレスポンス
+ */
+export interface QuestionResponseType {
+  result: {
+    QA: QAType[];
+  };
+}
+
+// --- Summary Types ---
+export interface SummaryQaItem {
+  Question: string;
+  Answer: string;
+}
+
+export interface SummaryRequest {
+  Answer: SummaryQaItem[];
+}
+
+export interface SummaryResponse {
+  summary: string;
+}
+
+// --- Evaluation Types ---
+
+/**
+ * MVP評価の詳細な内容 (mvp_judge_service.pyのMVPJudgeモデルに対応)
+ */
+export interface MvpJudgeType {
+  mvp_feasible: boolean;
+  score_0_100: number;
+  confidence: number;
+  must_haves: string[];
+  blockers: string[];
+  missing_items: string[];
+  followup_questions: string[];
+  reasons: string[];
+}
+
+/**
+ * セクションごとの深掘り質問の構造
+ */
+export interface SectionalQaType {
+  section_title: string;
+  questions: string[];
+}
+
+// ベースとなる評価結果の型
+interface EvaluationResultBase {
+  judge: MvpJudgeType;
+}
+
+/**
+ * 評価が合格した場合の型 (`action`が`"proceed"`)
+ */
+export interface EvaluationResultProceed extends EvaluationResultBase {
+  action: 'proceed';
+}
+
+/**
+ * 評価が不合格だった場合の型 (`action`が`"ask_user"`)
+ */
+export interface EvaluationResultAskUser extends EvaluationResultBase {
+  action: 'ask_user';
+  questions: string[];
+  missing_items: string[];
+  blockers: string[];
+  sectional_qa: SectionalQaType[];
+}
+
+/**
+ * 評価結果全体の型 (判別付きユニオン)
+ */
+export type EvaluationResultType = EvaluationResultProceed | EvaluationResultAskUser;

@@ -44,7 +44,7 @@ async def create_project(project: ProjectBaseType, db: Session = Depends(get_db)
 
 # プロジェクトIDからプロジェクトを取得
 @router.get("/project/{project_id}", summary="プロジェクト取得")
-async def get_project(project_id: str, db: Session = Depends(get_db)):
+async def get_project(project_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project = db.query(ProjectBase).filter(ProjectBase.project_id == project_id).first()
     if db_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -66,7 +66,7 @@ async def update_project(project_id: str, project: ProjectBaseType, db: Session 
     return {"message": "プロジェクトが更新されました"}
 
 @router.delete("/project/{project_id}", summary="プロジェクト削除")
-async def delete_project(project_id: str, db: Session = Depends(get_db)):
+async def delete_project(project_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project = db.query(ProjectBase).filter(ProjectBase.project_id == project_id).first()
     if db_project is None:
         raise HTTPException(status_code=404, detail="Project not found")

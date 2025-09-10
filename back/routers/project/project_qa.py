@@ -53,13 +53,6 @@ async def get_qa(qa_id: uuid.UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="QA not found")
     return db_qa
 
-@router.get("/qa/project/{project_id}", summary="プロジェクトIDからQA取得")
-async def get_qas_by_project(project_id: uuid.UUID, db: Session = Depends(get_db)):
-    db_qas = db.query(QA).filter(QA.project_id == project_id).all()
-    if not db_qas:
-        raise HTTPException(status_code=404, detail="No QAs found for this project")
-    return db_qas
-
 @router.put("/qa/{qa_id}", summary="QA更新")
 async def update_qa(qa_id: uuid.UUID, qa: QAType, db: Session = Depends(get_db)):
     db_qa = db.query(QA).filter(QA.qa_id == qa_id).first()
@@ -102,7 +95,13 @@ async def delete_qa(qa_id: uuid.UUID, db: Session = Depends(get_db)):
     db.commit()
     return {"qa_id": qa_id, "message": "QAが削除されました"}
 
-@router.get("/qas", summary="全QA取得")
-async def list_qas(db: Session = Depends(get_db)):
-    qas = db.query(QA).all()
+@router.get("/qas", summary="QAリスト取得")
+async def list_qas(project_id: Optional[uuid.UUID] = None, db: Session = Depends(get_db)):
+    query = db.query(QA)
+    if project_id:
+        query = query.filter(QA.project_id == project_id)
+    qas = query.all()
     return qas
+
+
+

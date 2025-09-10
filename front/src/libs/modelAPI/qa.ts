@@ -15,12 +15,6 @@ export const getQA = async (qaId: string): Promise<QAType> => {
   return response.data;
 };
 
-// --- GET QAs by Project ID ---
-export const getQAsByProjectId = async (projectId: string): Promise<QAType[]> => {
-  const response = await axios.get<QAType[]>(`${API_URL}/qa/project/${projectId}`);
-  return response.data;
-};
-
 // --- POST QA ---
 export const postQA = async (qa: Omit<QAType, 'qa_id' | 'created_at'>): Promise<string> => {
   const response = await axios.post<QAResponseType>(`${API_URL}/qa`, qa);
@@ -43,4 +37,19 @@ export const patchQA = async (qaId: string, qaPatch: QAPatch): Promise<string> =
 export const deleteQA = async (qaId: string): Promise<{ message: string }> => {
   const response = await axios.delete(`${API_URL}/qa/${qaId}`);
   return response.data;
+};
+
+// --- GET QAs by Project ID ---
+export const getQAsByProjectId = async (projectId: string): Promise<QAType[]> => {
+  const response = await axios.get<QAType[]>(`${API_URL}/qas`, { params: { project_id: projectId } });
+  return response.data;
+};
+// QAのデータをすべて受けとってpatchして解答を保存する
+export const saveAnswer = async (
+    qaData: QAType[]
+) => {
+    qaData.forEach(async (qa) => {
+        if (!qa.qa_id || !qa.answer) return;
+        await patchQA(qa.qa_id, { answer: qa.answer });
+    });
 };

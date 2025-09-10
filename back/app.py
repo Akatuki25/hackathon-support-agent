@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 # APIルーターのインポート
-from routers.project import member , project , project_document, env, task, task_assignment
+from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member
 from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy
 
 app = FastAPI(
@@ -30,6 +30,13 @@ async def root():
 app.include_router(member.router)
 app.include_router(project.router)
 app.include_router(project_document.router)
+app.include_router
+app.include_router(env.router)
+app.include_router(task.router)
+app.include_router(task_assignment.router)
+app.include_router(project_qa.router)
+app.include_router(project_member.router)
+
 
 
 
