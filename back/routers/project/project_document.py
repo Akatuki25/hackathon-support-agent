@@ -1,20 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import date
-from typing import Optional
+from typing import Optional, Union
 from sqlalchemy.orm import Session
 import uuid
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, ConfigDict
 from database import SessionLocal
 from models.project_base import ProjectDocument
 from database import get_db
 router = APIRouter()
 
 class ProjectDocumentType(BaseModel):
-    project_id: uuid.UUID
+    project_id: Union[str, uuid.UUID]
     function_doc : str
     specification : str
     frame_work_doc: str
     directory_info : str
+    
+    @field_validator('project_id', mode='before')
+    @classmethod
+    def validate_project_id(cls, v):
+        if isinstance(v, str):
+            try:
+                return uuid.UUID(v)
+            except ValueError:
+                raise ValueError('Invalid UUID format')
+        return v
+    
+    model_config = ConfigDict(
+        # UUID文字列の自動変換を有効にする
+        json_encoders = {
+            uuid.UUID: str
+        }
+    )
 
 class CreateProjectDocumentResponse(BaseModel):
     project_id: uuid.UUID

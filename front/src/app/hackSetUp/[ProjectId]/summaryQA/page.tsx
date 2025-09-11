@@ -1,255 +1,384 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { getProject } from '@/libs/modelAPI/project';
-import { getProjectDocument, patchProjectDocument  } from '@/libs/modelAPI/document';
-import { getQAsByProjectId, postQA } from '@/libs/modelAPI/qa';
-import { evaluateMvpFromSummary } from '@/libs/service/summary';
-import { EvaluationResultType, ProjectType, ProjectDocumentType, QAType, SummaryQaItem, EvaluationResultAskUser } from '@/types/modelTypes';
-import PageLoading from '@/components/PageLoading';
-import { use } from 'chai';
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Terminal, ChevronRight, RefreshCcw, AlertTriangle, CheckCircle, Star, Loader2 } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
+import Header from "@/components/Session/Header";
+import Loading from "@/components/PageLoading";
+import { generateSummaryAndEvaluate } from "@/libs/service/summary";
+import { EvaluationResultType, MvpJudgeType } from "@/types/modelTypes";
 
-// Helper component for the right panel
-interface QAPanelProps {
-  questions: string[];
-  onSave: (newQAs: { question: string; answer: string }[]) => void;
-  isSaving: boolean;
-  evaluationCount: number;
-  projectId: string;
-}
+type FlowState = 'initial' | 'generating' | 'evaluating' | 'proceed' | 'user_ask' | 'regenerating';
 
+export default function SummaryQA() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const projectId = pathname.split("/")[2];
+  const { darkMode } = useDarkMode();
 
+  const [flowState, setFlowState] = useState<FlowState>('initial');
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResultType | null>(null);
+  const [qaAnswers, setQaAnswers] = useState<{[key: string]: string}>({});
+  const [processingNext, setProcessingNext] = useState(false);
 
-
-const QAPanel = ({ questions, onSave, isSaving, evaluationCount, projectId }: QAPanelProps) => {
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({});
-  const [loaded, setLoaded] = useState(false);
-
-
+  // 初期処理：summary生成と評価
   useEffect(() => {
-    // summaryのAPIを使って質問を取得
-    if (questions.length > 0 && !loaded) {
-        const initialAnswers: { [key: number]: string } = {};
-        questions.forEach((q, i) => {
-            initialAnswers[i] = '';
-        });
-        setAnswers(initialAnswers);
-        setLoaded(true);
+    const initializeFlow = async () => {
+      if (!projectId) return;
+      
+      try {
+        setFlowState('generating');
+        
+        // Q&Aから要約を生成・保存し、評価を実行
+        const result = await generateSummaryAndEvaluate(projectId);
+        setEvaluationResult(result);
+        
+        // 評価結果に基づいてフロー状態を設定
+        if (result.action === 'proceed') {
+          setFlowState('proceed');
+        } else {
+          setFlowState('user_ask');
         }
         
-  }, [questions]);
-
-
-
-
-  const handleAnswerChange = (index: number, value: string) => {
-    setAnswers(prev => ({ ...prev, [index]: value }));
-  };
-
-  const handleSave = () => {
-    const newQAs = questions.map((q, i) => ({
-      question: q,
-      answer: answers[i] || '',
-    }));
-    onSave(newQAs);
-  };
-
-  return (
-    <div className="flex flex-col space-y-4 p-4 border-l h-full bg-gray-50 dark:bg-gray-900">
-      <h2 className="text-xl font-bold mb-4">Follow-up Questions</h2>
-      <div className="flex-grow overflow-y-auto space-y-4 pr-2">
-        {questions.map((q, i) => (
-          <div key={i}>
-            <label className="block font-semibold mb-1 text-sm">{q}</label>
-            <textarea
-              className="w-full p-2 border rounded bg-white dark:bg-gray-800"
-              rows={3}
-              value={answers[i] || ''}
-              onChange={(e) => handleAnswerChange(i, e.target.value)}
-              placeholder="Your answer..."
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex-shrink-0 pt-4">
-        {evaluationCount >= 3 ? (
-          <button 
-            onClick={() => { /* Navigate to next step */ alert('Proceeding to Functional Requirements Definition...'); }}
-            className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
-          >
-            Save and Proceed to Functional Requirements
-          </button>
-        ) : (
-          <button 
-            onClick={handleSave} 
-            disabled={isSaving}
-            className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 disabled:bg-gray-400"
-          >
-            {isSaving ? 'Saving...' : 'Save Answers & Re-evaluate'}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
-export default function SummaryQAPage() {
-  const params = useParams();
-  const projectId = params.ProjectId as string;
-
-  const [project, setProject] = useState<ProjectType | null>(null);
-  const [document, setDocument] = useState<ProjectDocumentType | null>(null);
-  const [specification, setSpecification] = useState('');
-  const [evaluationResult, setEvaluationResult] = useState<EvaluationResultType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [evaluationCount, setEvaluationCount] = useState(0);
-
-  const runEvaluation = async (spec: string, existingQAs: QAType[], proj: ProjectType) => {
-    if (!proj) return;
-    
-    const qaListForEval: SummaryQaItem[] = existingQAs.map(qa => ({
-        Question: qa.question,
-        Answer: qa.answer || '',
-    }));
-
-    try {
-      // Use project idea and existing QAs for evaluation
-      const result = await evaluateMvpFromSummary(proj.idea);
-      setEvaluationResult(result);
-      setEvaluationCount(prev => prev + 1);
-    } catch (error) {
-      console.error("Evaluation failed:", error);
-      alert("Failed to run evaluation. The backend endpoint might not be implemented yet. Please check the console for details.");
-    }
-  };
-
-  useEffect(() => {
-    if (!projectId) return;
-
-    const fetchInitialData = async () => {
-      setLoading(true);
-      try {
-        const [proj, doc, qas] = await Promise.all([
-          getProject(projectId),
-          getProjectDocument(projectId),
-          getQAsByProjectId(projectId),
-        ]);
-
-        setProject(proj);
-        setDocument(doc);
-        const initialSpec = doc?.specification || proj?.idea || '';
-        setSpecification(initialSpec);
-        
-        await runEvaluation(initialSpec, qas, proj);
-
       } catch (error) {
-        console.error("Failed to fetch initial data:", error);
-        alert("Failed to load page data. Please check the console and try again.");
-      } finally {
-        setLoading(false);
+        console.error("初期処理に失敗:", error);
+        setFlowState('initial');
       }
     };
 
-    fetchInitialData();
+    initializeFlow();
   }, [projectId]);
 
-  const handleReEvaluate = async (newAnswers: { question: string; answer: string }[]) => {
-    if (!project) return;
-    setIsSaving(true);
+  // Q&Aの回答更新
+  const handleQaAnswerChange = (qaKey: string, answer: string) => {
+    setQaAnswers(prev => ({ ...prev, [qaKey]: answer }));
+  };
 
+  // Q&A回答後の再生成・再評価
+  const handleRegenerateAfterQA = async () => {
+    if (!evaluationResult || evaluationResult.action !== 'ask_user') return;
+    
     try {
-      // 1. Save new QAs
-      const newQAPromises = newAnswers
-        .filter(item => item.answer.trim() !== '') // Only save answered questions
-        .map(item => 
-          postQA({
-            project_id: projectId,
-            question: item.question,
-            answer: item.answer,
-            is_ai: true, // Questions came from AI
-            importance: 1, // Default importance
-          })
-      );
-      await Promise.all(newQAPromises);
-
-      // 2. Update the specification in the document if it exists and changed
-      if (document && specification !== document.specification) {
-          await patchProjectDocument(document.doc_id!, { specification: specification });
+      setFlowState('regenerating');
+      
+      // sectional_qaの回答をAPIの形式に変換
+      const qaUpdates: Array<{ qa_id: string; answer: string }> = [];
+      
+      // Type guard: evaluationResult.action が 'ask_user' であることを確認
+      if (evaluationResult.action === 'ask_user') {
+        evaluationResult.sectional_qa?.forEach((section, sectionIndex) => {
+          section.questions.forEach((_, qIndex) => {
+            const qaKey = `${sectionIndex}-${qIndex}`;
+            const answer = qaAnswers[qaKey];
+            if (answer && answer.trim()) {
+              // 実際のQA IDが必要だが、ここではダミーを使用
+              // 実装時は適切なQA IDを取得する必要がある
+              qaUpdates.push({
+                qa_id: `${sectionIndex}-${qIndex}`, // 仮のID
+                answer: answer.trim()
+              });
+            }
+          });
+        });
       }
-
-      // 3. Get all QAs again
-      const allQAs = await getQAsByProjectId(projectId);
-
-      // 4. Re-run evaluation
-      await runEvaluation(specification, allQAs, project);
-
+      
+      // 仮実装：QA更新の代わりに再評価のみ実行
+      // const result = await updateQAAndRegenerate(projectId, qaUpdates);
+      const result = await generateSummaryAndEvaluate(projectId);
+      setEvaluationResult(result);
+      
+      if (result.action === 'proceed') {
+        setFlowState('proceed');
+      } else {
+        setFlowState('user_ask');
+      }
+      
     } catch (error) {
-      console.error("Failed to re-evaluate:", error);
-      alert("An error occurred during re-evaluation. Please check the console.");
-    } finally {
-      setIsSaving(false);
+      console.error("再生成・再評価に失敗:", error);
+      setFlowState('user_ask');
     }
   };
 
-  if (loading && evaluationCount === 0) {
-    return <PageLoading />;
+  // 次へ進む
+  const handleNext = async () => {
+    setProcessingNext(true);
+    // TODO: 次のページへの遷移（モック）
+    setTimeout(() => {
+      router.push(`/hackSetUp/${projectId}/selectFramework`);
+    }, 1000);
+  };
+
+  // スコア表示用のコンポーネント
+  const ScoreDisplay = ({ judge }: { judge: MvpJudgeType }) => (
+    <div className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-700/50 border-cyan-500/30' : 'bg-purple-50/70 border-purple-300/50'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className={`font-semibold ${darkMode ? 'text-cyan-400' : 'text-purple-700'}`}>評価スコア</h3>
+        <div className="flex items-center space-x-2">
+          <Star className={`${darkMode ? 'text-yellow-400' : 'text-yellow-500'}`} size={16} />
+          <span className={`text-xl font-bold ${darkMode ? 'text-cyan-300' : 'text-purple-600'}`}>
+            {judge.score_0_100}/100
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>実現可能性:</span>
+          <div className="flex items-center">
+            {judge.mvp_feasible ? (
+              <CheckCircle className="text-green-500 mr-1" size={14} />
+            ) : (
+              <AlertTriangle className="text-red-500 mr-1" size={14} />
+            )}
+            <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {judge.mvp_feasible ? '実現可能' : '要検討'}
+            </span>
+          </div>
+        </div>
+        <div>
+          <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>信頼度:</span>
+          <span className={`ml-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            {Math.round(judge.confidence * 100)}%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ローディング状態の処理
+  if (flowState === 'initial' || flowState === 'generating') {
+    return <Loading />;
   }
 
-  if (!project) {
-      return <div className="p-4 text-red-500">Failed to load project data. Please try again.</div>
+  if (!evaluationResult) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className={`text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <AlertTriangle className="mx-auto mb-4" size={48} />
+          <p>評価結果の取得に失敗しました</p>
+        </div>
+      </div>
+    );
   }
-
-  const questionsToAsk =
-    evaluationResult?.action === 'ask_user'
-      ? (evaluationResult as EvaluationResultAskUser).sectional_qa.flatMap(s => s.questions)
-      : [];
 
   return (
-    <div className="grid md:grid-cols-2 h-screen bg-white dark:bg-black text-black dark:text-white">
-      {/* Left Panel: Specification Editor */}
-      <div className="flex flex-col p-4">
-        <h2 className="text-xl font-bold mb-4">Specification</h2>
-        <textarea
-          className="w-full flex-grow p-2 border rounded font-mono text-sm bg-gray-100 dark:bg-gray-800"
-          value={specification}
-          onChange={(e) => setSpecification(e.target.value)}
-        />
-        {evaluationResult?.action === 'proceed' && (
-             <div className="pt-4">
-                <button onClick={async () => {
-                    if (!document) return;
-                    setIsSaving(true);
-                    await patchProjectDocument(document.doc_id!, { specification: specification });
-                    setIsSaving(false);
-                    alert("Specification Saved!");
-                }} disabled={isSaving}
-                className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 disabled:bg-gray-400"
-                >
-                    {isSaving ? 'Saving...' : 'Save Specification'}
-                </button>
-             </div>
-        )}
+    <>
+      <div className="w-full top-0 left-0 right-0 z-99 absolute">
+        <Header />
       </div>
 
-      {/* Right Panel: Questions or Success Message */}
-      {evaluationResult?.action === 'ask_user' ? (
-        <QAPanel
-          questions={questionsToAsk}
-          onSave={handleReEvaluate}
-          isSaving={isSaving}
-          evaluationCount={evaluationCount}
-          projectId={projectId}
-        />
-      ) : (
-        <div className="flex flex-col items-center justify-center p-4 border-l bg-gray-50 dark:bg-gray-900">
-          <h2 className="text-2xl font-bold text-green-500">Evaluation Passed!</h2>
-          <p className="mt-2 text-center">The current specification seems feasible.</p>
-          <p className="mt-1 text-center text-sm text-gray-500">You can continue to refine the specification on the left and save your changes.</p>
+      <main className="relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4 mt-5">
+              <Terminal
+                className={`mr-2 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+              />
+              <h1
+                className={`text-3xl font-bold tracking-wider ${darkMode ? "text-cyan-400" : "text-purple-700"}`}
+              >
+                プロジェクト
+                <span className={darkMode ? "text-pink-500" : "text-blue-600"}>
+                  _要約評価
+                </span>
+              </h1>
+            </div>
+            <p
+              className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+            >
+              {flowState === 'proceed' 
+                ? 'AI評価に合格しました！次のステップに進みましょう'
+                : 'より詳細な情報が必要です。追加の質問に回答してください'
+              }
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {/* 評価スコア表示 */}
+            <div
+              className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
+                darkMode
+                  ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
+                  : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
+              }`}
+            >
+              <ScoreDisplay judge={evaluationResult.judge} />
+            </div>
+
+            {flowState === 'proceed' ? (
+              /* proceed の場合: 成功画面 */
+              <div
+                className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
+                  darkMode
+                    ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
+                    : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
+                }`}
+              >
+                <div className="text-center py-8">
+                  <CheckCircle 
+                    className="mx-auto mb-4 text-green-500" 
+                    size={64} 
+                  />
+                  <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-cyan-400' : 'text-purple-700'}`}>
+                    評価合格！
+                  </h2>
+                  <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    プロジェクトの要約が十分に詳細で実現可能と評価されました。<br />
+                    次のステップに進んでフレームワークを選択しましょう。
+                  </p>
+                  
+                  <button
+                    onClick={handleNext}
+                    className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
+                      darkMode
+                        ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
+                        : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                    }`}
+                    disabled={processingNext}
+                  >
+                    {processingNext ? (
+                      <div className="flex items-center">
+                        <Loader2 className="animate-spin mr-2" size={18} />
+                        処理中...
+                      </div>
+                    ) : (
+                      <>
+                        <span>次へ進む</span>
+                        <ChevronRight size={18} className="ml-2" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* user_ask の場合: Q&A画面 */
+              <div
+                className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
+                  darkMode
+                    ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
+                    : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
+                }`}
+              >
+                <h2
+                  className={`text-xl font-medium mb-6 flex items-center ${
+                    darkMode ? "text-cyan-400" : "text-purple-700"
+                  }`}
+                >
+                  <AlertTriangle
+                    size={18}
+                    className="mr-2 text-orange-500"
+                  />
+                  追加情報が必要です
+                </h2>
+                
+                <div className="space-y-6 max-h-96 overflow-y-auto">
+                  {/* 不足項目の表示 */}
+                  {evaluationResult.action === 'ask_user' && evaluationResult.missing_items && evaluationResult.missing_items.length > 0 && (
+                    <div className={`p-4 rounded-lg border-l-4 ${
+                      darkMode
+                        ? "bg-orange-900/20 border-orange-500 text-orange-300"
+                        : "bg-orange-50 border-orange-500 text-orange-700"
+                    }`}>
+                      <h4 className="font-semibold mb-2">不足している項目:</h4>
+                      <ul className="list-disc list-inside text-sm space-y-1">
+                        {evaluationResult.action === 'ask_user' && evaluationResult.missing_items.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* ブロッカーの表示 */}
+                  {evaluationResult.action === 'ask_user' && evaluationResult.blockers && evaluationResult.blockers.length > 0 && (
+                    <div className={`p-4 rounded-lg border-l-4 ${
+                      darkMode
+                        ? "bg-red-900/20 border-red-500 text-red-300"
+                        : "bg-red-50 border-red-500 text-red-700"
+                    }`}>
+                      <h4 className="font-semibold mb-2">解決が必要な問題:</h4>
+                      <ul className="list-disc list-inside text-sm space-y-1">
+                        {evaluationResult.action === 'ask_user' && evaluationResult.blockers.map((blocker, index) => (
+                          <li key={index}>{blocker}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* セクション別Q&A */}
+                  {evaluationResult.action === 'ask_user' && evaluationResult.sectional_qa && evaluationResult.sectional_qa.map((section, sectionIndex) => (
+                    <div key={sectionIndex} className={`p-4 rounded-lg border ${
+                      darkMode
+                        ? "bg-gray-700/40 border-cyan-500/30"
+                        : "bg-purple-50/70 border-purple-300/50"
+                    }`}>
+                      <h4 className={`font-semibold mb-3 ${
+                        darkMode ? "text-cyan-300" : "text-purple-700"
+                      }`}>
+                        {section.section_title}
+                      </h4>
+                      <div className="space-y-3">
+                        {section.questions.map((question, qIndex) => {
+                          const qaKey = `${sectionIndex}-${qIndex}`;
+                          return (
+                            <div key={qIndex}>
+                              <label className={`block text-sm font-medium mb-2 ${
+                                darkMode ? "text-cyan-300" : "text-purple-600"
+                              }`}>
+                                {question}
+                              </label>
+                              <textarea
+                                value={qaAnswers[qaKey] || ''}
+                                onChange={(e) => handleQaAnswerChange(qaKey, e.target.value)}
+                                rows={3}
+                                className={`w-full p-3 rounded-lg border transition-all resize-none ${
+                                  darkMode
+                                    ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
+                                    : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
+                                } focus:outline-none focus:ring-2 ${
+                                  darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
+                                }`}
+                                placeholder="回答を入力してください..."
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 再生成ボタン */}
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={handleRegenerateAfterQA}
+                    className={`px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
+                      darkMode
+                        ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
+                        : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                    }`}
+                    disabled={flowState === 'regenerating'}
+                  >
+                    {flowState === 'regenerating' ? (
+                      <div className="flex items-center">
+                        <Loader2 className="animate-spin mr-2" size={18} />
+                        再生成中...
+                      </div>
+                    ) : (
+                      <>
+                        <RefreshCcw size={18} className="mr-2" />
+                        <span>回答を反映して再評価</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <HackthonSupportAgent />
         </div>
-      )}
-    </div>
+      </main>
+    </>
   );
 }

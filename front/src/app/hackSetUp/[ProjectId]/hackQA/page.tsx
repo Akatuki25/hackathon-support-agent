@@ -10,6 +10,7 @@ import Header from "@/components/Session/Header";
 import { getQAsByProjectId, patchQA, postQA,deleteQA} from "@/libs/modelAPI/qa";
 import { QAType } from "@/types/modelTypes";
 import Loading from "@/components/PageLoading";
+import { evaluateMvpFromSummary } from "@/libs/service/summary";
 
 export default function HackQA() {
   const router = useRouter();

@@ -314,7 +314,7 @@ generate_tasks = """
 
 
 [mvp_service]
-MVP_JUDGE_PROMPT = """
+judge_mvp = """
 あなたは厳格なMVPレビューアです。以下の要件ドラフト（ユーザーQ&Aから生成）を読み、
 「今すぐMVPを作れるだけの要件か？」を判定してください。
 
