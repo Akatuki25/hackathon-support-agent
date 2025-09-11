@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 from services.summary_service import SummaryService
 from typing import Union, List
+from models.project_base import ProjectDocument
 import uuid
-
+from services.mvp_judge_service import MVPJudgeService
 router = APIRouter()
 
 class ProjectIdRequest(BaseModel):
@@ -24,7 +25,7 @@ class QAUpdateRequest(BaseModel):
     qa_answers: List[QAAnswer]
 
 @router.post("/")
-def generate_summary_and_evaluate(request: ProjectIdRequest, db: Session = Depends(get_db)):
+def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
     """
     Q&Aリストから要約を生成・保存し、評価を実行する
     """
@@ -34,8 +35,8 @@ def generate_summary_and_evaluate(request: ProjectIdRequest, db: Session = Depen
             project_id = uuid.UUID(request.project_id)
         else:
             project_id = request.project_id
-            
-        result = summary_service.generate_summary_and_evaluate(project_id=project_id)
+
+        result = summary_service.generate_summary(project_id=project_id)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -57,7 +58,6 @@ def save_summary(request: SummaryRequest, db: Session = Depends(get_db)):
         project_doc = summary_service.save_summary_to_project_document(project_id, request.summary)
         return {
             "message": "Summary saved successfully",
-            "project_id": str(project_id),
             "doc_id": str(project_doc.doc_id)
         }
     except Exception as e:
@@ -66,21 +66,16 @@ def save_summary(request: SummaryRequest, db: Session = Depends(get_db)):
 @router.post("/evaluate")
 def evaluate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
     """
-    既存の要約を評価する（要約の生成・保存は行わない）
+    既存の要約を評価する
     """
-    summary_service = SummaryService(db=db)
-    try:
-        if isinstance(request.project_id, str):
-            project_id = uuid.UUID(request.project_id)
-        else:
-            project_id = request.project_id
-            
-        result = summary_service.evaluate_project_summary(project_id=project_id)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    project_id = request.project_id
+    document = db.query(ProjectDocument).filter(ProjectDocument.project_id == project_id).first()
+    judge_service = MVPJudgeService(db=db)
+    if not document or not document.specification:
+        raise HTTPException(status_code=404, detail="No summary found for the given project_id")
+
+    result = judge_service.main(requirements_text=document.specification, project_id=project_id)
+    return result
 
 @router.post("/update-qa-and-regenerate")
 def update_qa_and_regenerate(request: QAUpdateRequest, db: Session = Depends(get_db)):
@@ -109,3 +104,4 @@ def update_qa_and_regenerate(request: QAUpdateRequest, db: Session = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+

@@ -179,53 +179,9 @@ export interface SummaryResponse {
 }
 
 // --- Evaluation Types ---
-
-/**
- * MVP評価の詳細な内容 (mvp_judge_service.pyのMVPJudgeモデルに対応)
- */
-export interface MvpJudgeType {
+export type MVPJudge = {
   mvp_feasible: boolean;
-  score_0_100: number;
-  confidence: number;
-  must_haves: string[];
-  blockers: string[];
-  missing_items: string[];
-  followup_questions: string[];
-  reasons: string[];
-}
-
-/**
- * セクションごとの深掘り質問の構造
- */
-export interface SectionalQaType {
-  section_title: string;
-  questions: string[];
-}
-
-// ベースとなる評価結果の型
-interface EvaluationResultBase {
-  judge: MvpJudgeType;
-}
-
-/**
- * 評価が合格した場合の型 (`action`が`"proceed"`)
- */
-export interface EvaluationResultProceed extends EvaluationResultBase {
-  action: 'proceed';
-}
-
-/**
- * 評価が不合格だった場合の型 (`action`が`"ask_user"`)
- */
-export interface EvaluationResultAskUser extends EvaluationResultBase {
-  action: 'ask_user';
-  questions: string[];
-  missing_items: string[];
-  blockers: string[];
-  sectional_qa: SectionalQaType[];
-}
-
-/**
- * 評価結果全体の型 (判別付きユニオン)
- */
-export type EvaluationResultType = EvaluationResultProceed | EvaluationResultAskUser;
+  score_0_100: number; // 0〜100 の範囲 (ランタイムでチェック推奨)
+  confidence: number;  // 0.0〜1.0 の範囲 (ランタイムでチェック推奨)
+  qa: QAType[];
+};

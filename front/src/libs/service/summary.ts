@@ -1,20 +1,23 @@
 import axios from 'axios';
 import {
-  EvaluationResultType,
+  MVPJudge
 } from '@/types/modelTypes';
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-export const evaluateMvpFromSummary = async (
+
+export const generateSummary = async (
   projectId: string,
-): Promise<EvaluationResultType> => {
-  const response = await axios.post<EvaluationResultType>(
-    `${API_BASE_URL}/api/summary/evaluate`,
-    { project_id: projectId }
-  );
-  return response.data;
+):Promise<string>=>{
+
+   const response = await axios.post(
+     `${API_BASE_URL}/api/summary/`,
+     { project_id: projectId }
+   );
+   return response.data;
 };
+
 
 export const saveSummary = async (
   projectId: string,
@@ -30,26 +33,13 @@ export const saveSummary = async (
   return response.data;
 };
 
-export const generateSummaryAndEvaluate = async (
-  projectId: string,
-): Promise<EvaluationResultType> => {
-  const response = await axios.post<EvaluationResultType>(
-    `${API_BASE_URL}/api/summary/`,
+export const evaluateSummary = async ( 
+  projectId: string
+) : Promise<MVPJudge> => {
+  const response = await axios.post<MVPJudge>(
+    `${API_BASE_URL}/api/summary/evaluate`,
     { project_id: projectId }
   );
   return response.data;
-};
+}
 
-export const updateQAAndRegenerate = async (
-  projectId: string,
-  qaAnswers: Array<{ qa_id: string; answer: string }>
-): Promise<EvaluationResultType> => {
-  const response = await axios.post<EvaluationResultType>(
-    `${API_BASE_URL}/api/summary/update-qa-and-regenerate`,
-    { 
-      project_id: projectId,
-      qa_answers: qaAnswers
-    }
-  );
-  return response.data;
-};

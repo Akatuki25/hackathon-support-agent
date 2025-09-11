@@ -10,7 +10,7 @@ import Header from "@/components/Session/Header";
 import { getQAsByProjectId, patchQA, postQA,deleteQA} from "@/libs/modelAPI/qa";
 import { QAType } from "@/types/modelTypes";
 import Loading from "@/components/PageLoading";
-import { evaluateMvpFromSummary } from "@/libs/service/summary";
+import {generateSummary , saveSummary} from "@/libs/service/summary";
 
 export default function HackQA() {
   const router = useRouter();
@@ -127,6 +127,11 @@ export default function HackQA() {
     if (editingQA) {
       await handleEndEdit();
     }
+    // summaryを作成する。
+    const summary = await generateSummary(projectId);
+    await saveSummary(projectId,summary);
+    setProcessingNext(false);
+    // summaryQAへ移動
 
     router.push(`/hackSetUp/${projectId}/summaryQA`);
   };

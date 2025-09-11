@@ -64,14 +64,14 @@ LOGGER.info("Loaded environment variables from %s", dotenv_path)
 
 
 class BaseService:
-    def __init__(self, db: Session, defult_model_provider: str = "google"):
+    def __init__(self, db: Session, default_model_provider: str = "google"):
         """
         db: DBセッション
-        defult_model_provider: モデルのプロバイダ（google/openai/anthropic）
+        default_model_provider: モデルのプロバイダ（google/openai/anthropic）
         """
         self.db = db
         self.logger = logging.getLogger(f"{LOGGER.name}.{self.__class__.__name__}")
-        self.logger.debug("Initializing BaseService (provider=%s)", defult_model_provider)
+        self.logger.debug("Initializing BaseService (provider=%s)", default_model_provider)
 
         # プロンプトの読み込み
         prompts_path = os.path.join(os.path.dirname(__file__), "prompts.toml")
@@ -88,10 +88,10 @@ class BaseService:
 
         # AIモデルの初期化
         # ※ APIキーそのものはログに出さない
-        self.llm_pro = self._load_llm(defult_model_provider, "gemini-2.5-flash-lite")
-        self.llm_flash = self._load_llm(defult_model_provider, "gemini-2.5-flash-lite")
-        self.llm_flash_thinking = self._load_llm(defult_model_provider, "gemini-2.5-flash-lite")
-        self.llm_lite = self._load_llm(defult_model_provider, "gemini-2.5-flash-lite")
+        self.llm_pro = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
+        self.llm_flash = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
+        self.llm_flash_thinking = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
+        self.llm_lite = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
         self.logger.debug("LLMs initialized")
 
     def _load_llm(self, model_provider: str, model_type: str, temperature: float = 0.5):
