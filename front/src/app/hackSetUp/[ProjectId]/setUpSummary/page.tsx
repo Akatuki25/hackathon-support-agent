@@ -97,7 +97,7 @@ export default function SetUpSummaryPage() {
     // 仕様書をAPIに送信
     const ID = await postProjectDocument({
       project_id: projectId,
-      specification_doc: summary,
+      function_doc: summary,
       specification: "",
       frame_work_doc: "",
       directory_info: "",

@@ -11,7 +11,7 @@ router = APIRouter()
 
 class ProjectDocumentType(BaseModel):
     project_id: uuid.UUID
-    specification_doc : str
+    function_doc : str
     specification : str
     frame_work_doc: str
     directory_info : str
@@ -25,7 +25,7 @@ class CreateProjectDocumentResponse(BaseModel):
 async def create_project_document(document: ProjectDocumentType, db: Session = Depends(get_db))->CreateProjectDocumentResponse:
     db_document = ProjectDocument(
         project_id=document.project_id,
-        specification_doc=document.specification_doc,
+        function_doc=document.function_doc,
         specification=document.specification,
         frame_work_doc=document.frame_work_doc,
         directory_info=document.directory_info
@@ -50,7 +50,7 @@ async def update_project_document(project_id: uuid.UUID, document: ProjectDocume
         raise HTTPException(status_code=404, detail="Project document not found")
     
     # 更新処理
-    db_document.specification_doc = document.specification_doc
+    db_document.function_doc = document.function_doc
     db_document.frame_work_doc = document.frame_work_doc
     db_document.directory_info = document.directory_info
     db_document.specification = document.specification
@@ -73,7 +73,7 @@ async def delete_project_document(project_id: uuid.UUID, db: Session = Depends(g
 
 class ProjectDocumentPatch(BaseModel):
     # project_id はURLパスで受け取るため、PATCHボディでは受け付けない
-    specification_doc: Optional[str] = None
+    function_doc: Optional[str] = None
     frame_work_doc: Optional[str] = None
     directory_info: Optional[str] = None
     specification: Optional[str] = None
@@ -94,7 +94,7 @@ async def patch_project_document(
     # 送られてきたフィールドだけ更新
     update_data = document.model_dump(exclude_unset=True)
     # 念のため許可フィールドを限定
-    allowed_fields = {"specification_doc", "frame_work_doc", "directory_info", "specification"}
+    allowed_fields = {"function_doc", "frame_work_doc", "directory_info", "specification"}
     for key, value in update_data.items():
         if key in allowed_fields:
             setattr(db_document, key, value)
@@ -118,7 +118,7 @@ async def update_project_document_by_id(doc_id: uuid.UUID, document: ProjectDocu
         raise HTTPException(status_code=404, detail="Project document not found")
     
     db_document.project_id = document.project_id
-    db_document.specification_doc = document.specification_doc
+    db_document.function_doc = document.function_doc
     db_document.specification = document.specification
     db_document.frame_work_doc = document.frame_work_doc
     db_document.directory_info = document.directory_info

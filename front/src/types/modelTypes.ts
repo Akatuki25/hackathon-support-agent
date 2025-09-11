@@ -38,7 +38,7 @@ export type ProjectDocumentType = {
   doc_id?: string; // UUID from FastAPI is string
   project_id: string; // UUID from FastAPI is string
   specification: string;
-  specification_doc: string;
+  function_doc: string;
   frame_work_doc: string;
   directory_info: string;
 };
@@ -161,9 +161,7 @@ export interface IdeaPromptType {
  * AIによるQ&A生成API (`POST /qas/{project_id}`) のレスポンス
  */
 export interface QuestionResponseType {
-  result: {
     QA: QAType[];
-  };
 }
 
 // --- Summary Types ---

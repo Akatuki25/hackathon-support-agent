@@ -74,7 +74,7 @@ erDiagram
     UUID doc_id PK
     UUID project_id FK
     text specification
-    text specification_doc
+    text function_doc
     text frame_work_doc
     text directory_info
     timestamptz created_at

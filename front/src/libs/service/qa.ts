@@ -1,7 +1,6 @@
 import axios from 'axios';
 import {
   QAType,
-  QAPatch,
   IdeaPromptType,
   QuestionResponseType,
 } from '@/types/modelTypes';
@@ -17,7 +16,7 @@ export type QACreateType = Omit<QAType, 'qa_id' | 'created_at'>;
 // --- API呼び出し関数 ---
 
 /**
- * AIによるQ&Aを生成・保存する (POST /qas/{project_id})
+ * AIによるQ&Aを生成する (POST /qas/{project_id})
  * @param projectId - プロジェクトID
  * @param prompt - AIに与えるアイデアのプロンプト
  * @returns 生成されたQ&Aの情報
@@ -34,3 +33,34 @@ export const generateQuestions = async (
   return response.data;
 };
 
+/**
+ * Q&Aを保存する (POST /api/question/save_questions)
+ * @param questions - 保存するQ&Aデータ
+ * @returns 保存結果のメッセージ
+ */
+
+
+export const saveQuestions = async (questions: { QA: QAType[] },project_id:string) => {
+  const payload = {
+    QA: questions.QA.map(q => ({
+      question: q.question,
+      importance: Number(q.importance),
+      is_ai: Boolean(q.is_ai),
+      project_id: project_id,
+      answer: q.answer ?? null,
+      source_doc_id: q.source_doc_id || null,   // "" は NG → null
+      follows_qa_id: q.follows_qa_id || null,   // "" は NG → null
+    })),
+  };
+
+  console.log("payload to save_questions:", JSON.stringify(payload, null, 2));
+
+  try {
+    const res = await axios.post(`${API_BASE_URL}/api/question/save_questions`, payload);
+    return res.data;
+  } catch (e: any) {
+    // ここが超重要：FastAPIの検証エラーを可視化
+    console.error("422 detail:", e.response?.data);
+    throw e;
+  }
+};

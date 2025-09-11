@@ -11,7 +11,7 @@ import { getProjectDocument } from "@/libs/modelAPI/document";
 export type ProjectDocumentType = {
   document_id?: string;
   project_id: string;
-  specification_doc: string;
+  function_doc: string;
   frame_work_doc: string;
   directory_info: string;
 };
@@ -95,7 +95,7 @@ export default function DocumentDashboard() {
       title: '仕様書',
       icon: FileText,
       description: 'プロジェクトの詳細仕様とビジネス要件',
-      content: documentData?.specification_doc || '',
+      content: documentData?.function_doc || '',
       color: darkMode ? 'cyan' : 'purple'
     },
     {
@@ -235,10 +235,10 @@ export default function DocumentDashboard() {
                   <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>仕様書</h3>
                 </div>
                 <div className={`text-lg font-bold mb-1 ${darkMode ? 'text-cyan-400' : 'text-purple-600'}`}>
-                  {documentData?.specification_doc ? '✓ 完了' : '○ 未生成'}
+                  {documentData?.function_doc ? '✓ 完了' : '○ 未生成'}
                 </div>
                 <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {documentData?.specification_doc ? `${documentData.specification_doc.length} 文字` : '0 文字'}
+                  {documentData?.function_doc ? `${documentData.function_doc.length} 文字` : '0 文字'}
                 </p>
               </div>
               
@@ -291,9 +291,9 @@ export default function DocumentDashboard() {
                 ドキュメント更新
               </button>
               
-              {documentData?.specification_doc && (
+              {documentData?.function_doc && (
                 <button
-                  onClick={() => handleCopy(documentData.specification_doc, 'spec-quick')}
+                  onClick={() => handleCopy(documentData.function_doc, 'spec-quick')}
                   className={`px-4 py-2 rounded-lg transition-all hover:scale-105 ${
                     copiedSection === 'spec-quick'
                       ? 'bg-green-500 text-white'

@@ -38,6 +38,7 @@ export default function HackQA() {
         
         // Q&Aデータの取得
         const qaData = await getQAsByProjectId(projectId);
+        console.log("Fetched QAs:", qaData);
         setQas(qaData || []);
       } catch (error) {
         console.error("データの取得に失敗:", error);
@@ -125,8 +126,8 @@ export default function HackQA() {
     if (editingQA) {
       await handleEndEdit();
     }
-    
-    router.push(`/hackSetUp/${projectId}/setUpSummary`);
+
+    router.push(`/hackSetUp/${projectId}/summaryQA`);
   };
 
   const handleDeleteQA = async (qaId: string) => {

@@ -8,7 +8,8 @@ from langchain.text_splitter import MarkdownHeaderTextSplitter
 from markdown_it import MarkdownIt
 import uuid
 
-from models.project_base import QA
+from models.project_base import QA , ProjectDocument
+
 from .mvp_judge_service import MVPJudgeService
 
 # routerから渡されるPydanticモデルを想定
@@ -20,7 +21,7 @@ class SummaryService(BaseService):
     def __init__(self,db: Session):
         super().__init__(db=db)
 
-    def generate_summary_document(self, question_answer: List[Union[dict, BaseModel]]):
+    def generate_summary_document(self, project_id: uuid.UUID, question_answer: List[Union[dict, BaseModel]]):
         """
         ユーザーのQ&A回答リストから要約を生成する。
         Pydanticモデルのリストと辞書のリストの両方に対応。
@@ -48,6 +49,26 @@ class SummaryService(BaseService):
         summary = chain.invoke({"question_answer": question_answer_str})
         md = MarkdownIt()
         tokens = md.parse(summary)
+        # dbにそのまま保存すると改行が<br>に変換されてしまうため、元に戻す
+        summary = "".join([token.content if token.type != "softbreak" else "\n" for token in tokens])
+        # DBにすでにあるかを確認する
+        existing_doc = self.db.query(ProjectDocument).filter(ProjectDocument.project_id == project_id).first()
+        if existing_doc:
+            # すでにある場合は更新する
+            existing_doc.specification = summary
+            self.db.commit()
+            self.db.refresh(existing_doc)
+        else:
+            # DBに保存する
+            self.db.add(ProjectDocument(
+                document_id=uuid.uuid4(),
+                project_id=project_id,
+                specification=summary,
+                function_doc="",
+                frame_work_doc="",
+                directory_info=""
+            ))
+            self.db.commit()
         return summary
 
     def format_summary(self, summary: str):

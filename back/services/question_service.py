@@ -5,7 +5,14 @@ from .base_service import BaseService
 from json_repair import repair_json
 import uuid
 from models.project_base import QA
+import pydantic
+from pydantic import BaseModel
 
+from sqlalchemy.orm import Session
+
+from typing import Any, Dict, Iterable, List, Sequence, Union
+from pydantic import BaseModel
+import uuid
 from sqlalchemy.orm import Session
 
 class QuestionService(BaseService):
@@ -16,7 +23,7 @@ class QuestionService(BaseService):
         """
         Q&Aの質問と想定回答を生成するメソッド。
         """
-                
+        self.logger.debug(f"Generating questions for project_id: {project_id} with idea_prompt: {idea_prompt}")
         response_schemas = [
             ResponseSchema(
                 name="QA",
@@ -72,54 +79,77 @@ class QuestionService(BaseService):
             self.logger.exception("Validation failed for QA items")
             raise e
         
+        # qa_idの設定
+        for i in range(len(result["QA"])):
+            result["QA"][i]["qa_id"] = str(uuid.uuid4())
         
         # follows_qa_idを出力された順に設定する。
         for i in range(1, len(result["QA"])):
-            result["QA"][i]["follows_qa_id"] = result["QA"][i-1].get("qa_id", None)
+            result["QA"][i]["follows_qa_id"] = result["QA"][i-1]["qa_id"]
 
-        return {"result": {"QA": result["QA"]}}
+        return {"QA": result["QA"]}
 
-    def save_question(self, question: dict):
+
+    def save_question(
+        self, question: Union[Dict[str, Any], Sequence[Union[BaseModel, Dict[str, Any]]]]
+    ):
         """
-        質問と回答をDBに保存するメソッド
-        {
-            QA : [
+        受け取りは { "QA": [ ... ] } でも [ ... ] でもOK。
+        各要素は Pydantic(BaseModel) でも dict でもOK。
+        follows_qa_id がDBに無い場合は NULL に落として保存します。
+        """
+        # --- 正規化: qa_items を List[dict] にする ---
+        if isinstance(question, dict) and "QA" in question:
+            items = question["QA"]
+        else:
+            items = question  # すでに list/tuple の想定
+
+        if not isinstance(items, Iterable):
+            raise ValueError("save_question: payload must be a list or { 'QA': [...] }")
+
+        to_insert: List[Dict[str, Any]] = []
+        for item in items:
+            d = item.model_dump() if isinstance(item, BaseModel) else dict(item)
+
+            # 空文字は None に（UUID等のパース失敗回避）
+            for k in ("answer", "source_doc_id", "follows_qa_id"):
+                if k in d and d[k] == "":
+                    d[k] = None
+
+            # project_id を uuid.UUID に
+            project_uuid = d.get("project_id")
+            if isinstance(project_uuid, str):
+                project_uuid = uuid.UUID(project_uuid)
+
+            # follows_qa_id の存在チェック（無ければ None に落とす）
+            follows = d.get("follows_qa_id")
+            if follows:
+                if isinstance(follows, str):
+                    follows = uuid.UUID(follows)
+                exists = self.db.query(QA.qa_id).filter(QA.qa_id == follows).first()
+                if not exists:
+                    follows = None  # ← 不正参照は切る（今回の要件に合わせてNULLへ）
+
+            to_insert.append(
                 {
-                    "question": "質問内容",
-                    "answer": "回答内容",
-                    "importance": 1,
-                    "is_ai": True,
-                    "source_doc_id": None,
-                    "project_id": "プロジェクトID"
-                },
-                ...
-            ]
-        }
-        """
-        
-        try:
-            for qa_data in question.get("QA", []):
-                # project_idが文字列で渡された場合も考慮し、UUIDオブジェクトに変換
-                project_uuid = qa_data["project_id"]
-                if isinstance(project_uuid, str):
-                    project_uuid = uuid.UUID(project_uuid)
+                    "question": d.get("question"),
+                    "answer": d.get("answer"),
+                    "importance": int(d.get("importance", 0)),
+                    "is_ai": bool(d.get("is_ai")),
+                    "source_doc_id": d.get("source_doc_id"),
+                    "follows_qa_id": follows,
+                    "project_id": project_uuid,
+                }
+            )
 
-                new_question = QA(
-                    question=qa_data["question"],
-                    answer=qa_data["answer"],
-                    importance=qa_data["importance"],
-                    is_ai=qa_data["is_ai"],
-                    source_doc_id=qa_data.get("source_doc_id"), # 存在しない場合も考慮
-                    follows_qa_id=qa_data.get("follows_qa_id"), # 存在しない場合も考慮
-                    project_id=project_uuid
-                )
-                self.db.add(new_question)
-            
+        # --- DB INSERT ---
+        try:
+            for row in to_insert:
+                self.db.add(QA(**row))
             self.db.commit()
-            self.logger.info("Questions saved successfully")
             return {"message": "Questions saved successfully"}
         except Exception as e:
-            self.logger.exception("Failed to save questions")
             self.db.rollback()
-            self.logger.error(f"Error details: {e}")
-            raise e
+            if self.logger:
+                self.logger(f"Failed to save questions: {e}")
+            raise
