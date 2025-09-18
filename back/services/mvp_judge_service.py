@@ -64,11 +64,11 @@ class MVPJudgeService(BaseService):
 
         if is_pass and j.confidence >= CONF_T:
             action = True  # 次のステップへ進む
-            qa_list = []
+            return_qa = []
         else:
             action = False  # ユーザーに確認・修正を促す
             qa_list = [qa.model_dump() for qa in j.qa]
-            
+
             return_qa = []
             # qaを
             for qa in qa_list:
@@ -84,13 +84,16 @@ class MVPJudgeService(BaseService):
                 })
             # dbに保存する
             for qa in return_qa:
+                # project_idをUUID型に変換
+                if isinstance(qa["project_id"], str):
+                    qa["project_id"] = uuid.UUID(qa["project_id"])
                 self.db.add(QA(**qa))
             self.db.commit()
-            
-            
+
+
         score = j.score_0_100
         confidence = j.confidence
-        
+
         return {
             "action": action,
             "judge": {

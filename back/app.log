@@ -2440,3 +2440,1388 @@ KeyError: 'judge_mvp'
 2025-09-11 11:59:42,322 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
 2025-09-11 11:59:42,322 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
 2025-09-11 11:59:42,325 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 09:52:10,477 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:52:11,710 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:52:29,292 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-17 09:52:29,293 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:52:29,293 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:29,316 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:29,316 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:29,317 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:29,317 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:29,318 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:29,319 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:29,320 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:29,320 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-17 09:52:29,320 | DEBUG | hackthon_support_agent.QuestionService | Generating questions for project_id: 0421756f-8b29-4806-be77-5511922b45ec with idea_prompt: プロジェクトタイトル: A
+プロジェクトアイディア: A
+期間: 2025-09-17 〜 2025-09-17 18:52
+人数: 2
+2025-09-17 09:52:29,320 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-17 09:52:38,711 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-17 09:52:38,712 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:52:38,712 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:38,713 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:38,713 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:38,714 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:38,714 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:38,715 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:38,715 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:38,716 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:38,716 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-17 09:52:41,574 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 09:52:41,575 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:52:41,575 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:41,577 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:41,577 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:41,579 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:41,579 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:41,580 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:41,580 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:41,580 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:41,580 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 09:52:41,582 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-09-17 09:52:46,640 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 09:52:46,641 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:52:46,641 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:46,642 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:46,642 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:46,643 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:46,643 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:46,644 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:46,644 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:46,645 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:46,645 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 09:52:50,429 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 09:52:50,431 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:52:50,431 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,434 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 09:52:50,435 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,436 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,437 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:52:50,439 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,438 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,439 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,441 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,442 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,442 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,442 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,444 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,445 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,445 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,447 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 09:52:50,452 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,455 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 09:52:50,456 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:52:50,460 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:52:50,460 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 09:52:50,467 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 09:53:04,950 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 09:53:04,950 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 09:53:04,951 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:53:04,952 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 09:53:04,953 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,953 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,955 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,955 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,956 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,956 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,957 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,957 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,958 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,958 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,959 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,959 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,960 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,960 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:04,960 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 09:53:04,960 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 09:53:04,964 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 09:53:04,965 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 09:53:05,046 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 09:53:05,049 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 09:54:50,772 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:55:01,265 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:56:14,379 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:56:22,830 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:56:28,212 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 09:57:58,375 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 10:07:17,555 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 12:59:30,954 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-17 12:59:30,959 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 12:59:30,959 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:31,045 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:31,045 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:31,047 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:31,047 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:31,048 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:31,048 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:31,049 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:31,049 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-17 12:59:31,049 | DEBUG | hackthon_support_agent.QuestionService | Generating questions for project_id: b87ceab8-fb58-4e21-b331-114858771665 with idea_prompt: プロジェクトタイトル: ハッカソン支援エージェント
+プロジェクトアイディア: ハッカソンを支援するためのアプリケーションを作りたい。特にプロジェクトの要件定義からすべてを作る
+期間: 2025-09-17 〜 2025-09-17 18:53
+人数: 3
+2025-09-17 12:59:31,050 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-09-17 12:59:35,314 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-09-17 12:59:35,315 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 12:59:35,315 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:35,316 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:35,317 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:35,317 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:35,317 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:35,318 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:35,318 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:35,319 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:35,319 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-09-17 12:59:59,332 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 12:59:59,333 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 12:59:59,333 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:59,335 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:59,335 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:59,336 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:59,336 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:59,337 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:59,337 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 12:59:59,338 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 12:59:59,338 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 12:59:59,339 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-09-17 13:00:04,767 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:00:04,768 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:00:04,769 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:04,770 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:04,770 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:04,771 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:04,771 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:04,773 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:04,773 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:04,775 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:04,775 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:00:05,542 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:00:05,543 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:00:05,543 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:00:05,544 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,545 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:00:05,547 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,547 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,547 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,549 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,549 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,550 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,550 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,552 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,552 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,552 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,552 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,554 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,554 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:05,555 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:00:05,555 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:00:05,568 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:00:06,025 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:00:06,026 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:00:06,030 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:02:33,591 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:02:33,593 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:02:33,593 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:33,606 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:33,606 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:33,608 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:33,608 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:33,609 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:33,609 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:33,610 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:33,610 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:02:33,619 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:02:34,044 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:02:34,045 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:02:34,045 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:34,046 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:34,046 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:34,047 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:34,047 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:34,048 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:34,048 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:34,049 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:34,049 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:02:34,053 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:02:42,746 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:02:42,746 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:02:42,747 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:42,748 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:42,748 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:42,749 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:42,749 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:42,750 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:42,751 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:42,752 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:42,752 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:02:42,754 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-09-17 13:02:50,094 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:02:50,095 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:02:50,095 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:50,096 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:50,096 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:50,097 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:50,097 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:50,098 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:50,099 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:02:50,099 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:02:50,099 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:02:50,103 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:03:18,412 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:03:18,412 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:03:18,413 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,414 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,414 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,415 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,416 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,416 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,417 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,417 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,417 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:03:18,422 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:03:18,821 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:03:18,822 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:03:18,822 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,823 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,824 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,824 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,824 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,825 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,825 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:03:18,826 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:03:18,826 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:03:18,829 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:05:13,418 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:05:23,286 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:07:06,357 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:07:06,358 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:07:06,358 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,372 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,372 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,373 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,373 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,374 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,374 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,375 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,375 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:07:06,382 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:07:06,657 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:07:06,658 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:07:06,658 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,659 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,659 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,660 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,661 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,662 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,662 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:07:06,663 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:07:06,663 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:07:06,666 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:13:17,622 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:13:17,623 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:13:17,623 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,626 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,627 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,628 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:13:17,630 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:13:17,630 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,630 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,630 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,632 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,633 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,633 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,633 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,635 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,635 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,635 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,636 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:13:17,642 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:13:17,643 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,646 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:17,647 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:17,647 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:13:17,651 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:13:28,110 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:13:28,111 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:13:28,111 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:28,114 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:28,114 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:28,115 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:28,115 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:28,227 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:28,227 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:28,229 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:28,229 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:13:28,231 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-09-17 13:13:33,565 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:13:33,565 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:13:33,566 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:33,567 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:33,567 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:33,568 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:33,568 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:33,568 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:33,568 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:13:33,569 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:13:33,569 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:13:33,572 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:14:16,239 | DEBUG | hackthon_support_agent.FunctionService | Initializing BaseService (provider=google)
+2025-09-17 13:14:16,240 | INFO | hackthon_support_agent.FunctionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:14:16,240 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,242 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,242 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,243 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,243 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,245 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,245 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,246 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,246 | DEBUG | hackthon_support_agent.FunctionService | LLMs initialized
+2025-09-17 13:14:16,246 | DEBUG | hackthon_support_agent.FunctionService | Generating functional requirements for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:14:16,249 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_functional_requirements'
+2025-09-17 13:14:16,642 | DEBUG | hackthon_support_agent.FunctionService | Initializing BaseService (provider=google)
+2025-09-17 13:14:16,643 | INFO | hackthon_support_agent.FunctionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:14:16,644 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,645 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,645 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,646 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,646 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,647 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,647 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:14:16,648 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:14:16,649 | DEBUG | hackthon_support_agent.FunctionService | LLMs initialized
+2025-09-17 13:14:16,649 | DEBUG | hackthon_support_agent.FunctionService | Generating functional requirements for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:14:16,652 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_functional_requirements'
+2025-09-17 13:14:27,641 | DEBUG | hackthon_support_agent.FunctionService | Generating clarification questions for 2 low-confidence requirements
+2025-09-17 13:14:27,642 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_clarification_questions'
+2025-09-17 13:14:29,059 | DEBUG | hackthon_support_agent.FunctionService | Generating clarification questions for 3 low-confidence requirements
+2025-09-17 13:14:29,059 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_clarification_questions'
+2025-09-17 13:14:30,063 | DEBUG | hackthon_support_agent.FunctionService | Saving functional requirements to project document: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:14:30,068 | DEBUG | hackthon_support_agent.FunctionService | Saving 3 clarification questions to database
+2025-09-17 13:14:30,070 | ERROR | hackthon_support_agent.FunctionService | Failed to save clarification questions: Can't match sentinel values in result set to parameter sets; key '5a8c4b7d-cb59-4ab4-83b9-31035e0abc4e' was not found. There may be a mismatch between the datatype passed to the DBAPI driver vs. that which it returns in a result row.  Ensure the given Python value matches the expected result type *exactly*, taking care to not rely upon implicit conversions which may occur such as when using strings in place of UUID or integer values, etc. 
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 914, in _deliver_insertmanyvalues_batches
+    rows_by_sentinel[sentinel_keys]
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: '5a8c4b7d-cb59-4ab4-83b9-31035e0abc4e'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/function_service.py", line 314, in save_clarification_questions
+    self.db.commit()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4345, in flush
+    self._flush(objects)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4480, in _flush
+    with util.safe_reraise():
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4441, in _flush
+    flush_context.execute()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1143, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+    return meth(
+           ^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1840, in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2029, in _exec_insertmany_context
+    for imv_batch in dialect._deliver_insertmanyvalues_batches(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 921, in _deliver_insertmanyvalues_batches
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Can't match sentinel values in result set to parameter sets; key '5a8c4b7d-cb59-4ab4-83b9-31035e0abc4e' was not found. There may be a mismatch between the datatype passed to the DBAPI driver vs. that which it returns in a result row.  Ensure the given Python value matches the expected result type *exactly*, taking care to not rely upon implicit conversions which may occur such as when using strings in place of UUID or integer values, etc. 
+2025-09-17 13:14:32,725 | DEBUG | hackthon_support_agent.FunctionService | Saving functional requirements to project document: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:14:32,730 | DEBUG | hackthon_support_agent.FunctionService | Saving 6 clarification questions to database
+2025-09-17 13:14:32,732 | ERROR | hackthon_support_agent.FunctionService | Failed to save clarification questions: Can't match sentinel values in result set to parameter sets; key '69f6db38-f972-4c42-ae4a-0c5587f2ca09' was not found. There may be a mismatch between the datatype passed to the DBAPI driver vs. that which it returns in a result row.  Ensure the given Python value matches the expected result type *exactly*, taking care to not rely upon implicit conversions which may occur such as when using strings in place of UUID or integer values, etc. 
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 914, in _deliver_insertmanyvalues_batches
+    rows_by_sentinel[sentinel_keys]
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: '69f6db38-f972-4c42-ae4a-0c5587f2ca09'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/function_service.py", line 314, in save_clarification_questions
+    self.db.commit()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4345, in flush
+    self._flush(objects)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4480, in _flush
+    with util.safe_reraise():
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4441, in _flush
+    flush_context.execute()
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1143, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+    return meth(
+           ^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1840, in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2029, in _exec_insertmany_context
+    for imv_batch in dialect._deliver_insertmanyvalues_batches(
+  File "/workspaces/hackathon_support_agent/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 921, in _deliver_insertmanyvalues_batches
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Can't match sentinel values in result set to parameter sets; key '69f6db38-f972-4c42-ae4a-0c5587f2ca09' was not found. There may be a mismatch between the datatype passed to the DBAPI driver vs. that which it returns in a result row.  Ensure the given Python value matches the expected result type *exactly*, taking care to not rely upon implicit conversions which may occur such as when using strings in place of UUID or integer values, etc. 
+2025-09-17 13:15:26,660 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:15:35,271 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:15:47,923 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:16:57,242 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:16:57,244 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:16:57,244 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,264 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,264 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:16:57,264 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,266 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:16:57,267 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,267 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,268 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,269 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,269 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,270 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,270 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,271 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,272 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,273 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,273 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:16:57,278 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:16:57,279 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,279 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:16:57,282 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:16:57,283 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:16:57,286 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:20:49,065 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:20:58,516 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:21:17,484 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:21:35,115 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:25:27,926 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:25:40,544 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:28:06,300 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:28:06,301 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:06,301 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:06,312 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:06,312 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:06,313 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:06,313 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:06,314 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:06,314 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:06,315 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:06,315 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:28:06,340 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-09-17 13:28:12,881 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:28:12,882 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:12,882 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:12,883 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:12,883 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:12,884 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:12,884 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:12,885 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:12,886 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:12,886 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:12,886 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:28:13,885 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:28:13,886 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:13,886 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,892 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,893 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,895 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,895 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,897 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,897 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,899 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,899 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:28:13,907 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:28:13,912 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:28:13,914 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:13,914 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,917 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,917 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,919 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,919 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,921 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,921 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:13,924 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:13,925 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:28:13,933 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:28:38,685 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:28:38,686 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:38,686 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,688 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,689 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,691 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,693 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,694 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:28:38,694 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,695 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,696 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:38,697 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,699 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,701 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,701 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:28:38,702 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,707 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:28:38,851 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,852 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,853 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,854 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:38,855 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:38,855 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:28:38,860 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:28:55,331 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:28:55,332 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:28:55,332 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:55,333 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:55,333 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:55,334 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:55,334 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:55,334 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:55,335 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:28:55,335 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:28:55,336 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:28:55,336 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:28:55,339 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-17 13:28:55,339 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-17 13:31:58,235 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:32:14,168 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:32:24,407 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:33:28,585 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:33:28,586 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:33:28,586 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,597 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,598 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,599 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,599 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,600 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,600 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,601 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,601 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:33:28,606 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:33:28,846 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:33:28,847 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:33:28,847 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,848 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,848 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,849 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,849 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,852 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,852 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:28,853 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:28,853 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:33:28,858 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:33:39,492 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:33:39,492 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:33:39,493 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:39,494 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:39,494 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:39,495 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:39,495 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:39,497 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:39,497 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:33:39,498 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:33:39,499 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:33:39,504 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:34:48,705 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:34:48,706 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:34:48,706 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:34:48,708 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:34:48,708 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:34:48,709 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:34:48,709 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:34:48,710 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:34:48,710 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:34:48,711 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:34:48,711 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:34:48,711 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:34:48,823 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-17 13:34:48,823 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-17 13:35:51,652 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:36:09,993 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:36:28,851 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-17 13:37:14,582 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:37:14,583 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:37:14,583 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,594 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,594 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,595 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,595 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,596 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,596 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,597 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,597 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:37:14,601 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:37:14,836 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:37:14,837 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:37:14,837 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,838 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,838 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,839 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,839 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,840 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,840 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:14,841 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:14,841 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:37:14,844 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:37:19,798 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:37:19,799 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:37:19,799 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:19,800 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:19,801 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:19,802 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:19,802 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:19,803 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:19,803 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:19,804 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:19,804 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:37:19,804 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:37:19,809 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-17 13:37:19,809 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-17 13:37:19,809 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-17 13:37:30,563 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:37:30,564 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:37:30,564 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:30,565 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:30,565 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:30,566 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:30,566 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:30,567 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:30,568 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:37:30,569 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:37:30,569 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:37:30,569 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:37:30,684 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-17 13:37:30,684 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-17 13:37:30,685 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-17 13:40:23,906 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:40:23,907 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:41:53,856 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:41:53,857 | ERROR | hackthon_support_agent.MVPJudgeService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:41:54,106 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:41:54,107 | ERROR | hackthon_support_agent.MVPJudgeService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:41:54,300 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:41:54,301 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:41:54,334 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:41:54,335 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:42:21,879 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:42:21,880 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:43:59,546 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:43:59,547 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:46:55,001 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:46:55,002 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:46:59,193 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:46:59,194 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:48:19,811 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:48:19,812 | ERROR | hackthon_support_agent.SummaryService | Failed to load prompts from /workspaces/hackathon_support_agent/back/services/prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 80, in __init__
+    self.prompts: Dict[str, Dict[str, str]] = tomllib.load(f)
+                                              ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 66, in load
+    return loads(s, parse_float=parse_float)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 113, in loads
+    pos, header = create_dict_rule(src, pos, out)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/tomllib/_parser.py", line 290, in create_dict_rule
+    raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+tomllib.TOMLDecodeError: Cannot declare ('summary_service',) twice (at line 407, column 17)
+2025-09-17 13:51:20,371 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:51:20,372 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:51:20,373 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:20,375 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:20,375 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:20,376 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:20,376 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:20,377 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:20,377 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:20,378 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:20,378 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:51:20,383 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-09-17 13:51:29,284 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:51:29,288 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-17 13:51:29,288 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-17 13:51:29,288 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-17 13:51:36,323 | WARNING | hackthon_support_agent.SummaryService | Failed to generate confidence feedback: Got invalid return object. Expected key `value_feedback` to be present, but got {'overall_confidence': 0.65, 'clarity_score': 0.7, 'feasibility_score': 0.8, 'scope_score': 0.6, 'value_score': 0.95, 'completeness_score': 0.5, 'clarity_feedback': 'ビジョン、課題、提供価値、ペルソナ、利用シナリオ、差別化ポイント、将来展望は比較的明確に記述されています。しかし、Q&Aを通じて、MVPのMust-have機能、非機能要件、入出力定義、受入基準、主要リスク/依存関係など、具体的な要件定義のレベルでは、まだ曖昧さが残っています。特に、Must-have機能の具体的な粒度や、受入基準の定量的な定義が不足しています。', 'feasibility_feedback': '提案されている機能（アイデアの具体化支援、タスク管理、技術選定サポート、開発プロセスガイド）は、現在のAI技術やWebアプリケーション開発技術で実現可能と考えられます。特にAIによるパーソナライズされた提案は、実現可能性が高いです。ただし、AIの提案精度や、初心者向けのUI/UXの実現には一定の技術的挑戦が伴います。', 'scope_feedback': 'MVPのスコープは、ハッカソン期間内で実現可能な範囲に絞るべきですが、現時点では「アイデアの具現化から開発プロセスガイドまで」と広範に定義されており、MVPとしてどこまでを実装すべきかの線引きが曖昧です。Q&Aで「アイデアをMVP定義に落とし込む支援」「タスク自動生成・割り当て」「技術選定提案」がMust-haveとされていますが、これらもさらに具体的な機能範囲を定義する必要があります。将来展望にある機能（コード生成、デバッグ支援など）は、MVPのスコープ外と明確に区別する必要があります。', 'completeness_feedback': 'ビジョン、課題、提供価値、ペルソナ、利用シナリオはよく記述されており、プロダクトの方向性やユーザーへの価値は理解しやすいです。しかし、開発を進める上で不可欠な、詳細な機能要件、非機能要件（特にパフォーマンス、セキュリティ、可用性）、入出力の具体的なデータ構造やAPI仕様、詳細な受入基準、リスクに対する具体的な対応策などが不足しています。Q&Aで補完されている部分もありますが、仕様書本体でより具体的に記述されるべきです。', 'improvement_suggestions': ['MVPのMust-have機能について、各機能の具体的な粒度（例：タスク生成の最小単位、技術選定のアルゴリズム、ガイドのステップ数）を定義してください。', '非機能要件について、最低限満たすべきパフォーマンス基準（例：画面遷移時間、API応答時間）、セキュリティ要件（例：個人情報非保持）、可用性要件（例：ハッカソン期間中の稼働率）を定義してください。', '入出力定義について、MVPで扱う主要なデータ（アイデア、MVP定義、タスク、技術スタックなど）のデータ構造（JSONスキーマなど）を定義し、主要なAPIエンドポイントの仕様を記述してください。', '受入基準について、定量的な指標（例：80%のチームがMVP定義を完了できる、AI提案の満足度がX%以上など）を設定してください。', '主要リスク/依存について、各リスクに対する具体的な軽減策や対応計画を記述してください。', 'MVPのスコープをより明確にするため、MVPで「やらないこと」を明確に定義してください（例：コード生成機能、複雑な認証機能など）。', 'UI/UXに関する具体的な要件（例：ウィザード形式の採用、視覚的な進捗表示など）を、利用シナリオやペルソナのニーズと紐づけて詳細化してください。'], 'confidence_reason': 'プロダクトのビジョン、ターゲットユーザー、提供価値は明確であり、ユーザーにとって非常に価値のあるプロダクトになり得ると確信しています。技術的な実現可能性も高いと考えられます。しかし、MVPのスコープ定義、機能の詳細化、非機能要件、入出力定義、受入基準など、開発に必要な情報の完全性と明確性が不足しており、現時点での確信度は中程度です。これらの不足点を解消することで、確信度はさらに高まります。'}
+For troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/errors/OUTPUT_PARSING_FAILURE 
+2025-09-17 13:51:36,332 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-17 13:51:36,333 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:51:36,333 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:36,335 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:36,335 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:36,335 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:36,335 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:36,336 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:36,336 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:51:36,337 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:51:36,337 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-17 13:51:36,341 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-17 13:53:26,915 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-17 13:53:26,916 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-17 13:53:26,916 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:53:26,918 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:53:26,918 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:53:26,919 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:53:26,919 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:53:26,920 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:53:26,920 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-17 13:53:26,921 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-17 13:53:26,921 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-17 13:53:26,921 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-17 13:53:26,925 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-17 13:53:26,925 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-17 13:53:26,926 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-18 01:59:56,455 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 01:59:56,459 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 01:59:56,459 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,464 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,464 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,466 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,466 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,467 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,467 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,468 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,468 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 01:59:56,474 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 01:59:56,692 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 01:59:56,693 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 01:59:56,694 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,695 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,695 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,696 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,696 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,697 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,697 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 01:59:56,698 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 01:59:56,698 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 01:59:56,702 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:00:00,071 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:00:00,072 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:00:00,072 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,073 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,073 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,074 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,074 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,075 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,075 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,077 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,077 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:00:00,077 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:00:00,082 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-18 02:00:00,082 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-18 02:00:00,083 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-18 02:00:00,884 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:00:00,884 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:00:00,885 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,886 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,886 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,887 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,887 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,888 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,888 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:00:00,889 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:00:00,890 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:00:00,890 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:00:00,895 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-18 02:00:00,895 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-18 02:00:00,896 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-18 02:01:03,046 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:01:03,047 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:01:03,047 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,048 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,048 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,049 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,049 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,050 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,050 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,051 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,051 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:01:03,055 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:01:03,322 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:01:03,323 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:01:03,323 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,324 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,324 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,325 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,325 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,326 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,326 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:03,326 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:03,327 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:01:03,329 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:01:13,935 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:01:13,936 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:01:13,936 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:13,937 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:13,937 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:13,938 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:13,938 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:13,939 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:13,939 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:13,940 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:13,940 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:01:13,940 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:01:13,944 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-18 02:01:13,944 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-18 02:01:13,945 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-18 02:01:15,116 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:01:15,117 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:01:15,117 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:15,118 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:15,118 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:15,119 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:15,119 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:15,121 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:15,121 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:15,122 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:15,122 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:01:15,122 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:01:15,126 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-18 02:01:15,126 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-18 02:01:15,126 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-18 02:01:54,966 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:01:54,967 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:01:54,968 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:54,974 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:54,974 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:54,975 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:54,975 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:54,976 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:54,977 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:01:54,978 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:01:54,978 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:01:54,978 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:01:54,984 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback.generate_confidence_feedback'
+2025-09-18 02:01:54,985 | ERROR | hackthon_support_agent.SummaryService | Prompt 'generate_confidence_feedback' not found under service 'summary_service.confidence_feedback' in prompts.toml
+Traceback (most recent call last):
+  File "/workspaces/hackathon_support_agent/back/services/base_service.py", line 148, in get_prompt
+    prompt = self.prompts[service_name][prompt_name]
+             ~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'summary_service.confidence_feedback'
+2025-09-18 02:01:54,985 | ERROR | hackthon_support_agent.SummaryService | Failed to get prompt: Prompt 'generate_confidence_feedback' not found in service 'summary_service.confidence_feedback' in prompts.toml
+2025-09-18 02:05:21,892 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-18 02:06:52,133 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:06:52,134 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:06:52,134 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,150 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,151 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,152 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,152 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,153 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,153 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,154 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,154 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:06:52,160 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:06:52,402 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:06:52,403 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:06:52,403 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,405 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,405 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,406 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,406 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,407 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,407 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:52,408 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:52,408 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:06:52,412 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:06:54,739 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:06:54,740 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:06:54,740 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,741 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,741 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,742 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,742 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,743 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,743 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,744 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,744 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:06:54,744 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:06:54,750 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:06:54,876 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:06:54,876 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:06:54,877 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,878 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,878 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,879 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,879 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,880 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,880 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:06:54,881 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:06:54,881 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:06:54,881 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:06:54,886 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:08:04,434 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:08:04,435 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:08:04,435 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:04,437 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:04,437 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:04,437 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:04,437 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:04,438 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:04,438 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:04,439 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:04,439 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:08:04,439 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:08:04,444 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:08:08,398 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:08:08,399 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:08:08,399 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,401 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,401 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,402 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,402 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,403 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,403 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,404 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,404 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:08:08,408 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:08:08,822 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:08:08,824 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:08:08,824 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,825 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,825 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,826 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,826 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,827 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,827 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:08,828 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:08,828 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:08:08,830 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:08:11,718 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:08:11,719 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:08:11,719 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:11,720 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:11,720 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:11,721 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:11,721 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:11,722 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:11,722 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:11,723 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:11,723 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:08:11,723 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:08:11,728 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:08:12,159 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:08:12,160 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:08:12,160 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:12,161 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:12,161 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:12,162 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:12,162 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:12,163 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:12,163 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:12,164 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:12,164 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:08:12,164 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:08:12,169 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:08:19,925 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:08:19,926 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:08:19,926 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:19,928 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:19,928 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:19,928 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:19,928 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:19,929 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:19,929 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:08:19,930 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:08:19,930 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:08:19,930 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:08:19,936 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:13:13,754 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:13:13,755 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:13:13,755 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:13,757 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:13,758 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:13,759 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:13,760 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:13,761 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:13,761 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:13,762 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:13,762 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:13:13,765 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:13:14,011 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:13:14,012 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:13:14,012 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:14,013 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:14,013 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:14,014 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:14,014 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:14,015 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:14,015 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:14,016 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:14,016 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:13:14,020 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:13:16,604 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:13:16,605 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:13:16,605 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:16,606 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:16,606 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:16,607 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:16,607 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:16,608 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:16,608 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:16,609 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:16,609 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:13:16,610 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:13:16,615 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:13:17,782 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:13:17,783 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:13:17,783 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:17,784 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:17,784 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:17,785 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:17,785 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:17,787 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:17,787 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:13:17,788 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:13:17,788 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:13:17,788 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:13:17,795 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:14:22,026 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:14:22,027 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:14:22,027 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:14:22,028 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:14:22,028 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:14:22,029 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:14:22,029 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:14:22,030 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:14:22,030 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:14:22,031 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:14:22,032 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:14:22,032 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:14:22,036 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:20:55,977 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:20:55,979 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:20:55,979 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:55,983 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:55,983 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:55,984 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:55,985 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:55,985 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:55,985 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:55,986 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:55,986 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:20:55,991 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:20:56,217 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:20:56,218 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:20:56,218 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:56,219 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:56,219 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:56,220 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:56,220 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:56,221 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:56,221 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:56,222 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:56,222 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:20:56,224 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:20:58,646 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:20:58,647 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:20:58,647 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:58,649 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:58,649 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:58,650 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:58,650 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:58,651 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:58,651 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:20:58,652 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:20:58,652 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:20:58,652 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:20:58,657 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:21:00,053 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:21:00,054 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:21:00,054 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:21:00,056 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:21:00,056 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:21:00,057 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:21:00,057 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:21:00,059 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:21:00,059 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:21:00,060 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:21:00,060 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:21:00,061 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:21:00,066 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:23:06,968 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:23:06,970 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:23:06,970 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,973 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,973 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-09-18 02:23:06,973 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,975 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:23:06,976 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,976 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,976 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,978 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,978 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,978 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,979 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,980 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,980 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,981 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,981 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:23:06,985 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:23:06,985 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,987 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:06,988 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:06,988 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-09-18 02:23:06,992 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-09-18 02:23:09,429 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:23:09,430 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:23:09,430 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:09,431 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:09,431 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:09,432 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:09,432 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:09,434 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:09,434 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:09,435 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:09,435 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:23:09,435 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:23:09,440 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:23:10,908 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:23:10,909 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:23:10,909 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:10,910 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:10,910 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:10,911 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:10,911 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:10,912 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:10,912 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:10,912 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:10,913 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:23:10,913 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:23:10,917 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'
+2025-09-18 02:23:17,597 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-09-18 02:23:17,598 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-18 02:23:17,598 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:17,599 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:17,599 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:17,600 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:17,600 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:17,602 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:17,602 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-18 02:23:17,603 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-18 02:23:17,603 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-09-18 02:23:17,603 | DEBUG | hackthon_support_agent.SummaryService | Generating confidence feedback for project_id: b87ceab8-fb58-4e21-b331-114858771665
+2025-09-18 02:23:17,609 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.confidence_feedback'

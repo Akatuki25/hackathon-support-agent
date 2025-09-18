@@ -32,11 +32,30 @@ def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
     summary_service = SummaryService(db=db)
     try:
         if isinstance(request.project_id, str):
-            project_id = uuid.UUID(request.project_id)
+            project_id_str = request.project_id
         else:
-            project_id = request.project_id
+            project_id_str = str(request.project_id)
 
-        result = summary_service.generate_summary(project_id=project_id)
+        result = summary_service.generate_summary(project_id=project_id_str)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/generate-with-feedback")
+def generate_summary_with_feedback(request: ProjectIdRequest, db: Session = Depends(get_db)):
+    """
+    Q&Aリストから要約を生成・保存し、確信度フィードバックも同時に返す
+    """
+    summary_service = SummaryService(db=db)
+    try:
+        if isinstance(request.project_id, str):
+            project_id_str = request.project_id
+        else:
+            project_id_str = str(request.project_id)
+
+        result = summary_service.generate_summary_with_feedback(project_id_str)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -75,7 +94,14 @@ def evaluate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No summary found for the given project_id")
 
     result = judge_service.main(requirements_text=document.specification, project_id=project_id)
-    return result
+
+    # フロントエンドが期待する形式にレスポンスを変換
+    return {
+        "mvp_feasible": result["judge"]["mvp_feasible"],
+        "score_0_100": result["judge"]["score_0_100"],
+        "confidence": result["judge"]["confidence"],
+        "qa": result["qa"]
+    }
 
 @router.post("/update-qa-and-regenerate")
 def update_qa_and_regenerate(request: QAUpdateRequest, db: Session = Depends(get_db)):
@@ -104,4 +130,32 @@ def update_qa_and_regenerate(request: QAUpdateRequest, db: Session = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/confidence-feedback")
+def get_confidence_feedback(request: ProjectIdRequest, db: Session = Depends(get_db)):
+    """
+    仕様書とQ&Aから確信度フィードバックを生成する
+    """
+    summary_service = SummaryService(db=db)
+    try:
+        if isinstance(request.project_id, str):
+            project_id_str = request.project_id
+        else:
+            project_id_str = str(request.project_id)
+
+        # プロジェクトIDの検証
+        try:
+            uuid.UUID(project_id_str)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid project_id format: {project_id_str}")
+
+        result = summary_service.generate_confidence_feedback(project_id_str)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Validation error: {str(e)}")
+    except Exception as e:
+        import traceback
+        error_detail = f"Internal server error: {str(e)}\nTraceback: {traceback.format_exc()}"
+        print(error_detail)  # サーバーログに出力
+        raise HTTPException(status_code=500, detail=str(e))
 

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member
-from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy
+from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements
 
 app = FastAPI(
     title="LangChain Server",
@@ -51,6 +51,7 @@ app.include_router(taskChat.router, prefix="/api/taskChat", tags=["TaskChat"])
 app.include_router(graphTask.router, prefix="/api/graphTask", tags=["GraphTask"])
 app.include_router(durationTask.router, prefix="/api/durationTask", tags=["DurationTask"])
 app.include_router(deploy.router, prefix="/api/deploy", tags=["Deploy"])
+app.include_router(function_requirements.router, prefix="/api/function_requirements", tags=["FunctionRequirements"])
 
 
 

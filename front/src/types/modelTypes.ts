@@ -185,3 +185,19 @@ export type MVPJudge = {
   confidence: number;  // 0.0〜1.0 の範囲 (ランタイムでチェック推奨)
   qa: QAType[];
 };
+
+export type ConfidenceFeedback = {
+  overall_confidence: number; // 0.0-1.0
+  clarity_score: number; // 0.0-1.0
+  feasibility_score: number; // 0.0-1.0
+  scope_score: number; // 0.0-1.0
+  value_score: number; // 0.0-1.0
+  completeness_score: number; // 0.0-1.0
+  clarity_feedback: string;
+  feasibility_feedback: string;
+  scope_feedback: string;
+  value_feedback: string;
+  completeness_feedback: string;
+  improvement_suggestions: string[];
+  confidence_reason: string;
+};
