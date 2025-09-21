@@ -2,16 +2,50 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCcw, Loader2, Edit3, TrendingUp } from "lucide-react";
+import { blocksToMarkdown, markdownToBlocks } from "@blocknote/core";
+import type { Block as BlockType, PartialBlock as PartialBlockType } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
+import "@blocknote/core/fonts/inter.css";
+import "@blocknote/core/style.css";
 import "@blocknote/mantine/style.css";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { ProjectDocumentType, ConfidenceFeedback as ConfidenceFeedbackType } from "@/types/modelTypes";
 import { patchProjectDocument } from "@/libs/modelAPI/document";
-import { generateSummary, evaluateSummary, getConfidenceFeedback, generateSummaryWithFeedback } from "@/libs/service/summary";
+import { evaluateSummary, getConfidenceFeedback, generateSummaryWithFeedback } from "@/libs/service/summary";
 import { QAType } from "@/types/modelTypes";
 import ConfidenceFeedback from "@/components/ConfidenceFeedback/ConfidenceFeedback";
-import ConfidenceIndicator from "@/components/ConfidenceIndicator/ConfidenceIndicator";
+
+const sanitizeSpecificationContent = (input: string) =>
+  input
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[（]/g, "(")
+    .replace(/[）]/g, ")")
+    .replace(/[：]/g, ":")
+    .replace(/[、]/g, ",")
+    .trim();
+
+const createPlainParagraphBlock = (text: string) => ({
+  type: "paragraph" as const,
+  content: text ? [text] : [],
+});
+
+const convertBlocksToPartial = (blocks: BlockType[]): PartialBlockType[] =>
+  blocks.map((block) => {
+    const partial = {
+      id: block.id,
+      type: block.type,
+      props: block.props,
+      content: block.content,
+      children:
+        block.children && block.children.length > 0
+          ? convertBlocksToPartial(block.children as BlockType[])
+          : undefined,
+    } as unknown as PartialBlockType;
+
+    return partial;
+  });
 
 interface SpecificationEditorProps {
   projectId: string;
@@ -33,19 +67,14 @@ export default function SpecificationEditor({
   const { darkMode } = useDarkMode();
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
-  const [saveTimer, setSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [loadingConfidenceFeedback, setLoadingConfidenceFeedback] = useState(false);
   const [confidenceFeedback, setConfidenceFeedback] = useState<ConfidenceFeedbackType | null>(null);
   const [showConfidenceFeedback, setShowConfidenceFeedback] = useState(false);
 
   // BlockNote エディターの初期化
   const editor = useCreateBlockNote({
-    initialContent: [
-      {
-        type: "paragraph",
-        content: "仕様書を記述してください...",
-      }
-    ],
+    initialContent: [createPlainParagraphBlock("仕様書を記述してください...")],
     domAttributes: {
       editor: {
         class: "focus:outline-none",
@@ -55,59 +84,38 @@ export default function SpecificationEditor({
 
   // エディターのコンテンツを初期化
   useEffect(() => {
-    if (projectDocument?.specification && editor && editor.document && projectDocument.specification.trim() && !isContentInitialized) {
+    const loadSpecificationContent = async () => {
+      if (!projectDocument?.specification || !editor || !editor.document || !projectDocument.specification.trim() || isContentInitialized) {
+        return;
+      }
+
       try {
         // Markdownの内容をサニタイズして問題のある文字を修正
-        const sanitizedContent = projectDocument.specification
-          .replace(/"/g, '"')  // 全角クォートを半角に
-          .replace(/'/g, "'")  // 全角シングルクォートを半角に
-          .replace(/（/g, "(")  // 全角括弧を半角に
-          .replace(/）/g, ")")
-          .replace(/：/g, ":")  // 全角コロンを半角に
-          .replace(/、/g, ",")  // 全角カンマを半角に（必要に応じて）
-          .trim();
+        const sanitizedContent = sanitizeSpecificationContent(projectDocument.specification);
+        const parsedBlocks = await markdownToBlocks(sanitizedContent, editor.pmSchema);
 
-        editor.tryParseMarkdownToBlocks(sanitizedContent)
-          .then(blocks => {
-            if (editor.document && blocks && blocks.length > 0) {
-              editor.replaceBlocks(editor.document, blocks);
-              setIsContentInitialized(true);
-            } else {
-              // パース結果が空の場合は、プレーンテキストとして設定
-              console.warn("Markdown解析結果が空です。プレーンテキストとして設定します。");
-              const plainTextBlocks = [
-                {
-                  type: "paragraph" as const,
-                  content: sanitizedContent,
-                }
-              ];
-              editor.replaceBlocks(editor.document, plainTextBlocks);
-              setIsContentInitialized(true);
-            }
-          })
-          .catch(error => {
-            console.warn("マークダウン解析に失敗:", error);
-            // フォールバック: プレーンテキストとして挿入
-            try {
-              const plainTextBlocks = [
-                {
-                  type: "paragraph" as const,
-                  content: sanitizedContent,
-                }
-              ];
-              if (editor.document) {
-                editor.replaceBlocks(editor.document, plainTextBlocks);
-              }
-            } catch (fallbackError) {
-              console.error("フォールバック処理も失敗:", fallbackError);
-            }
-            setIsContentInitialized(true);
-          });
+        if (parsedBlocks && parsedBlocks.length > 0) {
+          editor.replaceBlocks(
+            editor.document,
+            convertBlocksToPartial(parsedBlocks as unknown as BlockType[])
+          );
+        } else {
+          console.warn("Markdown解析結果が空です。プレーンテキストとして設定します。");
+          editor.replaceBlocks(editor.document, [createPlainParagraphBlock(sanitizedContent)]);
+        }
       } catch (error) {
-        console.warn("エディター初期化エラー:", error);
+        console.warn("マークダウン解析に失敗:", error);
+        try {
+          editor.replaceBlocks(editor.document, [createPlainParagraphBlock(projectDocument.specification)]);
+        } catch (fallbackError) {
+          console.error("フォールバック処理も失敗:", fallbackError);
+        }
+      } finally {
         setIsContentInitialized(true);
       }
-    }
+    };
+
+    void loadSpecificationContent();
   }, [projectDocument?.specification, editor, isContentInitialized]);
 
   // 再生成と評価
@@ -177,7 +185,12 @@ export default function SpecificationEditor({
       try {
         if (!editor.document) return;
 
-        const markdown = await editor.blocksToMarkdownLossy(editor.document);
+        const markdown = await blocksToMarkdown(
+          editor.document,
+          editor.pmSchema,
+          editor,
+          { document: typeof document === "undefined" ? undefined : document }
+        );
 
         // 内容が変わっていない場合は保存しない
         if (markdown === projectDocument.specification) {
@@ -570,105 +583,31 @@ export default function SpecificationEditor({
             }
 
             .custom-blocknote .ProseMirror p {
-              margin-bottom: 1em !important;
+              margin: 0 0 1em !important;
               line-height: 1.6 !important;
+            }
+
+            .custom-blocknote .ProseMirror li p {
+              margin: 0 !important;
+            }
+
+            .custom-blocknote .ProseMirror li p + p {
+              margin-top: 0.5em !important;
             }
 
             /* リスト要素のベーススタイル */
             .custom-blocknote .ProseMirror ul,
             .custom-blocknote .ProseMirror ol {
-              margin: 1em 0 !important;
-              padding-left: 2em !important;
-              list-style-position: outside !important;
+              margin: 0 0 1em 1.5em !important;
+              padding-inline-start: 1em !important;
             }
 
             .custom-blocknote .ProseMirror li {
               margin: 0.25em 0 !important;
-              padding-left: 0 !important;
-              display: list-item !important;
-              position: relative !important;
             }
 
-            .custom-blocknote .ProseMirror ul li {
-              list-style-type: disc !important;
-            }
-
-            .custom-blocknote .ProseMirror ol li {
-              list-style-type: decimal !important;
-            }
-
-            .custom-blocknote .ProseMirror ul ul li {
-              list-style-type: circle !important;
-            }
-
-            .custom-blocknote .ProseMirror ul ul ul li {
-              list-style-type: square !important;
-            }
-
-            .custom-blocknote .ProseMirror ol ol li {
-              list-style-type: lower-alpha !important;
-            }
-
-            .custom-blocknote .ProseMirror ol ol ol li {
-              list-style-type: lower-roman !important;
-            }
-
-            /* BlockNote specific list styling - 完全に修正 */
-            .custom-blocknote .bn-block-group {
-              margin: 0 !important;
-            }
-
-            .custom-blocknote .bn-block-group[data-content-type="bulletListItem"],
-            .custom-blocknote .bn-block-group[data-content-type="numberedListItem"] {
-              display: block !important;
-              position: relative !important;
-              margin-left: 2em !important;
-              padding-left: 0 !important;
-            }
-
-            .custom-blocknote .bn-block-group[data-content-type="bulletListItem"]:before {
-              content: "•" !important;
-              position: absolute !important;
-              left: -1.5em !important;
-              color: ${darkMode ? '#e2e8f0' : '#1f2937'} !important;
-              font-weight: bold !important;
-            }
-
-            .custom-blocknote .bn-block-group[data-content-type="numberedListItem"] {
-              counter-increment: list-counter !important;
-            }
-
-            .custom-blocknote .bn-block-group[data-content-type="numberedListItem"]:before {
-              content: counter(list-counter) "." !important;
-              position: absolute !important;
-              left: -2em !important;
-              color: ${darkMode ? '#e2e8f0' : '#1f2937'} !important;
-              font-weight: bold !important;
-              width: 1.5em !important;
-              text-align: right !important;
-            }
-
-            /* リストコンテナにカウンターをリセット */
-            .custom-blocknote .bn-editor:has([data-content-type="numberedListItem"]) {
-              counter-reset: list-counter !important;
-            }
-
-            /* ネストされたリスト */
-            .custom-blocknote .bn-block-group[data-content-type="bulletListItem"] .bn-block-group[data-content-type="bulletListItem"]:before {
-              content: "◦" !important;
-            }
-
-            .custom-blocknote .bn-block-group[data-content-type="bulletListItem"] .bn-block-group[data-content-type="bulletListItem"] .bn-block-group[data-content-type="bulletListItem"]:before {
-              content: "▪" !important;
-            }
-
-            /* デバッグ文字の非表示（リスト要素以外） */
-            .custom-blocknote [data-content-type]:not([data-content-type="bulletListItem"]):not([data-content-type="numberedListItem"]):before {
-              display: none !important;
-            }
-
-            .custom-blocknote .bn-block-content[data-content-type]:before {
-              display: none !important;
+            .custom-blocknote .bn-tooltip {
+              z-index: 9999 !important;
             }
 
             .custom-blocknote .ProseMirror a {

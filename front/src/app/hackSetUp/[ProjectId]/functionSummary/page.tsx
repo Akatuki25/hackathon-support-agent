@@ -10,7 +10,6 @@ import Loading from "@/components/PageLoading";
 import FunctionEditor from "@/components/FunctionEditor/FunctionEditor";
 import QASection from "@/components/QASection/QASection";
 import ConfidenceFeedback from "@/components/ConfidenceFeedback/ConfidenceFeedback";
-import ConfidenceIndicator from "@/components/ConfidenceIndicator/ConfidenceIndicator";
 import {
   FunctionalRequirement,
   QAForRequirement,
@@ -119,13 +118,13 @@ export default function FunctionSummary() {
       scope_score: scope,
       value_score: value,
       completeness_score: completeness,
-      clarity_feedback: getClarityFeedback(clarity, reqs),
-      feasibility_feedback: getFeasibilityFeedback(feasibility, reqs),
-      scope_feedback: getScopeFeedback(scope, reqs),
-      value_feedback: getValueFeedback(value, reqs),
-      completeness_feedback: getCompletenessFeedback(completeness, reqs),
-      improvement_suggestions: getImprovementSuggestions(reqs, clarity, feasibility, scope, value, completeness),
-      confidence_reason: getConfidenceReason(confidence, clarity, feasibility, scope, value, completeness)
+      clarity_feedback: getClarityFeedback(clarity),
+      feasibility_feedback: getFeasibilityFeedback(feasibility),
+      scope_feedback: getScopeFeedback(scope),
+      value_feedback: getValueFeedback(value),
+      completeness_feedback: getCompletenessFeedback(completeness),
+      improvement_suggestions: getImprovementSuggestions(clarity, feasibility, scope, value, completeness),
+      confidence_reason: getConfidenceReason(clarity, feasibility, scope, value, completeness)
     };
 
     setConfidenceFeedback(feedback);
@@ -176,7 +175,7 @@ export default function FunctionSummary() {
 
     const scores = reqs.map(req => {
       let score = 0.6;
-      if (req.priority === "LOW" || req.priority === "MEDIUM") score += 0.2;
+      if (req.priority === "Could" || req.priority === "Should") score += 0.2;
       if (req.confidence_level && req.confidence_level > 0.7) score += 0.2;
       return Math.min(score, 1.0);
     });
@@ -194,7 +193,7 @@ export default function FunctionSummary() {
   const calculateValueScore = (reqs: FunctionalRequirement[]): number => {
     if (reqs.length === 0) return 0.5;
 
-    const highPriorityCount = reqs.filter(req => req.priority === "HIGH" || req.priority === "CRITICAL").length;
+    const highPriorityCount = reqs.filter(req => req.priority === "Must").length;
     const ratio = highPriorityCount / reqs.length;
 
     return Math.min(0.5 + ratio * 0.5, 1.0);
@@ -214,38 +213,37 @@ export default function FunctionSummary() {
   };
 
   // フィードバック生成関数群
-  const getClarityFeedback = (score: number, reqs: FunctionalRequirement[]): string => {
+  const getClarityFeedback = (score: number): string => {
     if (score >= 0.8) return "要件の記述が非常に明確で、理解しやすい内容になっています。";
     if (score >= 0.6) return "要件の記述は概ね明確ですが、一部詳細化が必要な項目があります。";
     return "要件の記述をより詳細にし、曖昧さを排除することを推奨します。";
   };
 
-  const getFeasibilityFeedback = (score: number, reqs: FunctionalRequirement[]): string => {
+  const getFeasibilityFeedback = (score: number): string => {
     if (score >= 0.8) return "提案された機能は技術的に実現可能性が高く、リスクも低いと判断されます。";
     if (score >= 0.6) return "機能の実現可能性は中程度です。一部の機能について技術的検証が必要です。";
     return "実現可能性に懸念があります。技術的な検証と代替案の検討を推奨します。";
   };
 
-  const getScopeFeedback = (score: number, reqs: FunctionalRequirement[]): string => {
+  const getScopeFeedback = (score: number): string => {
     if (score >= 0.8) return "プロジェクトのスコープは適切に設定されており、期間内での実現が期待できます。";
     if (score >= 0.6) return "スコープは概ね適切ですが、優先度の見直しを検討してください。";
     return "スコープの調整が必要です。機能を絞り込むか、期間の延長を検討してください。";
   };
 
-  const getValueFeedback = (score: number, reqs: FunctionalRequirement[]): string => {
+  const getValueFeedback = (score: number): string => {
     if (score >= 0.8) return "ユーザーにとって高い価値を提供する機能が適切に含まれています。";
     if (score >= 0.6) return "ユーザー価値は中程度です。より価値の高い機能の追加を検討してください。";
     return "ユーザー価値の向上が必要です。ユーザーニーズの再検討を推奨します。";
   };
 
-  const getCompletenessFeedback = (score: number, reqs: FunctionalRequirement[]): string => {
+  const getCompletenessFeedback = (score: number): string => {
     if (score >= 0.8) return "要件の記述が完全で、開発に必要な情報が十分に含まれています。";
     if (score >= 0.6) return "要件は概ね完全ですが、一部の項目で詳細化が必要です。";
     return "要件の完全性を向上させる必要があります。受入基準や詳細仕様の追加を推奨します。";
   };
 
   const getImprovementSuggestions = (
-    reqs: FunctionalRequirement[],
     clarity: number,
     feasibility: number,
     scope: number,
@@ -268,7 +266,6 @@ export default function FunctionSummary() {
   };
 
   const getConfidenceReason = (
-    confidence: number,
     clarity: number,
     feasibility: number,
     scope: number,
@@ -305,21 +302,15 @@ export default function FunctionSummary() {
 
       categoryReqs.forEach(req => {
         md += `### ${req.title}\n\n`;
-        md += `**要件ID:** ${req.requirement_id}\n\n`;
         md += `**優先度:** ${req.priority}\n\n`;
-        md += `**確信度:** ${req.confidence_level?.toFixed(2) || "N/A"}\n\n`;
         md += `**説明:**\n${req.description}\n\n`;
 
         if (req.acceptance_criteria && req.acceptance_criteria.length > 0) {
-          md += "**受入基準:**\n";
+          md += "**詳細機能:**\n";
           req.acceptance_criteria.forEach(criteria => {
             md += `- ${criteria}\n`;
           });
           md += "\n";
-        }
-
-        if (req.dependencies && req.dependencies.length > 0) {
-          md += `**依存関係:** ${req.dependencies.join(", ")}\n\n`;
         }
 
         md += "---\n\n";
@@ -409,25 +400,11 @@ export default function FunctionSummary() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-[70vh]">
-            {/* 機能要件編集部分 */}
-            <div className="xl:col-span-5">
-              <FunctionEditor
-                projectId={projectId}
-                functionDocument={functionDocument}
-                requirements={requirements}
-                overallConfidence={overallConfidence}
-                onDocumentUpdate={setFunctionDocument}
-                onRequirementsUpdate={handleRequirementsUpdate}
-                onQuestionsUpdate={handleQuestionsUpdate}
-                onConfidenceUpdate={handleConfidenceUpdate}
-              />
-            </div>
-
+          <div className="flex gap-6 min-h-[80vh]">
             {/* 確信度評価部分 */}
-            <div className="xl:col-span-3">
+            <div className="flex-shrink-0" style={{ flexBasis: '20%' }}>
               {confidenceFeedback && (
-                <div className={`h-full rounded-xl border-2 overflow-hidden ${
+                <div className={`rounded-xl border-2 overflow-hidden ${
                   darkMode
                     ? "bg-gray-800/50 border-cyan-500/30"
                     : "bg-white/50 border-purple-500/30"
@@ -447,10 +424,19 @@ export default function FunctionSummary() {
                   {/* 総合確信度 */}
                   <div className="p-4 space-y-4">
                     <div className="text-center">
-                      <ConfidenceIndicator
-                        confidence={confidenceFeedback.overall_confidence}
-                        size="lg"
-                      />
+                      <div className="flex items-center justify-center">
+                        <div className="relative">
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${
+                            confidenceFeedback.overall_confidence >= 0.8
+                              ? "text-green-500 bg-green-100 dark:bg-green-900/20"
+                              : confidenceFeedback.overall_confidence >= 0.6
+                              ? "text-yellow-500 bg-yellow-100 dark:bg-yellow-900/20"
+                              : "text-red-500 bg-red-100 dark:bg-red-900/20"
+                          }`}>
+                            {(confidenceFeedback.overall_confidence * 100).toFixed(0)}%
+                          </div>
+                        </div>
+                      </div>
                       <p className={`mt-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                         総合確信度
                       </p>
@@ -506,8 +492,22 @@ export default function FunctionSummary() {
               )}
             </div>
 
+            {/* 機能要件編集部分 */}
+            <div className="flex-1" style={{ flexBasis: '51%' }}>
+              <FunctionEditor
+                projectId={projectId}
+                functionDocument={functionDocument}
+                requirements={requirements}
+                overallConfidence={overallConfidence}
+                onDocumentUpdate={setFunctionDocument}
+                onRequirementsUpdate={handleRequirementsUpdate}
+                onQuestionsUpdate={handleQuestionsUpdate}
+                onConfidenceUpdate={handleConfidenceUpdate}
+              />
+            </div>
+
             {/* Q&A部分 */}
-            <div className="xl:col-span-4">
+            <div className="flex-shrink-0" style={{ flexBasis: '29%' }}>
               <QASection
                 projectId={projectId}
                 questions={qaList}

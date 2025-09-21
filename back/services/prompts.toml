@@ -141,7 +141,7 @@ iOSの場合、
 
 [framework_service]
 generate_framework_priority = """
-あなたはプロダクト開発のエキスパートです。以下の仕様書の内容に基づいて、固定のフロントエンド候補（React, Vue, Next, Astro）とバックエンド候補（Nest, Flask, FastAPI, Rails, Gin）について、各候補の優先順位とその理由を評価してください。
+あなたはプロダクト開発のエキスパートです。以下の仕様書の内容に基づいて、固定のフロントエンド候補とバックエンド候補について、各候補の優先順位とその理由を評価してください。
 各候補に対して、プロジェクトにおける適合性を考慮し、優先順位（数字が小さいほど高い）を付け、理由を記述してください。
 回答は以下のフォーマットに従って、JSON 形式で出力してください。
 ここで日本語で出力してください。
@@ -150,6 +150,61 @@ generate_framework_priority = """
 仕様書:
 {specification}
 """
+generate_simple_recommendations = """
+あなたはプロダクト開発のエキスパートです。以下の仕様書と機能ドキュメントの内容を分析し、プロジェクトに適した技術を推薦してください。
+
+**重要**: 以下の技術選択肢の中から、プロジェクトに特に適している技術のみを推薦してください。推薦しない技術は自由選択として扱われます。
+
+利用可能な技術選択肢：
+- フロントエンド: React, Vue.js, Next.js, Angular, Svelte, Astro
+- バックエンド: Node.js+Express, FastAPI(Python), Django(Python), Ruby on Rails, Spring Boot(Java), Gin(Go), Laravel(PHP)
+- データベース: PostgreSQL, MySQL, MongoDB, Redis
+- モバイル: React Native, Flutter, Swift, Kotlin
+- デプロイメント: Vercel, Netlify, AWS, Docker+Heroku
+
+推薦基準：
+1. プロジェクトの要件との適合性
+2. 開発効率と学習コスト
+3. プロジェクトの規模と複雑さ
+4. チーム開発での利便性
+
+回答は以下のフォーマットに従って、JSON形式で出力してください。
+日本語で回答してください。
+
+{format_instructions}
+
+仕様書:
+{specification}
+
+機能ドキュメント:
+{function_doc}
+"""
+
+evaluate_framework_choice = """
+あなたはプロダクト開発のエキスパートです。以下の仕様書と選択された技術スタックの組み合わせについて、妥当性を評価してください。
+
+仕様書:
+{specification}
+
+選択された技術:
+{selected_technologies}
+
+対象プラットフォーム:
+{platform}
+
+以下の観点から評価し、改善提案をしてください：
+1. 技術選択の適合性
+2. パフォーマンスと性能
+3. 開発効率と学習コスト
+4. 将来的な拡張性
+5. エコシステムとサポート
+
+回答は以下のフォーマットに従って、JSON形式で出力してください。
+日本語で回答してください。
+
+{format_instructions}
+"""
+
 generate_framework_document = """
 あなたはプロダクト開発のエキスパートです。以下の仕様書の内容と、今回ユーザーが選定した技術要件の内容からフレームワークに沿った技術要件書を作成してください。
 以下は仕様書と技術要件書の内容です。
@@ -250,7 +305,8 @@ generate_evaluate_summary="""
 
 """
 
-confidence_feedback = """
+[function_service.confidence_feedback]
+generate_confidence_feedback = """
 あなたはプロジェクト仕様書の品質評価エキスパートです。
 以下の仕様書とQ&Aの内容から、仕様書の完成度と確信度を分析し、フィードバックを提供してください。
 
