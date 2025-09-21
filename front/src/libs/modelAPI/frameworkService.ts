@@ -61,7 +61,7 @@ export const generateFrameworkDocument = async (
 export const getProjectDocument = async (projectId: string) => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/api/projects/${projectId}/document`,
+      `${API_BASE_URL}/project_document/${projectId}`,
       {
         headers: { 'Content-Type': 'application/json' },
       }

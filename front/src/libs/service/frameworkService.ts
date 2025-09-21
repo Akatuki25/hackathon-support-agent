@@ -75,29 +75,7 @@ export const getFrameworkRecommendations = async (
   return response.data;
 };
 
-/**
- * 選択したフレームワークと技術スタックを保存
- */
-export const saveFrameworkSelection = async (
-  projectId: string,
-  selectedPlatform: 'web' | 'ios' | 'android',
-  selectedTechnologies: string[],
-  reasoning?: string
-): Promise<FrameworkSelectionResponse> => {
-  const response = await axios.post(
-    `${API_BASE_URL}/api/framework/save-selection`,
-    {
-      project_id: projectId,
-      selected_platform: selectedPlatform,
-      selected_technologies: selectedTechnologies,
-      reasoning
-    },
-    {
-      headers: { 'Content-Type': 'application/json' },
-    }
-  );
-  return response.data;
-};
+
 
 /**
  * プラットフォーム別の技術オプションを取得

@@ -58,36 +58,7 @@ def get_framework_recommendations(request: FrameworkRecommendationRequest, db: S
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"推薦生成中にエラーが発生しました: {str(e)}")
 
-@router.post("/save-selection")
-def save_framework_selection(request: FrameworkSelectionRequest, db: Session = Depends(get_db)):
-    """
-    選択されたフレームワークと技術スタックを保存するAPI。
-    """
-    try:
-        # ここでDB に保存処理を実装（PROJECT_DOCUMENTテーブルのframe_work_docフィールドなど）
-        framework_service = FrameworkService(db=db)
 
-        # 選択内容をドキュメント形式で保存
-        selection_summary = f"""
-        # 選択された技術スタック
-
-        ## プラットフォーム
-        {request.selected_platform}
-
-        ## 使用技術
-        {', '.join(request.selected_technologies)}
-
-        ## 選択理由
-        {request.reasoning or '理由未記入'}
-        """
-
-        return responses.JSONResponse(content={
-            "message": "フレームワーク選択が保存されました",
-            "doc_id": request.project_id,
-            "framework_document": selection_summary
-        }, media_type="application/json")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"保存中にエラーが発生しました: {str(e)}")
 
 @router.get("/technology-options/{platform}")
 def get_technology_options(platform: str, db: Session = Depends(get_db)):

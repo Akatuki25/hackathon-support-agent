@@ -8,7 +8,7 @@ import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
 import { getProjectDocument } from "@/libs/modelAPI/frameworkService";
-import { getFrameworkRecommendations, saveFrameworkSelection } from "@/libs/service/frameworkService";
+import { getFrameworkRecommendations,  } from "@/libs/service/frameworkService";
 
 export interface TechnologyOption {
   name: string;
@@ -335,6 +335,18 @@ export default function SelectFramework() {
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [projectSpecification, setProjectSpecification] = useState<string>("");
   const [processingNext, setProcessingNext] = useState(false);
+  const [useAIRecommendations, setUseAIRecommendations] = useState(false);
+
+  // 
+  const saveFrameworkSelection = (projectId:string,reason:string) => {
+    // session Strageに追加する
+
+    sessionStorage.setItem(
+      projectId,
+      reason
+    )
+
+  }
 
   // 初期処理：プロジェクト仕様書を取得
   useEffect(() => {
@@ -381,8 +393,24 @@ export default function SelectFramework() {
     }
   };
 
+  // AI推薦選択の処理
+  const handleAIRecommendationSelect = () => {
+    setUseAIRecommendations(true);
+    setSelectedPlatform('web'); // AI推薦はwebプラットフォームを前提
+    // AI推薦の技術は自動選択せず、ユーザーが個別に選択
+    setSelectedTechnologies(new Set());
+  };
+
+  // 手動選択の処理
+  const handleManualSelect = () => {
+    setUseAIRecommendations(false);
+    setSelectedPlatform('web'); // デフォルトでWebを選択
+    setSelectedTechnologies(new Set());
+  };
+
   // プラットフォーム選択
   const handlePlatformSelect = (platform: 'web' | 'ios' | 'android') => {
+    setUseAIRecommendations(false); // 手動選択に切り替え
     setSelectedPlatform(platform);
     setSelectedTechnologies(new Set());
   };
@@ -400,26 +428,28 @@ export default function SelectFramework() {
 
   // 次へ進む
   const handleNext = async () => {
-    if (selectedTechnologies.size === 0 || !selectedPlatform) return;
+    if (selectedTechnologies.size === 0 || (!selectedPlatform && !useAIRecommendations)) return;
 
     setProcessingNext(true);
     try {
       // 選択した技術スタックを保存
-      await saveFrameworkSelection(
+      const reason = useAIRecommendations
+        ? `選択理由: AI推薦により${Array.from(selectedTechnologies).join(", ")}を使用`
+        : `選択理由: ${selectedPlatform}プラットフォームで${Array.from(selectedTechnologies).join(", ")}を使用`;
+
+      saveFrameworkSelection(
         projectId,
-        selectedPlatform,
-        Array.from(selectedTechnologies),
-        `選択理由: ${selectedPlatform}プラットフォームで${Array.from(selectedTechnologies).join(", ")}を使用`
+        reason
       );
 
       setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/setUpSummary`);
+        router.push(`/hackSetUp/${projectId}/technologyDoucment`);
       }, 1000);
     } catch (error) {
       console.error("フレームワーク選択の保存に失敗:", error);
       // エラーでも次のページに進む
       setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/setUpSummary`);
+        router.push(`/hackSetUp/${projectId}/technologyDoucment`);
       }, 1000);
     }
   };
@@ -477,80 +507,132 @@ export default function SelectFramework() {
             </p>
           </div>
 
-          {/* AI推薦セクション */}
-          <div className={`mb-8 rounded-xl border-2 overflow-hidden ${
-            darkMode
-              ? "bg-gray-800/50 border-cyan-500/30"
-              : "bg-white/50 border-purple-500/30"
-          } backdrop-blur-sm`}>
-            <div className={`p-4 border-b ${
-              darkMode ? "border-gray-700 bg-gray-800/80" : "border-gray-200 bg-gray-50/80"
+          {/* 技術選択方法 */}
+          <div className="mb-8">
+            <h2 className={`text-xl font-bold mb-4 ${
+              darkMode ? "text-cyan-300" : "text-purple-700"
             }`}>
-              <h3 className={`text-lg font-bold flex items-center ${
+              技術選択方法を選択
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* AI推薦オプション */}
+              <button
+                onClick={() => {
+                  if (!aiRecommendations) {
+                    handleGetAIRecommendations();
+                  } else {
+                    handleAIRecommendationSelect();
+                  }
+                }}
+                disabled={isLoadingRecommendations}
+                className={`p-6 rounded-xl border-2 transition-all hover:scale-105 ${
+                  useAIRecommendations
+                    ? darkMode
+                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
+                      : "bg-purple-100 border-purple-500 text-purple-700"
+                    : darkMode
+                      ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
+                      : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
+                } disabled:opacity-50`}
+              >
+                <Bot size={32} className="mx-auto mb-3" />
+                <h3 className="text-lg font-semibold">AI推薦</h3>
+                <p className="text-sm opacity-75 mb-3">
+                  {!aiRecommendations
+                    ? "プロジェクトに最適な技術を自動選択"
+                    : "AI推薦による技術スタック"
+                  }
+                </p>
+                {isLoadingRecommendations && (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="animate-spin mr-2" size={18} />
+                    <span className="text-xs">推薦を生成中...</span>
+                  </div>
+                )}
+                {aiRecommendations && !isLoadingRecommendations && (
+                  <div className="text-xs opacity-75">
+                    {aiRecommendations.recommended_technologies.length}個の技術を推薦
+                  </div>
+                )}
+              </button>
+
+              {/* 手動選択オプション */}
+              <button
+                onClick={handleManualSelect}
+                className={`p-6 rounded-xl border-2 transition-all hover:scale-105 ${
+                  !useAIRecommendations && selectedPlatform
+                    ? darkMode
+                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
+                      : "bg-purple-100 border-purple-500 text-purple-700"
+                    : darkMode
+                      ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
+                      : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
+                }`}
+              >
+                <Terminal size={32} className="mx-auto mb-3" />
+                <h3 className="text-lg font-semibold">手動選択</h3>
+                <p className="text-sm opacity-75">
+                  プラットフォームから自分で技術を選択
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* AI推薦技術選択 */}
+          {useAIRecommendations && aiRecommendations && (
+            <div className="mb-8">
+              <h2 className={`text-xl font-bold mb-4 flex items-center ${
                 darkMode ? "text-cyan-300" : "text-purple-700"
               }`}>
-                <Bot size={20} className="mr-2" />
-                AI技術推薦
-              </h3>
-            </div>
+                <Bot size={24} className="mr-2" />
+                AI推薦技術を選択 (WEB)
+              </h2>
 
-            <div className="p-6">
-              {!aiRecommendations ? (
-                <div className="text-center">
-                  <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {projectSpecification
-                      ? "プロジェクト仕様に基づいて最適な技術スタックを推薦します"
-                      : "一般的な開発パターンに基づいて技術スタックを推薦します"
-                    }
-                  </p>
-                  {!projectSpecification && (
-                    <p className={`mb-4 text-sm ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                      ※ プロジェクト仕様書が見つからないため、汎用的な推薦を行います
-                    </p>
-                  )}
-                  <button
-                    onClick={handleGetAIRecommendations}
-                    disabled={isLoadingRecommendations}
-                    className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                      darkMode
-                        ? "bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30"
-                        : "bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300"
-                    } disabled:opacity-50`}
-                  >
-                    {isLoadingRecommendations ? (
-                      <div className="flex items-center">
-                        <Loader2 className="animate-spin mr-2" size={18} />
-                        推薦を生成中...
-                      </div>
-                    ) : (
-                      "AI推薦を取得"
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-lg ${
-                    darkMode ? "bg-gray-700/50" : "bg-gray-50"
-                  }`}>
-                    <h4 className={`font-semibold mb-4 ${
-                      darkMode ? "text-cyan-300" : "text-purple-700"
-                    }`}>
-                      AI推薦技術
-                    </h4>
-                    <div className="space-y-3">
-                      {aiRecommendations.recommended_technologies
-                        .sort((a, b) => a.priority - b.priority)
-                        .map((tech, index) => (
-                        <div key={index} className={`p-3 rounded-lg border ${
-                          darkMode ? "bg-gray-800/50 border-gray-600" : "bg-white border-gray-200"
+              {/* AI推薦技術を手動選択と同じUIで表示 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {aiRecommendations.recommended_technologies
+                  .sort((a, b) => a.priority - b.priority)
+                  .map((tech, index) => {
+                    // 手動選択の技術リストから詳細情報を取得
+                    const techDetail = TECHNOLOGY_OPTIONS.web.find(t => t.name === tech.name);
+
+                    return (
+                    <div
+                      key={index}
+                      onClick={() => handleTechnologyToggle(tech.name)}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-102 relative ${
+                        selectedTechnologies.has(tech.name)
+                          ? darkMode
+                            ? "bg-cyan-500/20 border-cyan-500"
+                            : "bg-purple-100 border-purple-500"
+                          : darkMode
+                            ? "bg-gray-800/50 border-gray-600 hover:border-cyan-500/50"
+                            : "bg-white border-gray-300 hover:border-purple-500/50"
+                      }`}
+                    >
+                      {/* AI推薦バッジ */}
+                      <div className="absolute top-2 right-2">
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          darkMode ? "bg-green-500 text-white" : "bg-green-500 text-white"
                         }`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className={`font-semibold ${
-                              darkMode ? "text-cyan-300" : "text-purple-700"
-                            }`}>
-                              {tech.name}
-                            </h5>
-                            <span className={`text-xs px-2 py-1 rounded font-medium ${
+                          AI推薦
+                        </div>
+                      </div>
+
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className={`font-semibold ${
+                            darkMode ? "text-cyan-300" : "text-purple-700"
+                          }`}>
+                            {tech.name}
+                          </h4>
+                          <div className="flex gap-2 mt-1">
+                            {techDetail && (
+                              <span className={`text-xs px-2 py-1 rounded ${getDifficultyColor(techDetail.difficulty)}`}>
+                                {getDifficultyText(techDetail.difficulty)}
+                              </span>
+                            )}
+                            <span className={`text-xs px-2 py-1 rounded ${
                               tech.priority <= 3
                                 ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
                                 : tech.priority <= 6
@@ -560,62 +642,103 @@ export default function SelectFramework() {
                               優先度 {tech.priority}
                             </span>
                           </div>
-                          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                            {tech.reason}
-                          </p>
                         </div>
-                      ))}
+                        {selectedTechnologies.has(tech.name) && (
+                          <Check size={20} className={darkMode ? "text-cyan-400" : "text-purple-600"} />
+                        )}
+                      </div>
+
+                      <p className={`text-sm mb-3 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                        {techDetail?.description || "AI推薦技術"}
+                      </p>
+
+                      {/* AI推薦理由 */}
+                      <div className={`p-2 rounded-lg mb-3 ${
+                        darkMode ? "bg-green-900/30 border border-green-500/30" : "bg-green-50 border border-green-200"
+                      }`}>
+                        <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                          AI推薦理由
+                        </h5>
+                        <p className={`text-xs ${darkMode ? "text-green-300" : "text-green-700"}`}>
+                          {tech.reason}
+                        </p>
+                      </div>
+
+                      {/* 技術詳細情報（あれば表示） */}
+                      {techDetail && (
+                        <div className="space-y-2">
+                          <div>
+                            <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                              メリット
+                            </h5>
+                            <ul className="text-xs space-y-1">
+                              {techDetail.pros.slice(0, 2).map((pro, index) => (
+                                <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  • {pro}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div>
+                            <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-red-400" : "text-red-600"}`}>
+                              注意点
+                            </h5>
+                            <ul className="text-xs space-y-1">
+                              {techDetail.cons.slice(0, 2).map((con, index) => (
+                                <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  • {con}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  <div className={`p-3 rounded-lg ${
-                    darkMode ? "bg-blue-900/20 border-blue-500/30" : "bg-blue-50 border-blue-200"
-                  } border`}>
-                    <p className={`text-sm ${darkMode ? "text-blue-300" : "text-blue-700"}`}>
-                      💡 推薦されていない技術も自由に選択できます。プロジェクトの要件に応じて組み合わせてください。
-                    </p>
-                  </div>
-                </div>
-              )}
+                    );
+                  })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* プラットフォーム選択 */}
-          <div className="mb-8">
-            <h2 className={`text-xl font-bold mb-4 ${
-              darkMode ? "text-cyan-300" : "text-purple-700"
-            }`}>
-              プラットフォームを選択
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { key: 'web', icon: Globe, title: 'Web', desc: 'Webアプリケーション' },
-                { key: 'ios', icon: Smartphone, title: 'iOS', desc: 'iOSアプリ' },
-                { key: 'android', icon: Tablet, title: 'Android', desc: 'Androidアプリ' }
-              ].map(({ key, icon: Icon, title, desc }) => (
-                <button
-                  key={key}
-                  onClick={() => handlePlatformSelect(key as any)}
-                  className={`p-6 rounded-xl border-2 transition-all hover:scale-105 ${
-                    selectedPlatform === key
-                      ? darkMode
-                        ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
-                        : "bg-purple-100 border-purple-500 text-purple-700"
-                      : darkMode
-                        ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
-                        : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
-                  }`}
-                >
-                  <Icon size={32} className="mx-auto mb-3" />
-                  <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="text-sm opacity-75">{desc}</p>
-                </button>
-              ))}
+          {/* プラットフォーム選択（手動選択時のみ表示） */}
+          {!useAIRecommendations && (
+            <div className="mb-8">
+              <h2 className={`text-xl font-bold mb-4 ${
+                darkMode ? "text-cyan-300" : "text-purple-700"
+              }`}>
+                プラットフォームを選択
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { key: 'web', icon: Globe, title: 'Web', desc: 'Webアプリケーション' },
+                  { key: 'ios', icon: Smartphone, title: 'iOS', desc: 'iOSアプリ' },
+                  { key: 'android', icon: Tablet, title: 'Android', desc: 'Androidアプリ' }
+                ].map(({ key, icon: Icon, title, desc }) => (
+                  <button
+                    key={key}
+                    onClick={() => handlePlatformSelect(key as 'web' | 'ios' | 'android')}
+                    className={`p-6 rounded-xl border-2 transition-colors duration-200 h-[160px] w-full flex flex-col items-center justify-center ${
+                      selectedPlatform === key
+                        ? darkMode
+                          ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
+                          : "bg-purple-100 border-purple-500 text-purple-700"
+                        : darkMode
+                          ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
+                          : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
+                    }`}
+                  >
+                    <Icon size={32} className="mb-3" />
+                    <h3 className="text-lg font-semibold mb-2">{title}</h3>
+                    <p className="text-sm opacity-75">{desc}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* 技術選択 */}
-          {selectedPlatform && (
+          {/* 技術選択（手動選択時のみ） */}
+          {selectedPlatform && !useAIRecommendations && (
             <div className="mb-8">
               <h2 className={`text-xl font-bold mb-4 ${
                 darkMode ? "text-cyan-300" : "text-purple-700"
@@ -828,7 +951,7 @@ export default function SelectFramework() {
           )}
 
           {/* 次へ進むボタン */}
-          {selectedTechnologies.size > 0 && (
+          {selectedTechnologies.size > 0 && (useAIRecommendations || selectedPlatform) && (
             <div className="mt-8">
               <div
                 className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
