@@ -17,7 +17,7 @@
     "@blocknote/react": "^0.29.1",
     "@google/gemini-cli": "^0.3.2",
     "@hookform/resolvers": "^5.1.1",
-    "axios": "^1.11.0",
+    "axios": "^1.12.2",
     "lucide-react": "^0.503.0",
     "next": "15.3.1",
     "next-auth": "^4.24.11",
