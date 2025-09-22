@@ -1,50 +1,40 @@
-import { ProjectType } from "@/types/modelTypes";
-import { UUID } from "crypto";
+import axios from 'axios';
+import { ProjectType, ProjectResponseType, ProjectPatch } from '@/types/modelTypes';
 
-export const postProject = async (project: ProjectType) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  console.log(project);
-  const response = await fetch(`${apiUrl}/project`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(project),
-  });
-  if (!response.ok) {
-    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
-  }
-  const data = await response.json();
-  const ID: UUID = data.project_id;
-  return ID;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// --- GET All Projects ---
+export const getAllProjects = async (): Promise<ProjectType[]> => {
+  const response = await axios.get<ProjectType[]>(`${API_URL}/projectsAll`);
+  return response.data;
 };
 
-export const getProject = async (project_id: string) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const response = await fetch(`${apiUrl}/project/${project_id}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
-  }
-  const data: ProjectType = await response.json();
-  return data;
+// --- GET Project by ID ---
+export const getProject = async (projectId: string): Promise<ProjectType> => {
+  const response = await axios.get<ProjectType>(`${API_URL}/project/${projectId}`);
+  return response.data;
 };
 
-export const getAllProjects = async () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const response = await fetch(`${apiUrl}/projectsAll`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
-  }
-  const data: ProjectType[] = await response.json();
-  return data;
+// --- POST Project ---
+export const postProject = async (project: ProjectType): Promise<string> => {
+  const response = await axios.post<ProjectResponseType>(`${API_URL}/project`, project);
+  return response.data.project_id;
+};
+
+// --- PUT Project ---
+export const putProject = async (projectId: string, project: ProjectType): Promise<string> => {
+  const response = await axios.put<ProjectResponseType>(`${API_URL}/project/${projectId}`, project);
+  return response.data.message;
+};
+
+// --- PATCH Project ---
+export const patchProject = async (projectId: string, projectPatch: ProjectPatch): Promise<string> => {
+  const response = await axios.patch<ProjectResponseType>(`${API_URL}/project/${projectId}`, projectPatch);
+  return response.data.message;
+};
+
+// --- DELETE Project ---
+export const deleteProject = async (projectId: string): Promise<{ message: string }> => {
+  const response = await axios.delete(`${API_URL}/project/${projectId}`);
+  return response.data;
 };

@@ -18,3 +18,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # SQLAlchemy のベースクラス（モデル定義で継承する）
 Base = declarative_base()
+
+# DBセッション取得用 dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

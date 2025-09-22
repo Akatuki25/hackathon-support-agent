@@ -1,12 +1,11 @@
 "use client";
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Zap, Clock, Users, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { postQuestion } from "@/libs/fetchAPI";
+import { generateQuestions,saveQuestions } from "@/libs/service/qa";
 import { postProject } from "@/libs/modelAPI/project";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
@@ -29,7 +28,6 @@ export default function Home() {
     setLoading(true);
     // endDateとendTimeを結合してDateオブジェクトを作成
     const endDateTime = `${endDate}T${endTime}:00`;
-
     try {
       // 入力データを整形
       const projectData = {
@@ -39,13 +37,14 @@ export default function Home() {
         end_date: endDateTime, // ISO形式で保存
         num_people: parseInt(numPeople, 10),
       };
+
       const projectId = await postProject(projectData);
 
       // プロジェクト作成後、質問を投稿
       const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}\n人数: ${numPeople}`;
-      const questionResponse = await postQuestion(questionData);
+      const questionResponse = await generateQuestions(projectId, questionData);
 
-      sessionStorage.setItem("questionData", JSON.stringify(questionResponse));
+      await saveQuestions(questionResponse, projectId);
       // 質問＆回答入力ページへ遷移
       router.push(`/hackSetUp/${projectId}/hackQA`);
     } catch (error) {

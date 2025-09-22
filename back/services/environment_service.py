@@ -40,38 +40,7 @@ class EnvironmentService(BaseService):
         parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-                        以下の情報をもとに、環境構築ハンズオンの説明を生成してください。回答はMarkdown形式で出力してください。
-                        ただし、Markdown形式の文字列がJSON形式の形を壊さないように注意してください。
-                        【仕様書】
-                        {specification}
-                        【ディレクトリ構成】
-                        {directory}
-                        【フレームワーク情報】
-                        {framework}
-                        Webフレームワークの場合、
-                        以下の項目ごとに、詳細なハンズオンの説明を出力してください：
-                        1. overall: プロジェクト全体の環境構築ハンズオンの概要説明
-                        2. devcontainer: .devcontainer の使い方および具体的な設定内容の説明。中身のDockerfileとdevcontainer.jsonの具体的なコード内容まで含めてください。
-                        3. frontend: フロントエンドの初期環境構築手順の詳細な説明（.devcontainerで整う環境構築を再度ローカルで整えるような説明をしないでください。）
-                        4. backend: バックエンドの初期環境構築手順の詳細な説明（.devcontainerで整う環境構築を再度ローカルで整えるような説明をしないでください。）
-                        
-                        Androidの場合、
-                        以下の項目ごとに、詳細なハンズオンの説明を出力してください：
-                        1. overall: プロジェクト全体の環境構築ハンズオンの概要説明。Android Studioのインストール手順や、必要なSDKのインストール手順を含めてください。
-                        2. devcontainer: Android開発では.devcontainerは使用しないため、.devcontainerの説明は不要です。使わない旨の説明をしてください。
-                        3. frontend: フロントエンドの初期環境構築手順の詳細な説明
-                        4. backend: バックエンドの初期環境構築手順の詳細な説明
-                        
-                        iOSの場合、
-                        以下の項目ごとに、詳細なハンズオンの説明を出力してください：
-                        1. overall: プロジェクト全体の環境構築ハンズオンの概要説明。Xcodeのインストール手順や、必要なSDKのインストール手順を含めてください。
-                        2. devcontainer: iOS開発では.devcontainerは使用しないため、.devcontainerの説明は不要です。使わない旨の説明をしてください。
-                        3. frontend: フロントエンドの初期環境構築手順の詳細な説明
-                        4. backend: バックエンドの初期環境構築手順の詳細な説明
-                        出力は以下のJSON形式に従ってください:
-                        {format_instructions}
-                    """,
+            template=self.get_prompt("environment_service", "generate_hands_on"),
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
 

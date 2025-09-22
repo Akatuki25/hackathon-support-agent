@@ -39,29 +39,7 @@ class TaskDetailService(BaseService):
         parser = StructuredOutputParser.from_response_schemas([response_schema])
 
         # プロンプト
-        template = textwrap.dedent("""
-            あなたはタスク詳細化のエキスパートです。以下のタスクリストについて、各タスクに対して具体的なハンズオンの手順を「detail」として生成してください。
-            detailは、タスクの内容をさらに具体化したもので、この形式を必ず守ってください。
-            具体的なハンズオンは、詳細な手順やコマンド、コードの記述などを含めてください。
-            また、マークダウン形式でこれを見るだけでこのタスクを完了できるほどの詳細さで出力してください。
-            ただし、コードに関しては最小限の記述で十分です。ある程度は読者の自力で考えられるようにしてください。
-            ユーザーはハッカソンに参加する初心者です。
-            重要: 応答は必ず有効なJSONである必要があります。特殊文字（バックスラッシュ、引用符など）は適切にエスケープしてください。Markdownのコードブロック内でも引用符とバックスラッシュには特に注意が必要です。
-            以下の制約を厳密に守ってください:
-            1. 出力は単純な構造を持つ必要があります: "tasks"キーの配列のみです
-            2. 各タスクには task_name, priority, content, detail フィールドのみを含めてください
-            3. 改行は文字列内で "\\n" としてエスケープしてください
-            4. コードブロックを含める場合は、Markdown記法の ```の代わりに "```" とエスケープしてください
-            5. JSON文字列として有効であることを優先し、必要に応じて内容を簡略化してください
-            JSON の例:
-            {format_instructions}
-            
-            仕様書(全体内のタスクの位置を把握するのに参考にしてください):
-            {specification}
-
-            入力は以下の形式のタスク情報です:
-            {tasks_input}
-        """)
+        template = textwrap.dedent(self.get_prompt("task_detail_service", "generate_task_details"))
         prompt = ChatPromptTemplate.from_template(
             template=template,
             partial_variables={"format_instructions": parser.get_format_instructions()}

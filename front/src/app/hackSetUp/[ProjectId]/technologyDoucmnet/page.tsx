@@ -3,82 +3,83 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import SummaryEditor from "@/components/SummaryEditor";
-import { FileText, Save, ChevronRight, Info } from "lucide-react";
+import { Code, Book } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import SaveButton from "@/components/Buttons/SaveButton";
-import { ProjectDocumentType } from "@/types/modelTypes";
-import { postDocument, getDocument,patchDocument  } from "@/libs/modelAPI/document";
+import { patchProjectDocument, getProjectDocument } from "@/libs/modelAPI/document";
+import { generateTechnologyDocument } from "@/libs/service/technologyService";
 import Header from "@/components/Session/Header";
-import { getServerSession } from "next-auth";
-import { ca } from "zod/locales";
 
-interface QAItem {
-  Question: string;
-  Answer: string;
-}
-
-interface QAItems {
-  yume_answer: {
-    Answer: QAItem[];
-  };
-}
-
-export default function SetUpSummaryPage() {
+export default function TechnologyDocumentPage() {
   const router = useRouter();
-  const [frameworkDocument, setFrameworkDocument] = useState<string>("")
+  const [technologyDoc, setTechnologyDoc] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-  const projectId = pathname.split("/")[2]; // [ProjectId]の部分を
+  const projectId = pathname.split("/")[2]; // [ProjectId]の部分を取得
 
   const { darkMode } = useDarkMode();
 
-  // sessionStorage から Q&A 回答情報を取得
+  // sessionStorage からフレームワーク選択情報を取得し、技術ドキュメントを生成
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedFramework = sessionStorage.getItem("frameworkInfo")
-      if (!storedFramework) {
-       try{
-        const storedFramework = getDocument(projectId);
-        storedFramework
-            .then((data) => {
-                const frameworkInfo = data.frame_work_doc;
-                setFrameworkDocument(frameworkInfo)
-                setLoading(false);
-                })
-            .catch((error) => {
-                console.error("フレームワーク情報の取得に失敗:", error);
-                setLoading(false);
-            });
-      }catch (error) {
-            console.error("フレームワーク情報の取得に失敗:", error);
-            setLoading(false);
-        }
-    }
-    }
-  }, [router]);
+    const initializeDocument = async () => {
+      if (typeof window !== "undefined") {
+        try {
+          const storedReason = sessionStorage.getItem(projectId);
 
-  const handleSummaryChange = (newSummary: string) => {
-    console.log("newSummary:", newSummary);
+          if (storedReason) {
+            // DBからプロジェクトドキュメントを取得
+            const projectDoc = await getProjectDocument(projectId);
+            const specification = projectDoc.function_doc || "";
+
+            // 既存の技術ドキュメントがあれば表示、なければ生成
+            if (projectDoc.frame_work_doc) {
+              setTechnologyDoc(projectDoc.frame_work_doc);
+            } else if (specification) {
+              // 技術ドキュメントを生成
+              setLoading(true);
+              const technologiesArray = storedReason.split(", ");
+
+              const response = await generateTechnologyDocument({
+                selected_technologies: technologiesArray,
+                framework_doc: specification
+              });
+
+              setTechnologyDoc(response.technology_document);
+            }
+          } else {
+            // フレームワーク選択情報がなければ前のページに戻る
+            router.push(`/hackSetUp/${projectId}/selectFramework`);
+          }
+        } catch (error) {
+          console.error("技術ドキュメントの初期化エラー:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeDocument();
+  }, [router, projectId]);
+
+  const handleTechnologyDocChange = (newDoc: string) => {
+    setTechnologyDoc(newDoc);
+    console.log("newTechnologyDoc:", newDoc);
   };
 
   const handleSave = async () => {
+    try {
+      // 技術ドキュメントをDBに保存
+      await patchProjectDocument(projectId, {
+        frame_work_doc: technologyDoc
+      });
+      console.log("技術ドキュメントの保存に成功");
 
-    // 仕様書をAPIに送信
-    const specificationDoc = sessionStorage.getItem("specification");
-   const ID = await patchDocument(
-    projectId,
-    {
-        frame_work_doc: frameworkDocument,
+      // 次のページへ遷移（例：タスク分割ページ）
+      router.push(`/hackSetUp/${projectId}/taskDivision`);
+    } catch (error) {
+      console.error("技術ドキュメントの保存に失敗:", error);
     }
-   )
-    if (!ID) {
-      console.error("仕様書の保存に失敗しました");
-      return;
-    }
-    console.log("仕様書の保存に成功:", ID);
-
-    router.push(`/hackSetUp/${ID}/documentDashboard`);
   };
 
   if (loading) {
@@ -103,16 +104,16 @@ export default function SetUpSummaryPage() {
           }`}
         >
           <div className="flex items-center mb-6">
-            <FileText
+            <Code
               className={`mr-3 ${darkMode ? "text-pink-500" : "text-blue-600"}`}
               size={28}
             />
             <h1
               className={`text-2xl font-bold tracking-wider ${darkMode ? "text-cyan-400" : "text-purple-700"}`}
             >
-              仕様書
+              技術
               <span className={darkMode ? "text-pink-500" : "text-blue-600"}>
-                _編集
+                _ドキュメント
               </span>
             </h1>
           </div>
@@ -125,12 +126,13 @@ export default function SetUpSummaryPage() {
               }`}
             >
               <div className="flex items-center">
-                <Info
+                <Book
                   className={`mr-2 ${darkMode ? "text-pink-500" : "text-blue-600"}`}
                   size={20}
                 />
                 <p>
-                  仕様書を確認し、必要に応じて編集してください。マークダウン形式で記述できます。
+                  技術ドキュメントを確認し、必要に応じて編集してください。Docker環境での
+                  インストール手順と公式ドキュメントへのリンクが含まれています。
                 </p>
               </div>
             </div>
@@ -143,8 +145,8 @@ export default function SetUpSummaryPage() {
               }`}
             >
               <SummaryEditor
-                initialSummary={frameworkDocument}
-                onSummaryChange={handleSummaryChange}
+                initialSummary={technologyDoc}
+                onSummaryChange={handleTechnologyDocChange}
               />
             </div>
 

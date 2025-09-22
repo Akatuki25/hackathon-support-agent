@@ -7,7 +7,7 @@ import { FileText, Save, ChevronRight, Info } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import SaveButton from "@/components/Buttons/SaveButton";
-import { postDocument } from "@/libs/modelAPI/document";
+import { postProjectDocument } from "@/libs/modelAPI/document";
 import Header from "@/components/Session/Header";
 
 interface QAItem {
@@ -95,9 +95,9 @@ export default function SetUpSummaryPage() {
 
     sessionStorage.setItem("specification", summary);
     // 仕様書をAPIに送信
-    const ID = await postDocument({
+    const ID = await postProjectDocument({
       project_id: projectId,
-      specification_doc: summary,
+      function_doc: summary,
       specification: "",
       frame_work_doc: "",
       directory_info: "",

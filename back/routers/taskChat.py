@@ -1,5 +1,7 @@
-from fastapi import APIRouter, responses
+from fastapi import APIRouter, responses, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from database import get_db
 from services.taskChat_service import taskChatService
 
 router = APIRouter()
@@ -14,12 +16,12 @@ class ChatBotRequest(BaseModel):
     taskDetail: str              # タスク詳細
 
 @router.post("/")
-def get_chatbot_response(request: ChatBotRequest):
+def get_chatbot_response(request: ChatBotRequest, db: Session = Depends(get_db)):
     """
     仕様書、ディレクトリ構造、チャット履歴、新たなユーザーからの質問内容、
     使用しているフレームワーク情報を受け取り、回答をテキスト形式で返すAPI
     """
-    service = taskChatService()
+    service = taskChatService(db=db)
     answer = service.generate_response(
         specification=request.specification,
         directory_structure=request.directory_structure,

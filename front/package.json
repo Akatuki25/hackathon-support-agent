@@ -12,10 +12,18 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@blocknote/core": "^0.29.1",
-    "@blocknote/mantine": "^0.29.1",
-    "@blocknote/react": "^0.29.1",
+    "@ai-sdk/google": "^2.0.15",
+    "@ai-sdk/groq": "^2.0.20",
+    "@ai-sdk/openai": "^2.0.32",
+    "@ai-sdk/react": "^2.0.48",
+    "@blocknote/core": "^0.39.1",
+    "@blocknote/mantine": "^0.39.1",
+    "@blocknote/react": "^0.39.1",
+    "@blocknote/xl-ai": "^0.39.1",
+    "@google/gemini-cli": "^0.3.2",
     "@hookform/resolvers": "^5.1.1",
+    "ai": "^5.0.48",
+    "axios": "^1.12.2",
     "lucide-react": "^0.503.0",
     "next": "15.3.1",
     "next-auth": "^4.24.11",
@@ -24,7 +32,14 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.60.0",
     "react-markdown": "^10.1.0",
-    "zod": "^4.0.5"
+    "swr": "^2.3.6",
+    "undici": "^7.16.0",
+    "zod": "^3.25.76"
+  },
+  "pnpm": {
+    "overrides": {
+      "ai": "^5.0.48"
+    }
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.6",
