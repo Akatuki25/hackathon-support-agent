@@ -47,9 +47,6 @@ importers:
       axios:
         specifier: ^1.12.2
         version: 1.12.2
-      core:
-        specifier: link:@blocknote/core
-        version: link:@blocknote/core
       lucide-react:
         specifier: ^0.503.0
         version: 0.503.0(react@19.1.1)
