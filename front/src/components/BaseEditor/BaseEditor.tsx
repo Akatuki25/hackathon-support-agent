@@ -2,13 +2,18 @@
 
 import { useCallback, useEffect, useState, ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
-import { blocksToMarkdown, markdownToBlocks } from "@blocknote/core";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { BlockNoteEditor, blocksToMarkdown, markdownToBlocks, filterSuggestionItems } from "@blocknote/core";
 import type { Block as BlockType, PartialBlock as PartialBlockType } from "@blocknote/core";
+import { en } from "@blocknote/core/locales";
 import { BlockNoteView } from "@blocknote/mantine";
-import { useCreateBlockNote } from "@blocknote/react";
+import { useCreateBlockNote, FormattingToolbar, FormattingToolbarController, SuggestionMenuController, getDefaultReactSlashMenuItems, getFormattingToolbarItems } from "@blocknote/react";
+import { AIMenuController, AIToolbarButton, createAIExtension, createBlockNoteAIClient, getAISlashMenuItems } from "@blocknote/xl-ai";
+import { en as aiEn } from "@blocknote/xl-ai/locales";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/core/style.css";
 import "@blocknote/mantine/style.css";
+import "@blocknote/xl-ai/style.css";
 import { useDarkMode } from "@/hooks/useDarkMode";
 
 // 共通の utility 関数
@@ -44,6 +49,16 @@ const defaultSanitize = (input: string) =>
     .replace(/[、]/g, ",")
     .trim();
 
+// AI クライアントとモデルの設定
+const client = createBlockNoteAIClient({
+  apiKey: "test-token",
+  baseURL: "/api/ai",
+});
+
+const model = createGoogleGenerativeAI({
+  ...client.getProviderSettings("google"),
+})("gemini-2.5-flash-lite");
+
 export interface BaseEditorProps {
   // コンテンツ関連
   content?: string | null;
@@ -73,6 +88,9 @@ export interface BaseEditorProps {
   // スタイリング
   className?: string;
   containerClassName?: string;
+
+  // AI機能
+  enableAI?: boolean;
 }
 
 export default function BaseEditor({
@@ -89,7 +107,8 @@ export default function BaseEditor({
   isContentInitialized,
   onContentInitialized,
   className = "",
-  containerClassName = ""
+  containerClassName = "",
+  enableAI = true
 }: BaseEditorProps) {
   const { darkMode } = useDarkMode();
   const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -107,10 +126,22 @@ export default function BaseEditor({
         class: "focus:outline-none",
       },
     },
+    dictionary: {
+      ...en,
+      ...(enableAI && { ai: aiEn }),
+    } as any,
     trailingBlock: editorConfig.trailingBlock ?? true,
     defaultStyles: editorConfig.defaultStyles ?? true,
     uploadFile: undefined,
     ...(editorConfig.blockSpecs && { blockSpecs: editorConfig.blockSpecs }),
+    // AI拡張を有効にする
+    ...(enableAI && {
+      _extensions: {
+        ai: createAIExtension({
+          model: model as any,
+        }) as any,
+      },
+    }),
   });
 
   // エディターのコンテンツを初期化
@@ -386,6 +417,8 @@ export default function BaseEditor({
               editor={editor}
               editable={true}
               onChange={handleBlockNoteChange}
+              formattingToolbar={false}
+              slashMenu={false}
               theme={{
                 colors: {
                   editor: {
@@ -430,7 +463,16 @@ export default function BaseEditor({
                 borderRadius: 8,
                 fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif",
               }}
-            />
+            >
+              {/* AI機能のUI要素 */}
+              {enableAI && (
+                <>
+                  <AIMenuController />
+                  <FormattingToolbarWithAI />
+                  <SuggestionMenuWithAI editor={editor} />
+                </>
+              )}
+            </BlockNoteView>
           </div>
         ) : (
           <div className={`p-4 rounded-lg border min-h-40 flex items-center justify-center ${
@@ -450,5 +492,39 @@ export default function BaseEditor({
         )}
       </div>
     </div>
+  );
+}
+
+// AI機能付きフォーマットツールバー
+function FormattingToolbarWithAI() {
+  return (
+    <FormattingToolbarController
+      formattingToolbar={() => (
+        <FormattingToolbar>
+          {getFormattingToolbarItems()}
+          <AIToolbarButton />
+        </FormattingToolbar>
+      )}
+    />
+  );
+}
+
+// AI機能付きスラッシュメニュー
+function SuggestionMenuWithAI(props: {
+  editor: BlockNoteEditor<any, any, any>;
+}) {
+  return (
+    <SuggestionMenuController
+      triggerCharacter="/"
+      getItems={async (query) =>
+        filterSuggestionItems(
+          [
+            ...getDefaultReactSlashMenuItems(props.editor),
+            ...getAISlashMenuItems(props.editor),
+          ],
+          query,
+        )
+      }
+    />
   );
 }
