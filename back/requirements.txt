@@ -16,3 +16,9 @@ pydantic
 langchain_anthropic
 json-repair
 markdown-it-py
+# 追加：LangChain web search and community tools
+langchain-community
+langchain-google-community
+langchain-core
+# DuckDuckGo search
+ddgs

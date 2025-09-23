@@ -4998,3 +4998,29 @@ KeyError: 'confidence_feedback'
 2025-09-22 13:38:57,300 | INFO | hackthon_support_agent.TechnologyService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
 2025-09-22 13:38:57,303 | DEBUG | hackthon_support_agent.TechnologyService | LLMs initialized
 2025-09-22 13:38:57,303 | DEBUG | hackthon_support_agent.TechnologyService | Fetching prompt 'technology_service.generate_technology_document'
+2025-09-22 15:28:55,832 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-22 16:11:59,945 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-22 16:12:17,975 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-22 16:12:17,981 | DEBUG | hackthon_support_agent.TaskDetailService | Initializing BaseService (provider=google)
+2025-09-22 16:12:17,983 | INFO | hackthon_support_agent.TaskDetailService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-22 16:12:17,983 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:12:18,008 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:12:18,008 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:12:18,009 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:12:18,009 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:12:18,010 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:12:18,010 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:12:18,011 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:12:18,011 | DEBUG | hackthon_support_agent.TaskDetailService | LLMs initialized
+2025-09-22 16:13:14,384 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-22 16:13:14,390 | DEBUG | hackthon_support_agent.TaskDetailService | Initializing BaseService (provider=google)
+2025-09-22 16:13:14,392 | INFO | hackthon_support_agent.TaskDetailService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-09-22 16:13:14,392 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:13:14,403 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:13:14,403 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:13:14,404 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:13:14,404 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:13:14,405 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:13:14,405 | DEBUG | hackthon_support_agent.TaskDetailService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-09-22 16:13:14,406 | INFO | hackthon_support_agent.TaskDetailService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-09-22 16:13:14,406 | DEBUG | hackthon_support_agent.TaskDetailService | LLMs initialized

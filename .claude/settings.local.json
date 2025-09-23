@@ -4,7 +4,10 @@
       "Bash(npm run lint)",
       "Bash(npm:*)",
       "Bash(node:*)",
-      "Bash(ESLINT_NO_DEV_ERRORS=true npm run build)"
+      "Bash(ESLINT_NO_DEV_ERRORS=true npm run build)",
+      "WebSearch",
+      "WebFetch(domain:python.langchain.com)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
