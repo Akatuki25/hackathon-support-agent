@@ -196,7 +196,7 @@ export default function SummaryQA() {
                     </div>
                   ) : (
                     <>
-                      <span>フレームワーク選択へ</span>
+                      <span>機能要件の生成をする</span>
                       <ChevronRight size={18} className="ml-2" />
                     </>
                   )}

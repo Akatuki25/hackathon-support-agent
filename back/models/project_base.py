@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from sqlalchemy import (
     Column, String, Integer, Text, Date, DateTime, ForeignKey, Enum,
-    Boolean, JSON, Index, func
+    Boolean, JSON, Index, func, Float
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -40,7 +40,7 @@ class ProjectBase(Base):
     project_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title      = Column(String, nullable=False)
     idea       = Column(String, nullable=False)
-    start_date = Column(Date,  nullable=False)
+    start_date = Column(DateTime,  nullable=False)
     end_date   = Column(DateTime, nullable=False)
     num_people = Column(Integer, nullable=False)
 
@@ -167,15 +167,48 @@ class Task(Base):
                           nullable=False, index=True)
     title        = Column(String, nullable=False)
     description  = Column(Text, nullable=True)
-    detail       = Column(Text, nullable=True)  # 追加の詳細フィールド
+    detail       = Column(Text, nullable=True)  # Enhanced: Stores comprehensive task information as JSON
     status       = Column(TaskStatusEnum, nullable=False, default="TODO")
     priority     = Column(PriorityEnum,   nullable=False, default="MEDIUM")
-    due_at       = Column(DateTime(timezone=True), nullable=True)
 
-    # 自己参照依存
-    depends_on_task_id = Column(UUID(as_uuid=True), ForeignKey("task.task_id", ondelete="SET NULL"),
-                                nullable=True)
-    depends_task = relationship("Task", remote_side="Task.task_id", uselist=False)
+    # Enhanced: Timeline and scheduling fields
+    planned_start_date = Column(DateTime(timezone=True), nullable=True)  # 計画開始日
+    planned_end_date   = Column(DateTime(timezone=True), nullable=True)  # 計画終了日
+    actual_start_date  = Column(DateTime(timezone=True), nullable=True)  # 実際の開始日
+    actual_end_date    = Column(DateTime(timezone=True), nullable=True)  # 実際の終了日
+    due_at             = Column(DateTime(timezone=True), nullable=True)  # 期限
+
+    # Enhanced: Task ordering and dependencies
+    topological_order  = Column(Integer, nullable=True, index=True)  # トポロジカルソート順序
+    execution_phase    = Column(String, nullable=True, index=True)   # 実行フェーズ (setup/development/testing/deployment)
+    parallel_group_id  = Column(String, nullable=True, index=True)   # 並列実行グループID
+    critical_path      = Column(Boolean, default=False, nullable=False, index=True)  # クリティカルパス上のタスクか
+
+    # Enhanced: Additional fields for comprehensive task management
+    category     = Column(String, nullable=True)  # frontend/backend/database/devops/testing/documentation
+    estimated_hours = Column(Integer, nullable=True)  # Realistic time estimate
+    complexity_level = Column(Integer, nullable=True)  # 1-5 scale
+    business_value_score = Column(Integer, nullable=True)  # 1-10 scale
+    technical_risk_score = Column(Integer, nullable=True)  # 1-10 scale
+    implementation_difficulty = Column(Integer, nullable=True)  # 1-10 scale
+    user_impact_score = Column(Integer, nullable=True)  # 1-10 scale
+    dependency_weight = Column(Integer, nullable=True)  # 1-10 scale
+    moscow_priority = Column(String, nullable=True)  # Must/Should/Could/Won't
+    mvp_critical = Column(Boolean, default=False, nullable=False)  # Is this critical for MVP?
+
+    # Enhanced: Progress tracking
+    progress_percentage = Column(Integer, default=0, nullable=False)  # 進捗率 (0-100)
+    blocking_reason     = Column(Text, nullable=True)  # ブロッキング理由
+    completion_criteria = Column(Text, nullable=True)  # 完了基準
+
+    # Enhanced: Educational and reference information
+    learning_resources  = Column(JSON, nullable=True)  # 学習リソースJSON
+    technology_stack    = Column(JSON, nullable=True)  # 使用技術スタックJSON
+    reference_links     = Column(JSON, nullable=True)  # 参考リンクJSON
+
+    # Enhanced: Metadata fields
+    created_at   = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at   = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # どのドキュメントから生まれたタスクか（任意）
     source_doc_id = Column(UUID(as_uuid=True), ForeignKey("projectDocument.doc_id", ondelete="SET NULL"),
@@ -191,11 +224,37 @@ class Task(Base):
 
     project = relationship("ProjectBase", back_populates="tasks")
 
-    __table_args__ = (
-        Index("ix_task_due_at", "due_at"),
-        Index("ix_task_project_status", "project_id", "status"),
-        Index("ix_task_priority", "priority"),
+    # Enhanced: Multiple dependency relationships
+    dependencies = relationship(
+        "TaskDependency",
+        foreign_keys="TaskDependency.dependent_task_id",
+        back_populates="dependent_task",
+        cascade="all, delete-orphan",
     )
+
+    dependents = relationship(
+        "TaskDependency",
+        foreign_keys="TaskDependency.prerequisite_task_id",
+        back_populates="prerequisite_task",
+        cascade="all, delete-orphan",
+    )
+
+    # __table_args__ = (
+    #     Index("ix_task_due_at", "due_at"),
+    #     Index("ix_task_project_status", "project_id", "status"),
+    #     Index("ix_task_priority", "priority"),
+    #     Index("ix_task_category", "category"),
+    #     Index("ix_task_moscow_priority", "moscow_priority"),
+    #     Index("ix_task_mvp_critical", "mvp_critical"),
+    #     Index("ix_task_complexity", "complexity_level"),
+    #     Index("ix_task_business_value", "business_value_score"),
+    #     Index("ix_task_topological_order", "project_id", "topological_order"),
+    #     Index("ix_task_execution_phase", "project_id", "execution_phase"),
+    #     Index("ix_task_parallel_group", "project_id", "parallel_group_id"),
+    #     Index("ix_task_critical_path", "project_id", "critical_path"),
+    #     Index("ix_task_timeline", "planned_start_date", "planned_end_date"),
+    #     Index("ix_task_progress", "progress_percentage"),
+    # )
 
     def __repr__(self):
         return f"<Task(id={self.task_id}, project_id={self.project_id}, title={self.title})>"
@@ -222,6 +281,63 @@ class TaskAssignment(Base):
 
     def __repr__(self):
         return f"<TaskAssignment(task_id={self.task_id}, project_member_id={self.project_member_id})>"
+
+
+# =========================
+# NEW: TaskDependency (複雑な依存関係管理)
+# =========================
+DependencyTypeEnum = Enum("FINISH_TO_START", "START_TO_START", "FINISH_TO_FINISH", "START_TO_FINISH", name="dependency_type_enum")
+
+class TaskDependency(Base):
+    __tablename__ = "taskDependency"
+
+    dependency_id       = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id          = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"),
+                                 nullable=False, index=True)
+    prerequisite_task_id = Column(UUID(as_uuid=True), ForeignKey("task.task_id", ondelete="CASCADE"),
+                                  nullable=False, index=True)
+    dependent_task_id   = Column(UUID(as_uuid=True), ForeignKey("task.task_id", ondelete="CASCADE"),
+                                 nullable=False, index=True)
+
+    # Enhanced: Dependency properties
+    dependency_type     = Column(DependencyTypeEnum, nullable=False, default="FINISH_TO_START")
+    lag_time_hours     = Column(Integer, default=0, nullable=False)  # 遅延時間（時間単位）
+    dependency_strength = Column(Integer, default=5, nullable=False)  # 依存関係の強さ (1-10)
+    is_critical        = Column(Boolean, default=False, nullable=False)  # クリティカルパス上の依存関係か
+    notes              = Column(Text, nullable=True)  # 依存関係の説明
+
+    # Enhanced: AI analysis results
+    ai_confidence      = Column(Float, nullable=True)  # AI分析の信頼度 (0.0-1.0)
+    auto_detected      = Column(Boolean, default=False, nullable=False)  # AI自動検出か手動設定か
+    violation_risk     = Column(Integer, nullable=True)  # 依存関係違反リスク (1-10)
+
+    # Metadata
+    created_at         = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at         = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    prerequisite_task = relationship(
+        "Task",
+        foreign_keys=[prerequisite_task_id],
+        back_populates="dependents"
+    )
+    dependent_task = relationship(
+        "Task",
+        foreign_keys=[dependent_task_id],
+        back_populates="dependencies"
+    )
+
+    __table_args__ = (
+        # 同じタスク間の重複依存関係を防ぐ
+        Index("ux_task_dependency_unique", "prerequisite_task_id", "dependent_task_id", "dependency_type", unique=True),
+        Index("ix_dependency_project", "project_id"),
+        Index("ix_dependency_critical", "is_critical"),
+        Index("ix_dependency_strength", "dependency_strength"),
+        Index("ix_dependency_type", "dependency_type"),
+    )
+
+    def __repr__(self):
+        return f"<TaskDependency(prerequisite={self.prerequisite_task_id}, dependent={self.dependent_task_id})>"
 
 
 # =========================

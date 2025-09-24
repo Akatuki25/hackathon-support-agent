@@ -13,7 +13,7 @@ router = APIRouter()
 class ProjectBaseType(BaseModel):
     title:str
     idea: str
-    start_date: date
+    start_date: datetime
     end_date: datetime
     num_people: int
 

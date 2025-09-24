@@ -133,6 +133,10 @@ export default function TechnologyDocumentPage() {
     }
   };
 
+  const handleNavigateToProjects = () => {
+    router.push(`/projects/${projectId}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -157,6 +161,15 @@ export default function TechnologyDocumentPage() {
               onRegenerate={handleRegenerate}
               isRegenerating={isRegenerating}
             />
+          </div>
+
+          <div className="flex justify-center mt-6 mb-8">
+            <button
+              onClick={handleNavigateToProjects}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+            >
+              プロジェクトページへ移動
+            </button>
           </div>
 
           <HackthonSupportAgent/>

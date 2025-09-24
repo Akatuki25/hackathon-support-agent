@@ -277,7 +277,7 @@ class SummaryService(BaseService):
 
         # プロンプトのパスを修正
         try:
-            prompt_text = self.get_prompt("summary_service", "confidence_feedback")
+            prompt_text = self.get_prompt("function_service", "confidence_feedback")
         except Exception as e:
             self.logger.error(f"Failed to get prompt: {e}")
             # フォールバック用のデフォルトプロンプト

@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from services.taskDetail_service import TaskDetailService, TaskItem, TechnologyReference, EnhancedTaskDetail
 
+import time
+from models.project_base import ProjectDocument
 router = APIRouter()
 
 # Enhanced request models
@@ -152,8 +154,6 @@ async def generate_task_details_from_project_document(
     """
     ProjectDocumentからタスク詳細を生成
     """
-    import time
-    from models.project_base import ProjectDocument
 
     start_time = time.time()
     service = TaskDetailService(db)
@@ -172,17 +172,14 @@ async def generate_task_details_from_project_document(
 
         # ProjectDocumentから統合仕様書を作成
         integrated_specification = f"""
-# プロジェクト仕様書
-{project_doc.specification or ""}
-
-## 機能仕様
-{project_doc.function_doc or ""}
-
-## 技術選定・フレームワーク情報
-{project_doc.frame_work_doc or ""}
-
-## ディレクトリ構造
-{project_doc.directory_info or ""}
+        # プロジェクト仕様書
+        {project_doc.specification or ""}
+        ## 機能仕様
+        {project_doc.function_doc or ""}
+        ## 技術選定・フレームワーク情報
+        {project_doc.frame_work_doc or ""}
+        ## ディレクトリ構造
+        {project_doc.directory_info or ""}
         """.strip()
 
         task_dicts = [t.model_dump() for t in request.tasks]

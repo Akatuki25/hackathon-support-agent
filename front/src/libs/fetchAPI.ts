@@ -1,3 +1,23 @@
+// 汎用的なAPI呼び出し関数
+export const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const url = endpoint.startsWith('/') ? `${apiUrl}${endpoint}` : `${apiUrl}/${endpoint}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API エラー: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
 export const postQuestion = async (promptText: string) => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 

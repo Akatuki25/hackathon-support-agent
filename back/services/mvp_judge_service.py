@@ -60,6 +60,14 @@ class MVPJudgeService(BaseService):
           "qa": [ { "question": str, "answer": Optional[str] }, ... ]  # 常に存在
         }
         """
+        if j is None:
+            self.logger.error("MVPJudge object is None, indicating a failure in LLM output parsing.")
+            return {
+                "action": False,
+                "judge": {"error": "Failed to parse LLM response for MVP judgment."},
+                "qa": []
+            }
+
         is_pass = (j.mvp_feasible and j.score_0_100 >= PASS)
 
         if is_pass and j.confidence >= CONF_T:

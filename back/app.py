@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
+
+# .env.localを明示的に読み込む
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env.local'))
 
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member
-from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, technology
+from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, technology, enhanced_tasks
 
 app = FastAPI(
     title="LangChain Server",
@@ -53,6 +58,7 @@ app.include_router(durationTask.router, prefix="/api/durationTask", tags=["Durat
 app.include_router(deploy.router, prefix="/api/deploy", tags=["Deploy"])
 app.include_router(function_requirements.router, prefix="/api/function_requirements", tags=["FunctionRequirements"])
 app.include_router(technology.router, prefix="/api/technology", tags=["Technology"])
+app.include_router(enhanced_tasks.router, prefix="/api/enhanced_tasks", tags=["Enhanced Tasks"])
 
 
 

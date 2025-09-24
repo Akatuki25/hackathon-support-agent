@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Zap, Clock, Users, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { generateQuestions,saveQuestions } from "@/libs/service/qa";
+import { generateQuestions, saveQuestions } from "@/libs/service/qa";
 import { postProject } from "@/libs/modelAPI/project";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
@@ -18,30 +18,49 @@ export default function Home() {
   const [idea, setIdea] = useState("");
   const [numPeople, setNumPeople] = useState("");
   const [loading, setLoading] = useState(false);
+
   const today = new Date().toISOString().split("T")[0];
   const now = new Date().toTimeString().split(":").slice(0, 2).join(":"); // 現在時刻 "HH:MM"
+
   const [startDate, setStartDate] = useState(today);
+  const [startTime, setStartTime] = useState(now);
   const [endDate, setEndDate] = useState(today);
   const [endTime, setEndTime] = useState(now);
+
+  // startDateが変更されたときにstartTimeを自動設定するロジック
+  useEffect(() => {
+    if (startDate === today) {
+      // 選択された日付が今日の場合、現在の時刻を設定
+      const currentTime = new Date().toTimeString().split(":").slice(0, 2).join(":");
+      setStartTime(currentTime);
+    } else {
+      // 選択された日付が今日以外の場合、10:00に設定
+      setStartTime("10:00");
+    }
+  }, [startDate, today]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    // endDateとendTimeを結合してDateオブジェクトを作成
+
+    // 日付と時刻を結合してISO形式の文字列を作成
+    const startDateTime = `${startDate}T${startTime}:00`;
     const endDateTime = `${endDate}T${endTime}:00`;
+
     try {
       // 入力データを整形
       const projectData = {
         title: title,
         idea: idea,
-        start_date: startDate,
-        end_date: endDateTime, // ISO形式で保存
+        start_date: startDateTime, // ISO形式で送信
+        end_date: endDateTime,   // ISO形式で送信
         num_people: parseInt(numPeople, 10),
       };
 
       const projectId = await postProject(projectData);
 
       // プロジェクト作成後、質問を投稿
-      const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}\n人数: ${numPeople}`;
+      const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} ${startTime} 〜 ${endDate} ${endTime}\n人数: ${numPeople}`;
       const questionResponse = await generateQuestions(projectId, questionData);
 
       await saveQuestions(questionResponse, projectId);
@@ -66,8 +85,7 @@ export default function Home() {
         <div className="w-full max-w-2xl">
           {/* Project Form */}
           <div
-            className={`relative backdrop-blur-md rounded-xl shadow-xl p-8 w-full border transition-all ${
-              darkMode
+            className={`relative backdrop-blur-md rounded-xl shadow-xl p-8 w-full border transition-all ${darkMode
                 ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
                 : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
             }`}
@@ -89,8 +107,7 @@ export default function Home() {
             {/* User info in form header */}
             {session && (
               <div
-                className={`mb-6 p-4 rounded-lg border ${
-                  darkMode
+                className={`mb-6 p-4 rounded-lg border ${darkMode
                     ? "bg-gray-700/30 border-cyan-500/20 text-cyan-300"
                     : "bg-purple-50/50 border-purple-300/20 text-purple-700"
                 }`}
@@ -116,16 +133,13 @@ export default function Home() {
               <input
                 value={title}
                 onChange={(e) => {
-                  // これ入れないとサイズが変わったあとに内容を削除したときなど動きがおかしい
                   e.target.style.height = "auto";
-                  // 改行に合わせて高さを変える
                   e.target.style.height = e.target.scrollHeight + "px";
                   setTitle(e.target.value);
                 }}
                 placeholder="例: AIXプロジェクト"
                 required
-                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                  darkMode
+                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
                     ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
                     : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
                 }`}
@@ -145,16 +159,13 @@ export default function Home() {
               <textarea
                 value={idea}
                 onChange={(e) => {
-                  // これ入れないとサイズが変わったあとに内容を削除したときなど動きがおかしい
                   e.target.style.height = "auto";
-                  // 改行に合わせて高さを変える
                   e.target.style.height = e.target.scrollHeight + "px";
                   setIdea(e.target.value);
                 }}
                 placeholder="例: AIを活用したプロジェクト"
                 required
-                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                  darkMode
+                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
                     ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
                     : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
                 }`}
@@ -173,15 +184,23 @@ export default function Home() {
               </label>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0">
-                {/* 開始日（date のみ） */}
+                {/* 開始日＋開始時刻 */}
                 <div className="flex items-center space-x-2 w-full">
                   <input
                     type="date"
                     value={startDate}
                     min={today}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                      darkMode
+                    className={`w-2/3 p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
+                        ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
+                        : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
+                    }`}
+                  />
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className={`w-1/2 p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
                         ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
                         : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
                     }`}
@@ -202,8 +221,7 @@ export default function Home() {
                     value={endDate}
                     min={startDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className={`w-2/3 p-3 rounded border-l-4 focus:outline-none transition-all ${
-                      darkMode
+                    className={`w-2/3 p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
                         ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
                         : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
                     }`}
@@ -212,8 +230,7 @@ export default function Home() {
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className={`w-1/2 p-3 rounded border-l-4 focus:outline-none transition-all ${
-                      darkMode
+                    className={`w-1/2 p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
                         ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
                         : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
                     }`}
@@ -239,8 +256,7 @@ export default function Home() {
                 onChange={(e) => setNumPeople(e.target.value)}
                 placeholder="例: 3"
                 required
-                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                  darkMode
+                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${darkMode
                     ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
                     : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
                 }`}
@@ -251,8 +267,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex items-center justify-center font-bold py-3 px-6 rounded transition-all ${
-                  darkMode
+                className={`w-full flex items-center justify-center font-bold py-3 px-6 rounded transition-all ${darkMode
                     ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 disabled:bg-gray-600 disabled:text-gray-400"
                     : "bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-400 disabled:text-gray-600"
                 }`}

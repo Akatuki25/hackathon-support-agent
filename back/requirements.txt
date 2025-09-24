@@ -22,3 +22,5 @@ langchain-google-community
 langchain-core
 # DuckDuckGo search
 ddgs
+# Graph processing for topological sorting
+networkx

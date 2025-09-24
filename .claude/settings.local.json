@@ -7,7 +7,8 @@
       "Bash(ESLINT_NO_DEV_ERRORS=true npm run build)",
       "WebSearch",
       "WebFetch(domain:python.langchain.com)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []
