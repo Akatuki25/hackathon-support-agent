@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, CheckCircle2, Calendar, Clock, Star, Zap, Filter } from "lucide-react";
+import { X, CheckCircle2, Clock, Star, Zap } from "lucide-react";
 import { Task } from "@/libs/service/enhancedTasksService";
 
 interface CompletedTasksModalProps {

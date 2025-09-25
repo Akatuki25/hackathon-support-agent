@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import TechnologyEditor from "@/components/TechnologyEditor/TechnologyEditor";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import { patchProjectDocument, getProjectDocument } from "@/libs/modelAPI/document";
 import { generateTechnologyDocument } from "@/libs/service/technologyService";
@@ -20,54 +19,12 @@ export default function TechnologyDocumentPage() {
   const [editorKey, setEditorKey] = useState(0); // エディター強制更新用
   const pathname = usePathname();
   const projectId = pathname.split("/")[2]; // [ProjectId]の部分を取得
-  const { darkMode } = useDarkMode();
-
   // プロジェクトドキュメントとフレームワーク選択情報を取得
-  useEffect(() => {
-    const initializeDocument = async () => {
-      if (typeof window !== "undefined") {
-        try {
-          const storedReason = sessionStorage.getItem(projectId);
-          // DBからプロジェクトドキュメントを取得してspecificationを取得
-          const projectDoc = await getProjectDocument(projectId);
-          const storedSpecification = projectDoc.function_doc || "";
-
-          if (storedReason && storedSpecification) {
-            // 選択された技術を配列に変換
-            const technologiesArray = storedReason.split(", ");
-            setSelectedTechnologies(technologiesArray);
-            setSpecification(storedSpecification);
-
-            // 既存の技術ドキュメントがあれば読み込み、なければ自動生成
-            if (projectDoc.frame_work_doc) {
-              setTechnologyDoc(projectDoc.frame_work_doc);
-            } else {
-              // 技術ドキュメントを自動生成
-              await generateTechnologyDoc(technologiesArray, storedSpecification);
-            }
-          } else {
-            // 必要な情報がなければフレームワーク選択に戻る
-            router.push(`/hackSetUp/${projectId}/selectFramework`);
-          }
-        } catch (error) {
-          console.error("プロジェクトドキュメントの取得に失敗:", error);
-          // エラーの場合もフレームワーク選択に戻る
-          router.push(`/hackSetUp/${projectId}/selectFramework`);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeDocument();
-  }, [router, projectId]);
-
-  // 技術ドキュメント生成関数
-  const generateTechnologyDoc = async (technologiesArray: string[], specification: string) => {
+  const generateTechnologyDoc = useCallback(async (technologiesArray: string[], spec: string) => {
     try {
       const response = await generateTechnologyDocument({
         selected_technologies: technologiesArray,
-        framework_doc: specification
+        framework_doc: spec
       });
       setTechnologyDoc(response.technology_document);
 
@@ -78,7 +35,42 @@ export default function TechnologyDocumentPage() {
     } catch (error) {
       console.error("技術ドキュメント生成エラー:", error);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    const initializeDocument = async () => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      try {
+        const storedReason = sessionStorage.getItem(projectId);
+        const projectDoc = await getProjectDocument(projectId);
+        const storedSpecification = projectDoc.function_doc || "";
+
+        if (storedReason && storedSpecification) {
+          const technologiesArray = storedReason.split(", ");
+          setSelectedTechnologies(technologiesArray);
+          setSpecification(storedSpecification);
+
+          if (projectDoc.frame_work_doc) {
+            setTechnologyDoc(projectDoc.frame_work_doc);
+          } else {
+            await generateTechnologyDoc(technologiesArray, storedSpecification);
+          }
+        } else {
+          router.push(`/hackSetUp/${projectId}/selectFramework`);
+        }
+      } catch (error) {
+        console.error("プロジェクトドキュメントの取得に失敗:", error);
+        router.push(`/hackSetUp/${projectId}/selectFramework`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void initializeDocument();
+  }, [router, projectId, generateTechnologyDoc]);
 
   // 技術ドキュメントの内容変更ハンドラー
   const handleContentChange = (content: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -47,11 +47,8 @@ export default function TaskDetailPage() {
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
 
   // Load task data
-  useEffect(() => {
-    loadTask();
-  }, [taskId]);
-
-  const loadTask = async () => {
+  const loadTask = useCallback(async () => {
+    if (!taskId) return;
     try {
       setLoading(true);
       const taskData = await EnhancedTasksService.getTask(taskId);
@@ -64,7 +61,11 @@ export default function TaskDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [taskId]);
+
+  useEffect(() => {
+    void loadTask();
+  }, [loadTask]);
 
   const saveTask = async () => {
     if (!task) return;
@@ -83,7 +84,7 @@ export default function TaskDetailPage() {
     }
   };
 
-  const handleFieldChange = (field: keyof Task, value: any) => {
+  const handleFieldChange = <K extends keyof Task>(field: K, value: Task[K]) => {
     setEditedTask(prev => ({ ...prev, [field]: value }));
   };
 
@@ -107,6 +108,25 @@ export default function TaskDetailPage() {
       case "documentation": return <FileText className="h-5 w-5" />;
       default: return <Code className="h-5 w-5" />;
     }
+  };
+
+  const resolveTechnologyLabel = (entry: string | Record<string, unknown>): string => {
+    if (typeof entry === "string") {
+      return entry;
+    }
+
+    const candidate = entry as { name?: unknown; label?: unknown; title?: unknown };
+    if (typeof candidate.name === "string") {
+      return candidate.name;
+    }
+    if (typeof candidate.label === "string") {
+      return candidate.label;
+    }
+    if (typeof candidate.title === "string") {
+      return candidate.title;
+    }
+
+    return "Unknown";
   };
 
   const formatDate = (dateString?: string) => {
@@ -421,7 +441,7 @@ export default function TaskDetailPage() {
                             key={index}
                             className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-300 rounded-lg text-sm"
                           >
-                            {typeof tech === "string" ? tech : tech.name || "Unknown"}
+                            {resolveTechnologyLabel(tech)}
                           </span>
                         ))}
                       </div>

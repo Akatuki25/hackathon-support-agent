@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
 from models.project_base import ProjectDocument, Task, ProjectBase, TaskDependency
-from services.enhanced_tasks_service import EnhancedTasksService
+from services.enhanced_tasks_service import EnhancedTasksService, PipelineStage
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
@@ -44,6 +44,27 @@ class TaskListResponse(BaseModel):
     message: str
     tasks: List[Dict[str, Any]]
     total_count: int
+
+
+class StageExecutionResponse(BaseModel):
+    success: bool
+    stage: str
+    data: Dict[str, Any]
+
+
+class GraphAnalysisResponse(BaseModel):
+    success: bool
+    stage: str
+    dependency_analysis: Dict[str, Any]
+    topological_order: Dict[str, Any]
+    reactflow: Dict[str, Any]
+    metadata: Dict[str, Any]
+
+
+class LLMUsageResponse(BaseModel):
+    success: bool
+    project_id: str
+    llm_usage: Dict[str, Any]
 
 # Dependency
 def get_enhanced_tasks_service(db: Session = Depends(get_db)) -> EnhancedTasksService:
@@ -233,6 +254,162 @@ async def generate_comprehensive_tasks(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error during task generation: {str(e)}"
         )
+
+
+@router.post(
+    "/generate/{project_id}/stage1",
+    response_model=StageExecutionResponse,
+    summary="Stage1: タスク分割",
+)
+async def execute_stage1(
+    project_id: uuid.UUID,
+    request: TaskGenerationRequest,
+    service: EnhancedTasksService = Depends(get_enhanced_tasks_service),
+):
+    try:
+        result = await service.run_stage1(
+            project_id,
+            hackathon_mode=request.hackathon_mode,
+            use_parallel_processing=request.use_parallel_processing,
+        )
+        return StageExecutionResponse(
+            success=True,
+            stage=PipelineStage.TASK_DECOMPOSITION.value,
+            data=result,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+
+@router.post(
+    "/generate/{project_id}/stage2",
+    response_model=StageExecutionResponse,
+    summary="Stage2: ディレクトリ構成生成",
+)
+async def execute_stage2(
+    project_id: uuid.UUID,
+    request: TaskGenerationRequest,
+    service: EnhancedTasksService = Depends(get_enhanced_tasks_service),
+):
+    try:
+        result = await service.run_stage2(
+            project_id,
+            hackathon_mode=request.hackathon_mode,
+            use_parallel_processing=request.use_parallel_processing,
+        )
+        return StageExecutionResponse(
+            success=True,
+            stage=PipelineStage.DIRECTORY_BLUEPRINT.value,
+            data=result,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+
+@router.post(
+    "/generate/{project_id}/stage3",
+    response_model=StageExecutionResponse,
+    summary="Stage3: 教育的タスク詳細生成",
+)
+async def execute_stage3(
+    project_id: uuid.UUID,
+    request: TaskGenerationRequest,
+    service: EnhancedTasksService = Depends(get_enhanced_tasks_service),
+):
+    try:
+        result = await service.run_stage3(
+            project_id,
+            hackathon_mode=request.hackathon_mode,
+            use_parallel_processing=request.use_parallel_processing,
+        )
+        return StageExecutionResponse(
+            success=True,
+            stage=PipelineStage.EDUCATIONAL_RESOURCES.value,
+            data=result,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+
+@router.post(
+    "/generate/{project_id}/analysis",
+    response_model=GraphAnalysisResponse,
+    summary="Stage4: 依存関係分析とトポロジカルソート",
+)
+async def execute_graph_analysis(
+    project_id: uuid.UUID,
+    request: TaskGenerationRequest,
+    service: EnhancedTasksService = Depends(get_enhanced_tasks_service),
+):
+    try:
+        stage4_result = await service.run_stage4(
+            project_id,
+            hackathon_mode=request.hackathon_mode,
+            use_parallel_processing=request.use_parallel_processing,
+        )
+        topology = service.serialize_topological_result(
+            stage4_result.get("topological_order", {})
+        )
+        reactflow_payload = service.build_reactflow_payload(stage4_result)
+        return GraphAnalysisResponse(
+            success=True,
+            stage=stage4_result.get("stage", PipelineStage.GRAPH_ANALYSIS.value),
+            dependency_analysis=stage4_result.get("dependency_analysis", {}),
+            topological_order=topology,
+            reactflow=reactflow_payload,
+            metadata={
+                "graph_stats": topology.get("graph_stats", {}),
+                "priority_distribution": stage4_result.get("priority_distribution", {}),
+            },
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+
+@router.post(
+    "/generate/{project_id}/stage5",
+    response_model=StageExecutionResponse,
+    summary="Stage5: タイムライン生成",
+)
+async def execute_stage5(
+    project_id: uuid.UUID,
+    request: TaskGenerationRequest,
+    service: EnhancedTasksService = Depends(get_enhanced_tasks_service),
+):
+    try:
+        stage5_result = await service.run_stage5(
+            project_id,
+            hackathon_mode=request.hackathon_mode,
+            use_parallel_processing=request.use_parallel_processing,
+        )
+        return StageExecutionResponse(
+            success=True,
+            stage=stage5_result.get("stage", PipelineStage.TIMELINE_AND_REACTFLOW.value),
+            data=stage5_result,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+
+@router.get(
+    "/generate/{project_id}/llm-usage",
+    response_model=LLMUsageResponse,
+    summary="LLM使用状況の取得",
+)
+async def get_llm_usage(
+    project_id: uuid.UUID,
+    service: EnhancedTasksService = Depends(get_enhanced_tasks_service),
+):
+    try:
+        payload = service.get_stage_payload(project_id, PipelineStage.LLM_USAGE)
+        usage_data = payload.get("llm_usage", {}) if payload else {}
+        return LLMUsageResponse(
+            success=True,
+            project_id=str(project_id),
+            llm_usage=usage_data,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 @router.get(
     "/analyze/{project_id}",

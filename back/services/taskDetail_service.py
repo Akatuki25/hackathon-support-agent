@@ -167,26 +167,33 @@ class TaskDetailService(BaseService):
 
         return technologies
 
-    def generate_enhanced_task_detail(self, task: Dict, specification: str) -> EnhancedTaskDetail:
+    def generate_enhanced_task_detail(
+        self,
+        task: Dict,
+        specification: str,
+        directory_context: Optional[List[str]] = None,
+    ) -> EnhancedTaskDetail:
         """拡張タスク詳細の生成"""
         try:
-            # 使用技術の抽出
             technologies = self.extract_technologies_from_task(task, specification)
 
-            # 各技術のリサーチ
             tech_references = []
-            for tech in technologies[:3]:  # 最大3つに制限
+            for tech in technologies[:3]:
                 research_result = self.research_technology(tech)
                 tech_ref = self.parse_research_result(tech, research_result)
                 tech_references.append(tech_ref)
 
-            # 詳細タスク情報の生成
-            detail_prompt = self.create_detail_generation_prompt(task, specification, tech_references)
+            detail_prompt = self.create_detail_generation_prompt(
+                task,
+                specification,
+                tech_references,
+                directory_context,
+            )
 
             llm_response = self.llm_flash.invoke([HumanMessage(content=detail_prompt)])
             detail_content = llm_response.content if hasattr(llm_response, "content") else str(llm_response)
+            self.record_llm_usage("llm_flash")
 
-            # 学習リソースの抽出
             learning_resources = self.extract_learning_resources(detail_content, tech_references)
 
             return EnhancedTaskDetail(
@@ -197,7 +204,7 @@ class TaskDetailService(BaseService):
                 technologies_used=tech_references,
                 learning_resources=learning_resources,
                 dependency_explanation=self.generate_dependency_explanation(task, specification),
-                educational_notes=self.generate_educational_notes(task, tech_references)
+                educational_notes=self.generate_educational_notes(task, tech_references),
             )
 
         except Exception as e:
@@ -210,7 +217,7 @@ class TaskDetailService(BaseService):
                 technologies_used=[],
                 learning_resources=[],
                 dependency_explanation="依存関係の分析に失敗しました",
-                educational_notes="教育的解説の生成に失敗しました"
+                educational_notes="教育的解説の生成に失敗しました",
             )
 
     def parse_research_result(self, tech_name: str, research_result: str) -> TechnologyReference:
@@ -286,12 +293,23 @@ class TaskDetailService(BaseService):
 
         return common_concepts.get(tech_name, ["基本概念", "設定", "実装", "テスト"])
 
-    def create_detail_generation_prompt(self, task: Dict, specification: str, tech_refs: List[TechnologyReference]) -> str:
+    def create_detail_generation_prompt(
+        self,
+        task: Dict,
+        specification: str,
+        tech_refs: List[TechnologyReference],
+        directory_context: Optional[List[str]] = None,
+    ) -> str:
         """詳細生成用プロンプトの作成"""
         tech_info = "\n".join([
             f"- {tech.name}: {tech.why_needed}\n  公式: {tech.official_url}\n  ドキュメント: {tech.documentation_url}"
             for tech in tech_refs
         ])
+
+        directory_info = ""
+        if directory_context:
+            directory_lines = "\n".join(f"- {path}" for path in directory_context)
+            directory_info = f"\n        ## 推奨ディレクトリ\n        {directory_lines}\n"
 
         return f"""
         あなたはハッカソン初心者向けの教育的タスクガイド作成エキスパートです。
@@ -308,6 +326,8 @@ class TaskDetailService(BaseService):
 
         ## 使用技術
         {tech_info}
+
+        {directory_info}
 
         ## 出力要件
         1. **なぜこのタスクが必要か**を明確に説明
@@ -346,14 +366,28 @@ class TaskDetailService(BaseService):
         else:
             return "このタスクでは基本的な技術を活用します。関連するドキュメントを参照し、基本概念を理解してから実装に取り組むことをお勧めします。"
 
-    def generate_task_details_batch(self, specification: str, tasks: List[Dict]) -> List[Dict]:
+    def generate_task_details_batch(
+        self,
+        specification: str,
+        tasks: List[Dict],
+        directory_lookup: Optional[Dict[str, List[str]]] = None,
+    ) -> List[Dict]:
         """
         複数タスクをまとめて拡張詳細生成
         """
         try:
             results = []
             for task in tasks:
-                enhanced_detail = self.generate_enhanced_task_detail(task, specification)
+                task_identifier = str(task.get("db_task_id") or task.get("task_id") or "")
+                directory_context = []
+                if directory_lookup and task_identifier:
+                    directory_context = directory_lookup.get(task_identifier, [])
+
+                enhanced_detail = self.generate_enhanced_task_detail(
+                    task,
+                    specification,
+                    directory_context,
+                )
 
                 # 辞書形式に変換
                 task_result = {
@@ -381,14 +415,15 @@ class TaskDetailService(BaseService):
         tasks: List[Dict],
         specification: str,
         batch_size: int = 2,  # 検索APIの制限を考慮して減らす
-        max_workers: int = 3
+        max_workers: int = 3,
+        directory_lookup: Optional[Dict[str, List[str]]] = None,
     ) -> List[Dict]:
         """並列タスク詳細生成（検索API制限を考慮）"""
         batches = [tasks[i:i + batch_size] for i in range(0, len(tasks), batch_size)]
         results: List[Dict] = []
         with ThreadPoolExecutor(max_workers=min(max_workers, len(batches))) as exe:
             futures = {
-                exe.submit(self.generate_task_details_batch, specification, b): b for b in batches}
+                exe.submit(self.generate_task_details_batch, specification, b, directory_lookup): b for b in batches}
             for future in as_completed(futures):
                 try:
                     results.extend(future.result())

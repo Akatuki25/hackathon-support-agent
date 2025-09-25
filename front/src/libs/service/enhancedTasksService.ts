@@ -1,5 +1,9 @@
 import axios from 'axios';
 import useSWR from 'swr';
+import type { EnhancedTaskDetail } from './enhancedTaskDetailService';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/rules-of-hooks */
 
 export interface TaskGenerationRequest {
   hackathon_mode?: boolean;
@@ -15,10 +19,86 @@ export interface TaskGenerationResponse {
   critical_path_length: number;
   confidence_score?: number;
   priority_distribution: Record<string, number>;
-  generation_metadata: Record<string, any>;
+  generation_metadata: Record<string, unknown>;
   topological_order?: string[];
   parallel_groups?: string[][];
-  educational_summary?: Record<string, any>;
+  educational_summary?: Record<string, unknown>;
+}
+
+export interface GeneratedTaskSnapshot {
+  task_name: string;
+  category?: string;
+  description?: string;
+  estimated_hours?: number;
+  complexity_level?: number;
+  business_value_score?: number;
+  technical_risk_score?: number;
+  implementation_difficulty?: number;
+  user_impact_score?: number;
+  dependency_weight?: number;
+  moscow_priority?: string;
+  mvp_critical?: boolean;
+  db_task_id?: string;
+  educational_detail?: EnhancedTaskDetail | Record<string, unknown> | string;
+  learning_resources?: string[];
+  technology_stack?: Array<string | Record<string, unknown>>;
+  reference_links?: string[];
+}
+
+export interface Stage1Result {
+  tasks: GeneratedTaskSnapshot[];
+  db_task_ids: Record<number, string>;
+  priority_distribution: Record<string, number>;
+  stage: string;
+}
+
+export interface DirectoryPlanPayload {
+  directory_tree: Record<string, unknown> | null;
+  task_directory_mapping: Record<string, unknown>;
+}
+
+export interface Stage2Result extends Stage1Result {
+  directory_plan?: DirectoryPlanPayload;
+}
+
+export type Stage3Result = Stage2Result;
+
+export interface Stage4Result extends Stage3Result {
+  dependency_analysis?: Record<string, unknown>;
+  topological_order?: Record<string, unknown>;
+}
+
+export interface Stage5Result extends Stage4Result {
+  timeline?: Record<string, unknown>;
+  project_dates?: Record<string, unknown>;
+}
+
+export interface StageExecutionResponse<TStageData = Record<string, unknown>> {
+  success: boolean;
+  stage: string;
+  data: TStageData;
+}
+
+export interface GraphAnalysisResponse {
+  success: boolean;
+  stage: string;
+  dependency_analysis: Record<string, unknown>;
+  topological_order: Record<string, unknown>;
+  reactflow: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+}
+
+export interface LLMUsageMetrics {
+  calls?: number;
+  tokens?: number;
+  last_called_at?: string;
+  [key: string]: unknown;
+}
+
+export interface LLMUsageResponse {
+  success: boolean;
+  project_id: string;
+  llm_usage: Record<string, LLMUsageMetrics>;
 }
 
 export interface Task {
@@ -62,7 +142,7 @@ export interface Task {
 
   // Educational fields
   learning_resources?: string[];
-  technology_stack?: Record<string, any>[];
+  technology_stack?: Array<string | Record<string, unknown>>;
   reference_links?: string[];
 
   // Metadata
@@ -95,9 +175,9 @@ export interface TaskStatistics {
 export interface TaskQualityAnalysisResponse {
   success: boolean;
   message: string;
-  task_distribution: Record<string, any>;
-  dependency_analysis: Record<string, any>;
-  quality_indicators: Record<string, any>;
+  task_distribution: Record<string, unknown>;
+  dependency_analysis: Record<string, unknown>;
+  quality_indicators: Record<string, unknown>;
   recommendations: string[];
 }
 
@@ -162,14 +242,77 @@ export class EnhancedTasksService {
     projectId: string,
     request: TaskGenerationRequest = {}
   ): Promise<TaskGenerationResponse> {
-    const defaultRequest: TaskGenerationRequest = {
+    const response = await apiClient.post(`/api/enhanced_tasks/generate/${projectId}`, this.buildStageRequest(request));
+    return response.data;
+  }
+
+  private static buildStageRequest(request: TaskGenerationRequest = {}): TaskGenerationRequest {
+    return {
       hackathon_mode: true,
       use_parallel_processing: true,
       use_full_workflow: true,
-      ...request
+      ...request,
     };
+  }
 
-    const response = await apiClient.post(`/api/enhanced_tasks/generate/${projectId}`, defaultRequest);
+  // Individual stage execution helpers
+  static async runStage1(
+    projectId: string,
+    request: TaskGenerationRequest = {}
+  ): Promise<StageExecutionResponse<Stage1Result>> {
+    const response = await apiClient.post(
+      `/api/enhanced_tasks/generate/${projectId}/stage1`,
+      this.buildStageRequest(request)
+    );
+    return response.data;
+  }
+
+  static async runStage2(
+    projectId: string,
+    request: TaskGenerationRequest = {}
+  ): Promise<StageExecutionResponse<Stage2Result>> {
+    const response = await apiClient.post(
+      `/api/enhanced_tasks/generate/${projectId}/stage2`,
+      this.buildStageRequest(request)
+    );
+    return response.data;
+  }
+
+  static async runStage3(
+    projectId: string,
+    request: TaskGenerationRequest = {}
+  ): Promise<StageExecutionResponse<Stage3Result>> {
+    const response = await apiClient.post(
+      `/api/enhanced_tasks/generate/${projectId}/stage3`,
+      this.buildStageRequest(request)
+    );
+    return response.data;
+  }
+
+  static async runStage4(
+    projectId: string,
+    request: TaskGenerationRequest = {}
+  ): Promise<GraphAnalysisResponse> {
+    const response = await apiClient.post(
+      `/api/enhanced_tasks/generate/${projectId}/analysis`,
+      this.buildStageRequest(request)
+    );
+    return response.data;
+  }
+
+  static async runStage5(
+    projectId: string,
+    request: TaskGenerationRequest = {}
+  ): Promise<StageExecutionResponse<Stage5Result>> {
+    const response = await apiClient.post(
+      `/api/enhanced_tasks/generate/${projectId}/stage5`,
+      this.buildStageRequest(request)
+    );
+    return response.data;
+  }
+
+  static async getLLMUsage(projectId: string): Promise<LLMUsageResponse> {
+    const response = await apiClient.get(`/api/enhanced_tasks/generate/${projectId}/llm-usage`);
     return response.data;
   }
 

@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 
 export function useDarkMode() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

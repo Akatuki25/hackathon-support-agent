@@ -2,7 +2,7 @@
 import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
 interface InitialSummaryProps {
   initialSummary: string;
@@ -16,14 +16,14 @@ export default function Editor({ initialSummary }: InitialSummaryProps) {
     sessionStorage.setItem("specification", markdown);
   };
 
-  const loadMarkdown = async () => {
+  const loadMarkdown = useCallback(async () => {
     const blocks = await editor.tryParseMarkdownToBlocks(initialSummary);
     editor.replaceBlocks(editor.document, blocks);
-  };
+  }, [editor, initialSummary]);
 
   useEffect(() => {
-    loadMarkdown();
-  }, []);
+    void loadMarkdown();
+  }, [loadMarkdown]);
 
   return (
     <div>

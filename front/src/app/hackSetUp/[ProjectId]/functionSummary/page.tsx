@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Terminal, ChevronRight, Loader2, BarChart3 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
@@ -36,6 +36,33 @@ export default function FunctionSummary() {
   const [showConfidenceFeedback, setShowConfidenceFeedback] = useState(false);
 
   // 初期処理：機能要件とQ&Aを取得
+  const generateConfidenceFeedback = useCallback((reqs: FunctionalRequirement[], confidence: number) => {
+    // 要件の品質を分析
+    const clarity = calculateClarityScore(reqs);
+    const feasibility = calculateFeasibilityScore(reqs);
+    const scope = calculateScopeScore(reqs);
+    const value = calculateValueScore(reqs);
+    const completeness = calculateCompletenessScore(reqs);
+
+    const feedback: ConfidenceFeedbackType = {
+      overall_confidence: confidence,
+      clarity_score: clarity,
+      feasibility_score: feasibility,
+      scope_score: scope,
+      value_score: value,
+      completeness_score: completeness,
+      clarity_feedback: getClarityFeedback(clarity),
+      feasibility_feedback: getFeasibilityFeedback(feasibility),
+      scope_feedback: getScopeFeedback(scope),
+      value_feedback: getValueFeedback(value),
+      completeness_feedback: getCompletenessFeedback(completeness),
+      improvement_suggestions: getImprovementSuggestions(clarity, feasibility, scope, value, completeness),
+      confidence_reason: getConfidenceReason(clarity, feasibility, scope, value, completeness)
+    };
+
+    setConfidenceFeedback(feedback);
+  }, []);
+
   useEffect(() => {
     const initializeFlow = async () => {
       if (!projectId) return;
@@ -100,35 +127,7 @@ export default function FunctionSummary() {
     };
 
     initializeFlow();
-  }, [projectId]);
-
-  // 確信度フィードバックを生成
-  const generateConfidenceFeedback = (reqs: FunctionalRequirement[], confidence: number) => {
-    // 要件の品質を分析
-    const clarity = calculateClarityScore(reqs);
-    const feasibility = calculateFeasibilityScore(reqs);
-    const scope = calculateScopeScore(reqs);
-    const value = calculateValueScore(reqs);
-    const completeness = calculateCompletenessScore(reqs);
-
-    const feedback: ConfidenceFeedbackType = {
-      overall_confidence: confidence,
-      clarity_score: clarity,
-      feasibility_score: feasibility,
-      scope_score: scope,
-      value_score: value,
-      completeness_score: completeness,
-      clarity_feedback: getClarityFeedback(clarity),
-      feasibility_feedback: getFeasibilityFeedback(feasibility),
-      scope_feedback: getScopeFeedback(scope),
-      value_feedback: getValueFeedback(value),
-      completeness_feedback: getCompletenessFeedback(completeness),
-      improvement_suggestions: getImprovementSuggestions(clarity, feasibility, scope, value, completeness),
-      confidence_reason: getConfidenceReason(clarity, feasibility, scope, value, completeness)
-    };
-
-    setConfidenceFeedback(feedback);
-  };
+  }, [projectId, generateConfidenceFeedback]);
 
   // デフォルトの確信度フィードバックを生成
   const generateDefaultConfidenceFeedback = (confidence: number) => {

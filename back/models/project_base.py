@@ -57,6 +57,12 @@ class ProjectBase(Base):
         cascade="all, delete-orphan",
     )
 
+    pipeline_stages = relationship(
+        "TaskPipelineStage",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+
     # NEW: ENV / TASK と紐づけ
     envs = relationship(
         "Env",
@@ -129,6 +135,37 @@ class ProjectDocument(Base):
 
     def __repr__(self):
         return f"<ProjectDocument(id={self.doc_id}, project_id={self.project_id})>"
+
+
+class TaskPipelineStage(Base):
+    __tablename__ = "taskPipelineStage"
+
+    stage_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projectBase.project_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    stage_name = Column(String, nullable=False, index=True)
+    status = Column(String, nullable=False, default="completed")
+    payload = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    project = relationship("ProjectBase", back_populates="pipeline_stages")
+
+    __table_args__ = (
+        Index("ix_task_pipeline_stage_project", "project_id", "stage_name", unique=True),
+    )
+
+    def __repr__(self):
+        return f"<TaskPipelineStage(project_id={self.project_id}, stage={self.stage_name}, status={self.status})>"
 
 
 # =========================

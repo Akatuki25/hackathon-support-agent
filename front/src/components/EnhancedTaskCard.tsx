@@ -5,7 +5,7 @@ import {
   Check, Star, Clock, BarChart, ChevronDown, ChevronRight,
   ExternalLink, BookOpen, Code, Lightbulb, Link2, Globe
 } from "lucide-react";
-import { EnhancedTaskDetail, TechnologyReference } from "@/types/taskTypes";
+import { EnhancedTaskDetail } from "@/types/taskTypes";
 
 interface EnhancedTaskCardProps {
   task: EnhancedTaskDetail;
@@ -20,6 +20,7 @@ const EnhancedTaskCard: React.FC<EnhancedTaskCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'detail' | 'technologies' | 'resources'>('detail');
+  const tabs = ['detail', 'technologies', 'resources'] as const;
 
   // 優先度に基づいて色を設定
   const getPriorityStyles = () => {
@@ -189,12 +190,12 @@ const EnhancedTaskCard: React.FC<EnhancedTaskCardProps> = ({
           <div className="mt-4 border-t border-gray-600 pt-4">
             {/* タブ */}
             <div className="flex gap-2 mb-3">
-              {['detail', 'technologies', 'resources'].map((tab) => (
+              {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActiveTab(tab as any);
+                    setActiveTab(tab);
                   }}
                   className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                     activeTab === tab

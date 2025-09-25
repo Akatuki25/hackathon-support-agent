@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { TaskItem, DivideTask } from '@/types/taskTypes';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // 環境変数からAPIのベースURLを取得
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 

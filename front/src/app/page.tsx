@@ -1,26 +1,24 @@
 "use client";
 
 import React from "react";
+/* eslint-disable @next/next/no-img-element */
+
 import {
   Github,
   Linkedin,
   Twitter,
   Mail,
   Code,
-  Zap,
   Users,
-  Target,
   Trophy,
   Clock,
   MessageCircle,
   Lightbulb,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import CyberHeader from "@/components/Session/Header";
 
 export default function HackathonSupportAgentLandingPage() {
-  const { data: session, status } = useSession();
   const { darkMode } = useDarkMode();
 
   const members = [
@@ -150,7 +148,7 @@ export default function HackathonSupportAgentLandingPage() {
                 : "bg-purple-500/10 text-purple-600 border border-purple-300/30"
             }`}
           >
-            // SYSTEM_INITIALIZED
+            {/* SYSTEM_INITIALIZED */}
           </div>
 
           <h1
@@ -165,7 +163,7 @@ export default function HackathonSupportAgentLandingPage() {
           <p
             className={`text-lg md:text-xl mb-8 ${darkMode ? "text-gray-300" : "text-gray-600"} font-mono max-w-3xl mx-auto`}
           >
-            // AIの力でハッカソンを勝利に導く、あなたの最強パートナー
+            {/* AIの力でハッカソンを勝利に導く、あなたの最強パートナー */}
           </p>
 
           {/* Cyber divider */}
@@ -247,7 +245,7 @@ export default function HackathonSupportAgentLandingPage() {
                   <div
                     className={`text-xs mb-1 font-mono ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                   >
-                    // {stat.code}
+                    {/* {stat.code} */}
                   </div>
                   <div
                     className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}
@@ -267,7 +265,7 @@ export default function HackathonSupportAgentLandingPage() {
               darkMode ? "text-cyan-400" : "text-purple-600"
             }`}
           >
-            // SYSTEM_FEATURES
+            {/* SYSTEM_FEATURES */}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -333,7 +331,7 @@ export default function HackathonSupportAgentLandingPage() {
               darkMode ? "text-cyan-400" : "text-purple-600"
             }`}
           >
-            // EXECUTION_PROTOCOL
+            {/* EXECUTION_PROTOCOL */}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -395,7 +393,7 @@ export default function HackathonSupportAgentLandingPage() {
                 <p
                   className={`text-xs mb-3 font-mono ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                 >
-                  // {item.code}
+                  {/* {item.code} */}
                 </p>
                 <p
                   className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm`}
@@ -414,7 +412,7 @@ export default function HackathonSupportAgentLandingPage() {
               darkMode ? "text-cyan-400" : "text-purple-600"
             }`}
           >
-            // DEVELOPMENT_TEAM
+            {/* DEVELOPMENT_TEAM */}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {members.map((member, index) => (
@@ -459,10 +457,10 @@ export default function HackathonSupportAgentLandingPage() {
                     {member.name.toUpperCase().replace(/\s+/g, "_")}
                   </h3>
                   <p
-                    className={`text-sm mb-1 font-mono ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
-                  >
-                    // {member.role.toUpperCase().replace(/\s+/g, "_")}
-                  </p>
+                  className={`text-sm mb-1 font-mono ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                >
+                  {/* {member.role.toUpperCase().replace(/\s+/g, "_")} */}
+                </p>
                   <p
                     className={`text-xs mb-4 ${darkMode ? "text-gray-300" : "text-gray-600"} leading-relaxed`}
                   >
@@ -582,7 +580,7 @@ export default function HackathonSupportAgentLandingPage() {
                   : "bg-purple-500/20 text-purple-600 border border-purple-400/50"
               }`}
             >
-              // FINAL_CALL_TO_ACTION
+              {/* FINAL_CALL_TO_ACTION */}
             </div>
             <h2
               className={`text-2xl md:text-3xl font-bold mb-4 font-mono tracking-wider ${
@@ -594,7 +592,7 @@ export default function HackathonSupportAgentLandingPage() {
             <p
               className={`text-lg mb-8 ${darkMode ? "text-gray-300" : "text-gray-600"} max-w-2xl mx-auto`}
             >
-              // AIの力を借りて、あなたのアイデアを最高の形で実現しませんか？
+              {/* AIの力を借りて、あなたのアイデアを最高の形で実現しませんか？ */}
             </p>
             <button
               className={`group relative px-8 py-4 rounded-lg font-mono font-bold text-lg tracking-wider transition-all duration-300 overflow-hidden ${
@@ -620,7 +618,7 @@ export default function HackathonSupportAgentLandingPage() {
             <div
               className={`mx-4 text-xs font-mono ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             >
-              // END_OF_TRANSMISSION
+              {/* END_OF_TRANSMISSION */}
             </div>
             <div
               className={`h-px w-12 ${darkMode ? "bg-pink-500" : "bg-blue-500"}`}

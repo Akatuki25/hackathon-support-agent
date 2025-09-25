@@ -1,13 +1,12 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useDarkMode } from "@/hooks/useDarkMode";
 import React, { useState, useRef, useEffect } from "react";
 import {
-  LogIn,
-  UserPlus,
   Terminal,
   Shield,
-  Cpu,
   Settings,
   LogOut,
   ChevronDown,
@@ -134,7 +133,7 @@ export default function CyberHeader() {
                     darkMode ? "text-cyan-300/70" : "text-purple-500/70"
                   }`}
                 >
-                  // SYSTEM_ONLINE
+                  {/* SYSTEM_ONLINE */}
                 </span>
               </div>
             </div>
@@ -265,7 +264,7 @@ export default function CyberHeader() {
                               darkMode ? "text-gray-400" : "text-gray-500"
                             }`}
                           >
-                            // ONLINE
+                            {/* ONLINE */}
                           </span>
                           <ChevronDown
                             className={`w-3 h-3 transition-transform duration-300 ${
@@ -367,7 +366,7 @@ export default function CyberHeader() {
                                 darkMode ? "text-gray-500" : "text-gray-400"
                               }`}
                             >
-                              // Configure system
+                              {/* Configure system */}
                             </p>
                           </div>
                         </button>
@@ -413,7 +412,7 @@ export default function CyberHeader() {
                                 darkMode ? "text-gray-500" : "text-gray-400"
                               }`}
                             >
-                              // End session
+                              {/* End session */}
                             </p>
                           </div>
                         </button>
@@ -432,7 +431,7 @@ export default function CyberHeader() {
                             darkMode ? "text-gray-500" : "text-gray-400"
                           }`}
                         >
-                          // SYSTEM_ACCESS_GRANTED
+                          {/* SYSTEM_ACCESS_GRANTED */}
                         </p>
                       </div>
                     </div>

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import SummaryEditor from "@/components/SummaryEditor";
-import { FileText, Save, ChevronRight, Info } from "lucide-react";
+import { FileText, Info } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
 import SaveButton from "@/components/Buttons/SaveButton";

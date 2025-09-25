@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useCallback, useEffect, useState, ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TrendingUp, TrendingDown, Info, CheckCircle, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Info, CheckCircle } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { ConfidenceFeedback as ConfidenceFeedbackType } from "@/types/modelTypes";
 

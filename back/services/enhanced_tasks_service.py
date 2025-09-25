@@ -3,7 +3,14 @@ from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from .base_service import BaseService
 from .taskDetail_service import TaskDetailService, EnhancedTaskDetail
 from typing import List, Dict, Any, Optional, Tuple
-from models.project_base import ProjectDocument, Task, TaskDependency, ProjectBase
+from enum import Enum
+from models.project_base import (
+    ProjectDocument,
+    Task,
+    TaskDependency,
+    ProjectBase,
+    TaskPipelineStage,
+)
 from datetime import datetime, timedelta
 import json
 import uuid
@@ -13,6 +20,7 @@ from collections import defaultdict, deque
 import asyncio
 import networkx as nx
 import logging
+import re
 
 # Custom JSON encoder to handle UUID objects
 class UUIDEncoder(json.JSONEncoder):
@@ -25,6 +33,15 @@ class UUIDEncoder(json.JSONEncoder):
 class DependencyCycleError(Exception):
     pass
 
+class PipelineStage(str, Enum):
+    TASK_DECOMPOSITION = "stage1_task_decomposition"
+    DIRECTORY_BLUEPRINT = "stage2_directory_blueprint"
+    EDUCATIONAL_RESOURCES = "stage3_educational_resources"
+    GRAPH_ANALYSIS = "stage4_dependency_graph"
+    TIMELINE_AND_REACTFLOW = "stage5_timeline_reactflow"
+    LLM_USAGE = "stage6_llm_usage"
+
+
 class EnhancedTasksService(BaseService):
     """
     プロジェクトドキュメントから包括的なタスク分解を生成するための強化型AIエージェント。
@@ -36,6 +53,7 @@ class EnhancedTasksService(BaseService):
         self.dependency_graph = nx.DiGraph()  # NetworkX for graph operations
         self.logger = logging.getLogger(__name__)
         self.logger.info("EnhancedTasksService initialized with advanced AI capabilities")
+        self._task_detail_usage_cache: Dict[str, Dict[str, int]] = {}
 
     async def generate_comprehensive_tasks_with_full_workflow(
         self,
@@ -57,29 +75,33 @@ class EnhancedTasksService(BaseService):
                 project_document, hackathon_mode, use_parallel_processing
             )
 
-            # Stage 2: MoSCoW優先度付けと詳細分析
-            stage2_result = await self._stage2_moscow_prioritization_and_analysis(
-                stage1_result, project_document, use_parallel_processing
+            # Stage 2: ディレクトリ構成の生成
+            stage2_result = await self._stage2_directory_blueprint_generation(
+                stage1_result, project_document
             )
 
-            # Stage 3: 依存関係分析とトポロジカルソート
-            stage3_result = await self._stage3_dependency_analysis_and_topological_sort(
-                stage2_result, project_document
+            # Stage 3: 教育的タスク詳細生成（並列処理）
+            stage3_result = await self._stage3_educational_task_details_generation(
+                stage2_result, project_document, use_parallel_processing
             )
 
-            # Stage 4: 時系列タイムライン生成
-            stage4_result = await self._stage4_timeline_generation_with_project_dates(
-                stage3_result, project_base, project_duration_days, team_size
+            # Stage 4: 依存関係分析とトポロジカルソート
+            stage4_result = await self._stage4_dependency_analysis_and_topological_sort(
+                stage3_result, project_document
             )
 
-            # Stage 5: 教育的タスク詳細生成（並列処理）
-            stage5_result = await self._stage5_educational_task_details_generation(
-                stage4_result, project_document, use_parallel_processing
+            # Stage 5: 時系列タイムライン生成
+            stage5_result = await self._stage5_timeline_generation_with_project_dates(
+                stage4_result, project_base, project_duration_days, team_size
             )
 
             # Stage 6: 最終DB保存と包括的結果構築
             final_result = await self._stage6_final_database_save_and_result_compilation(
-                stage5_result, project_document.project_id, project_document.doc_id
+                stage3_result,
+                project_document.project_id,
+                project_document.doc_id,
+                stage4_result,
+                stage5_result,
             )
 
             self.logger.info(f"Full workflow completed successfully with {len(final_result.get('tasks', []))} tasks")
@@ -181,6 +203,7 @@ class EnhancedTasksService(BaseService):
             "directory_info": project_document.directory_info,
             "hackathon_mode": hackathon_mode
         })
+        self.record_llm_usage("llm_pro")
         tasks = result.get("tasks", [])
         self.logger.info(f"Phase 1 complete: Decomposed into {len(tasks)} atomic tasks")
         return tasks
@@ -215,6 +238,7 @@ class EnhancedTasksService(BaseService):
             "specification": project_document.specification,
             "function_doc": project_document.function_doc
         })
+        self.record_llm_usage("llm_pro")
         prioritized_tasks = result.get("prioritized_tasks", [])
         self.logger.info(f"Phase 2 complete: Applied MoSCoW prioritization to {len(prioritized_tasks)} tasks")
         return prioritized_tasks
@@ -246,6 +270,7 @@ class EnhancedTasksService(BaseService):
         result = chain.invoke({
             "tasks": json.dumps(indexed_tasks, ensure_ascii=False, indent=2, cls=UUIDEncoder)
         })
+        self.record_llm_usage("llm_pro")
         dependency_analysis = result.get("dependency_analysis", {})
         self.logger.info(f"Phase 3 complete: Identified {len(dependency_analysis.get('edges', []))} dependencies")
         return dependency_analysis
@@ -285,6 +310,7 @@ class EnhancedTasksService(BaseService):
             "project_duration_days": project_duration_days,
             "team_size": team_size
         })
+        self.record_llm_usage("llm_pro")
         timeline = result.get("timeline", {})
         self.logger.info("Phase 4 complete: Generated optimized timeline")
         return timeline
@@ -320,6 +346,7 @@ class EnhancedTasksService(BaseService):
             "function_doc": project_document.function_doc,
             "dependency_analysis": json.dumps(dependency_analysis, ensure_ascii=False, indent=2, cls=UUIDEncoder)
         })
+        self.record_llm_usage("llm_pro")
         confidence_metrics = result.get("confidence_metrics", {})
         self.logger.info("Phase 5 complete: Calculated confidence metrics")
         return confidence_metrics
@@ -405,147 +432,422 @@ class EnhancedTasksService(BaseService):
         hackathon_mode: bool,
         use_parallel_processing: bool
     ) -> Dict[str, Any]:
-        self.logger.info("Stage 1: Initial task decomposition starting")
+        self.logger.info("Stage 1: Task decomposition and prioritization starting")
         raw_tasks = self._decompose_project_into_tasks(project_document, hackathon_mode)
-        db_task_ids = {}
+
+        if use_parallel_processing:
+            prioritized_tasks = await self._parallel_moscow_analysis(raw_tasks, project_document)
+        else:
+            prioritized_tasks = self._apply_moscow_prioritization(raw_tasks, project_document)
+
+        db_task_ids = self._persist_tasks_for_project(project_document, prioritized_tasks)
+
+        priority_distribution = self._build_priority_distribution(prioritized_tasks)
+        stage_payload = {
+            "total_tasks": len(prioritized_tasks),
+            "priority_distribution": priority_distribution,
+            "task_snapshots": [
+                {
+                    "task_id": str(db_task_ids.get(idx)) if db_task_ids.get(idx) else None,
+                    "task_name": task.get("task_name"),
+                    "category": task.get("category"),
+                    "moscow_priority": task.get("moscow_priority"),
+                    "estimated_hours": task.get("estimated_hours"),
+                    "complexity_level": task.get("complexity_level"),
+                }
+                for idx, task in enumerate(prioritized_tasks)
+            ],
+        }
+
         if self.db:
-            for i, task_data in enumerate(raw_tasks):
-                task = Task(
-                    project_id=project_document.project_id,
-                    title=task_data.get("task_name", f"Task {i+1}"),
-                    description=task_data.get("description", ""),
-                    category=task_data.get("category"),
-                    estimated_hours=task_data.get("estimated_hours"),
-                    complexity_level=task_data.get("complexity_level"),
-                    source_doc_id=project_document.doc_id
-                )
-                self.db.add(task)
-                self.db.flush()
-                db_task_ids[i] = task.task_id
-                task_data["db_task_id"] = task.task_id
+            self._upsert_stage_payload(
+                project_document.project_id,
+                PipelineStage.TASK_DECOMPOSITION,
+                stage_payload,
+            )
             self.db.commit()
-        result = {"tasks": raw_tasks, "db_task_ids": db_task_ids, "stage": "initial_decomposition"}
-        self.logger.info(f"Stage 1 completed: {len(raw_tasks)} tasks created")
+
+        result = {
+            "tasks": prioritized_tasks,
+            "db_task_ids": db_task_ids,
+            "stage": PipelineStage.TASK_DECOMPOSITION.value,
+            "priority_distribution": priority_distribution,
+        }
+        self.logger.info("Stage 1 completed: %s tasks created", len(prioritized_tasks))
         return result
 
-    async def _stage2_moscow_prioritization_and_analysis(
+    def _persist_tasks_for_project(
+        self,
+        project_document: ProjectDocument,
+        tasks: List[Dict[str, Any]],
+    ) -> Dict[int, uuid.UUID]:
+        if not self.db:
+            fallback_mapping: Dict[int, uuid.UUID] = {}
+            for index, task_data in enumerate(tasks):
+                generated_id = uuid.uuid4()
+                fallback_mapping[index] = generated_id
+                task_data["db_task_id"] = str(generated_id)
+            return fallback_mapping
+
+        self.logger.debug("Persisting %s tasks for project %s", len(tasks), project_document.project_id)
+        self.db.query(Task).filter(Task.project_id == project_document.project_id).delete(synchronize_session=False)
+        self.db.flush()
+
+        index_to_id: Dict[int, uuid.UUID] = {}
+        for index, task_data in enumerate(tasks):
+            db_task = Task(
+                project_id=project_document.project_id,
+                title=task_data.get("task_name", f"Task {index + 1}"),
+                description=task_data.get("description", ""),
+                category=task_data.get("category"),
+                estimated_hours=task_data.get("estimated_hours"),
+                complexity_level=task_data.get("complexity_level"),
+                business_value_score=task_data.get("business_value_score"),
+                technical_risk_score=task_data.get("technical_risk_score"),
+                implementation_difficulty=task_data.get("implementation_difficulty"),
+                user_impact_score=task_data.get("user_impact_score"),
+                dependency_weight=task_data.get("dependency_weight"),
+                moscow_priority=task_data.get("moscow_priority"),
+                mvp_critical=task_data.get("mvp_critical", False),
+                source_doc_id=project_document.doc_id,
+            )
+            self.db.add(db_task)
+            self.db.flush()
+            index_to_id[index] = db_task.task_id
+            task_data["db_task_id"] = str(db_task.task_id)
+
+        return index_to_id
+
+    def _build_priority_distribution(self, tasks: List[Dict[str, Any]]) -> Dict[str, int]:
+        distribution: Dict[str, int] = {}
+        for task in tasks:
+            priority = task.get("moscow_priority") or "Unspecified"
+            distribution[priority] = distribution.get(priority, 0) + 1
+        return distribution
+
+    def _load_tasks_from_db(
+        self,
+        project_document: ProjectDocument,
+    ) -> Tuple[List[Dict[str, Any]], Dict[int, uuid.UUID]]:
+        if not self.db:
+            raise RuntimeError("Database session is required to load tasks from persistence")
+
+        tasks_in_db: List[Task] = (
+            self.db.query(Task)
+            .filter(Task.project_id == project_document.project_id)
+            .order_by(Task.created_at.asc())
+            .all()
+        )
+
+        task_payload: List[Dict[str, Any]] = []
+        mapping: Dict[int, uuid.UUID] = {}
+        for index, db_task in enumerate(tasks_in_db):
+            mapping[index] = db_task.task_id
+            educational_detail = None
+            if db_task.detail:
+                try:
+                    educational_detail = json.loads(db_task.detail)
+                except json.JSONDecodeError:
+                    educational_detail = db_task.detail
+            task_payload.append(
+                {
+                    "task_name": db_task.title,
+                    "description": db_task.description,
+                    "category": db_task.category,
+                    "estimated_hours": db_task.estimated_hours,
+                    "complexity_level": db_task.complexity_level,
+                    "business_value_score": db_task.business_value_score,
+                    "technical_risk_score": db_task.technical_risk_score,
+                    "implementation_difficulty": db_task.implementation_difficulty,
+                    "user_impact_score": db_task.user_impact_score,
+                    "dependency_weight": db_task.dependency_weight,
+                    "moscow_priority": db_task.moscow_priority,
+                    "mvp_critical": db_task.mvp_critical,
+                    "db_task_id": str(db_task.task_id),
+                    "educational_detail": educational_detail,
+                    "learning_resources": db_task.learning_resources,
+                    "technology_stack": db_task.technology_stack,
+                    "reference_links": db_task.reference_links,
+                }
+            )
+        return task_payload, mapping
+
+    async def _stage2_directory_blueprint_generation(
         self,
         stage1_result: Dict[str, Any],
         project_document: ProjectDocument,
-        use_parallel_processing: bool
     ) -> Dict[str, Any]:
-        self.logger.info("Stage 2: MoSCoW prioritization and analysis starting")
-        tasks = stage1_result["tasks"]
-        if use_parallel_processing:
-            prioritized_tasks = await self._parallel_moscow_analysis(tasks, project_document)
-        else:
-            prioritized_tasks = self._apply_moscow_prioritization(tasks, project_document)
+        self.logger.info("Stage 2: Directory blueprint generation starting")
+
+        directory_tree = self._parse_directory_info(project_document.directory_info)
+        task_directory_mapping = self._map_tasks_to_directories(
+            stage1_result["tasks"],
+            directory_tree,
+        )
+
+        directory_payload = {
+            "directory_tree": directory_tree,
+            "task_directory_mapping": task_directory_mapping,
+        }
+
         if self.db:
-            for i, task_data in enumerate(prioritized_tasks):
-                db_task_id = stage1_result["db_task_ids"].get(i)
-                if db_task_id:
-                    task = self.db.query(Task).filter(Task.task_id == db_task_id).first()
-                    if task:
-                        task.business_value_score = task_data.get("business_value_score")
-                        task.technical_risk_score = task_data.get("technical_risk_score")
-                        task.implementation_difficulty = task_data.get("implementation_difficulty")
-                        task.user_impact_score = task_data.get("user_impact_score")
-                        task.dependency_weight = task_data.get("dependency_weight")
-                        task.moscow_priority = task_data.get("moscow_priority")
-                        task.mvp_critical = task_data.get("mvp_critical", False)
+            self._upsert_stage_payload(
+                project_document.project_id,
+                PipelineStage.DIRECTORY_BLUEPRINT,
+                directory_payload,
+            )
             self.db.commit()
-        result = {**stage1_result, "tasks": prioritized_tasks, "stage": "moscow_prioritization"}
-        self.logger.info("Stage 2 completed: MoSCoW prioritization applied")
+
+        result = {
+            **stage1_result,
+            "directory_plan": directory_payload,
+            "stage": PipelineStage.DIRECTORY_BLUEPRINT.value,
+        }
+
+        self.logger.info("Stage 2 completed: Directory blueprint prepared")
         return result
 
-    async def _stage3_dependency_analysis_and_topological_sort(
+    async def _stage4_dependency_analysis_and_topological_sort(
         self,
-        stage2_result: Dict[str, Any],
+        stage3_result: Dict[str, Any],
         project_document: ProjectDocument
     ) -> Dict[str, Any]:
-        self.logger.info("Stage 3: Dependency analysis and topological sort starting")
-        tasks = stage2_result["tasks"]
+        self.logger.info("Stage 4: Dependency analysis and topological sort starting")
+        tasks = stage3_result["tasks"]
         try:
             dependency_analysis = self._analyze_task_dependencies(tasks)
             topological_result = self._perform_topological_sort(
-                tasks, dependency_analysis, stage2_result["db_task_ids"]
+                tasks, dependency_analysis, stage3_result["db_task_ids"]
             )
             if self.db:
                 self._save_dependencies_to_db(
-                    dependency_analysis, stage2_result["db_task_ids"], project_document.project_id
+                    dependency_analysis, stage3_result["db_task_ids"], project_document.project_id
                 )
-                self._update_topological_order_in_db(topological_result, stage2_result["db_task_ids"])
+                self._update_topological_order_in_db(topological_result, stage3_result["db_task_ids"])
+                self._upsert_stage_payload(
+                    project_document.project_id,
+                    PipelineStage.GRAPH_ANALYSIS,
+                    {
+                        "graph_stats": topological_result.get("graph_stats", {}),
+                        "edge_count": len(dependency_analysis.get("edges", [])),
+                        "critical_path_length": len(topological_result.get("critical_path", [])),
+                    },
+                )
+                self.db.commit()
             result = {
-                **stage2_result,
+                **stage3_result,
                 "dependency_analysis": dependency_analysis,
                 "topological_order": topological_result,
-                "stage": "dependency_analysis"
+                "stage": PipelineStage.GRAPH_ANALYSIS.value,
             }
         except DependencyCycleError as e:
             self.logger.error(f"Could not complete dependency analysis due to unresolvable cycles: {e}")
             result = {
-                **stage2_result,
+                **stage3_result,
                 "dependency_analysis": {"error": str(e)},
                 "topological_order": {"error": str(e)},
-                "stage": "dependency_analysis_failed"
+                "stage": f"{PipelineStage.GRAPH_ANALYSIS.value}_failed",
             }
-        self.logger.info("Stage 3 completed.")
+            if self.db:
+                self._upsert_stage_payload(
+                    project_document.project_id,
+                    PipelineStage.GRAPH_ANALYSIS,
+                    {"error": str(e)},
+                    status="failed",
+                )
+                self.db.commit()
+        self.logger.info("Stage 4 completed.")
         return result
 
-    async def _stage4_timeline_generation_with_project_dates(
+    async def _stage5_timeline_generation_with_project_dates(
         self,
-        stage3_result: Dict[str, Any],
+        stage4_result: Dict[str, Any],
         project_base: ProjectBase,
         project_duration_days: int,
         team_size: int
     ) -> Dict[str, Any]:
-        self.logger.info("Stage 4: Timeline generation with project dates starting")
-        if stage3_result.get("stage") == "dependency_analysis_failed":
-            self.logger.warning("Skipping Stage 4 (Timeline Generation) due to failure in dependency analysis.")
-            return {**stage3_result, "stage": "timeline_generation_skipped"}
-        
+        self.logger.info("Stage 5: Timeline generation with project dates starting")
+        if stage4_result.get("stage", "").endswith("failed"):
+            self.logger.warning("Skipping Stage 5 (Timeline Generation) due to dependency analysis failure")
+            return {
+                **stage4_result,
+                "timeline": {"error": "Dependency analysis failed"},
+                "project_dates": {},
+                "stage": f"{PipelineStage.TIMELINE_AND_REACTFLOW.value}_skipped",
+            }
+
         project_start = project_base.start_date
         project_end = project_base.end_date
+        if not project_start or not project_end:
+            self.logger.warning("Project start or end date missing; skipping timeline generation")
+            return {
+                **stage4_result,
+                "timeline": {"error": "Project dates missing"},
+                "project_dates": {},
+                "stage": f"{PipelineStage.TIMELINE_AND_REACTFLOW.value}_skipped",
+            }
+
         timeline = self._generate_optimized_timeline(
-            stage3_result["tasks"],
-            stage3_result["dependency_analysis"],
+            stage4_result["tasks"],
+            stage4_result.get("dependency_analysis", {}),
             project_duration_days,
             team_size
         )
         timeline_with_dates = self._map_timeline_to_project_dates(
-            timeline, stage3_result["topological_order"], project_start, project_end
+            timeline,
+            stage4_result.get("topological_order", {}),
+            project_start,
+            project_end
         )
         if self.db:
-            self._save_timeline_to_db(timeline_with_dates, stage3_result["db_task_ids"])
+            self._save_timeline_to_db(timeline_with_dates, stage4_result["db_task_ids"])
+            self._upsert_stage_payload(
+                project_base.project_id,
+                PipelineStage.TIMELINE_AND_REACTFLOW,
+                {
+                    "timeline_overview": timeline_with_dates.get("summary", {}),
+                    "project_dates": {
+                        "start_date": project_start.isoformat(),
+                        "end_date": project_end.isoformat(),
+                    },
+                },
+            )
+            self.db.commit()
         result = {
-            **stage3_result,
+            **stage4_result,
             "timeline": timeline_with_dates,
             "project_dates": {
                 "start_date": project_start.isoformat(),
                 "end_date": project_end.isoformat()
             },
-            "stage": "timeline_generation"
+            "stage": PipelineStage.TIMELINE_AND_REACTFLOW.value
         }
-        self.logger.info("Stage 4 completed: Timeline mapped to project dates")
+        self.logger.info("Stage 5 completed: Timeline mapped to project dates")
         return result
 
-    async def _stage5_educational_task_details_generation(
+    async def _stage3_educational_task_details_generation(
         self,
-        stage4_result: Dict[str, Any],
+        stage2_result: Dict[str, Any],
         project_document: ProjectDocument,
         use_parallel_processing: bool
     ) -> Dict[str, Any]:
-        self.logger.info("Stage 5: Educational task details generation starting")
-        tasks = stage4_result["tasks"]
+        self.logger.info("Stage 3: Educational task details generation starting")
+        tasks = stage2_result["tasks"]
+        directory_plan = stage2_result.get("directory_plan", {})
+        directory_lookup = {
+            entry.get("task_id"): entry.get("suggested_paths", [])
+            for entry in directory_plan.get("task_directory_mapping", [])
+        }
+
         if use_parallel_processing and self.task_detail_service:
-            enhanced_tasks = await self._parallel_educational_details_generation(tasks, project_document)
+            enhanced_tasks = await self._parallel_educational_details_generation(
+                tasks,
+                project_document,
+                directory_lookup,
+            )
         else:
-            enhanced_tasks = self._sequential_educational_details_generation(tasks, project_document)
+            enhanced_tasks = self._sequential_educational_details_generation(
+                tasks,
+                project_document,
+                directory_lookup,
+            )
+
         if self.db:
-            self._save_educational_details_to_db(enhanced_tasks, stage4_result["db_task_ids"])
-        result = {**stage4_result, "tasks": enhanced_tasks, "stage": "educational_details"}
-        self.logger.info("Stage 5 completed: Educational details generated")
+            self._save_educational_details_to_db(enhanced_tasks, stage2_result["db_task_ids"])
+            self._upsert_stage_payload(
+                project_document.project_id,
+                PipelineStage.EDUCATIONAL_RESOURCES,
+                self._summarize_educational_details(enhanced_tasks),
+            )
+            self.db.commit()
+
+        result = {**stage2_result, "tasks": enhanced_tasks, "stage": PipelineStage.EDUCATIONAL_RESOURCES.value}
+        self.logger.info("Stage 3 completed: Educational details generated")
         return result
+
+    async def _ensure_stage1_result(
+        self,
+        project_document: ProjectDocument,
+        hackathon_mode: bool,
+        use_parallel_processing: bool,
+    ) -> Dict[str, Any]:
+        if self.db:
+            existing_count = (
+                self.db.query(Task)
+                .filter(Task.project_id == project_document.project_id)
+                .count()
+            )
+            if existing_count:
+                tasks, mapping = self._load_tasks_from_db(project_document)
+                return {
+                    "tasks": tasks,
+                    "db_task_ids": mapping,
+                    "priority_distribution": self._build_priority_distribution(tasks),
+                    "stage": PipelineStage.TASK_DECOMPOSITION.value,
+                }
+        return await self._stage1_initial_task_decomposition(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+
+    async def _ensure_stage2_result(
+        self,
+        project_document: ProjectDocument,
+        hackathon_mode: bool,
+        use_parallel_processing: bool,
+    ) -> Dict[str, Any]:
+        stage1_result = await self._ensure_stage1_result(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+        directory_payload = self._get_stage_payload(
+            project_document.project_id,
+            PipelineStage.DIRECTORY_BLUEPRINT,
+        )
+        if directory_payload:
+            return {
+                **stage1_result,
+                "directory_plan": directory_payload,
+                "stage": PipelineStage.DIRECTORY_BLUEPRINT.value,
+            }
+        return await self._stage2_directory_blueprint_generation(stage1_result, project_document)
+
+    async def _ensure_stage3_result(
+        self,
+        project_document: ProjectDocument,
+        hackathon_mode: bool,
+        use_parallel_processing: bool,
+    ) -> Dict[str, Any]:
+        stage2_result = await self._ensure_stage2_result(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+        try:
+            tasks_from_db, mapping = self._load_tasks_from_db(project_document)
+        except RuntimeError:
+            tasks_from_db, mapping = stage2_result["tasks"], stage2_result["db_task_ids"]
+
+        has_details = any(
+            isinstance(task.get("educational_detail"), (dict, list, str)) and task.get("educational_detail")
+            for task in tasks_from_db
+        )
+
+        if has_details:
+            return {
+                **stage2_result,
+                "tasks": tasks_from_db,
+                "db_task_ids": mapping,
+                "stage": PipelineStage.EDUCATIONAL_RESOURCES.value,
+            }
+
+        return await self._stage3_educational_task_details_generation(
+            stage2_result,
+            project_document,
+            use_parallel_processing,
+        )
 
     def _generate_markdown_summary(self, tasks: List[Dict[str, Any]]) -> str:
         markdown_lines = ["# Task Implementation Details", ""]
@@ -585,42 +887,110 @@ class EnhancedTasksService(BaseService):
 
     async def _stage6_final_database_save_and_result_compilation(
         self,
-        stage5_result: Dict[str, Any],
+        stage3_result: Dict[str, Any],
         project_id: uuid.UUID,
-        source_doc_id: uuid.UUID
+        source_doc_id: uuid.UUID,
+        stage4_result: Optional[Dict[str, Any]] = None,
+        stage5_result: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         self.logger.info("Stage 6: Final database save and result compilation starting")
-        markdown_output = self._generate_markdown_summary(stage5_result["tasks"])
-        
+
+        if self.task_detail_service:
+            detail_usage_snapshot = self.task_detail_service.get_llm_usage_snapshot()
+            incremental_usage: Dict[str, Dict[str, Any]] = {}
+            for model_label, metrics in detail_usage_snapshot.items():
+                previous = self._task_detail_usage_cache.get(model_label, {"calls": 0, "tokens": 0})
+                delta_calls = max(0, metrics.get("calls", 0) - previous.get("calls", 0))
+                delta_tokens = max(0, metrics.get("tokens", 0) - previous.get("tokens", 0))
+                if delta_calls > 0 or delta_tokens > 0:
+                    incremental_usage[model_label] = {
+                        "calls": delta_calls,
+                        "tokens": delta_tokens,
+                        "last_called_at": metrics.get("last_called_at"),
+                    }
+                self._task_detail_usage_cache[model_label] = {
+                    "calls": metrics.get("calls", 0),
+                    "tokens": metrics.get("tokens", 0),
+                }
+            if incremental_usage:
+                self.merge_llm_usage(incremental_usage)
+        llm_usage_snapshot = self.get_llm_usage_snapshot()
+
+        dependency_graph = stage4_result.get("dependency_analysis", {}) if stage4_result else {}
+        topological_raw = stage4_result.get("topological_order", {}) if stage4_result else {}
+        topological_order = self._serialize_topological_result(topological_raw)
+        timeline = stage5_result.get("timeline", {}) if stage5_result else {}
+        project_dates = stage5_result.get("project_dates", {}) if stage5_result else {}
+        reactflow_payload = self._build_reactflow_payload(stage4_result)
+        directory_plan = stage3_result.get("directory_plan", {})
+
+        tasks_with_details = stage3_result["tasks"]
+        markdown_output = self._generate_markdown_summary(tasks_with_details)
+
+        project_document = None
+        if self.db:
+            project_document = (
+                self.db.query(ProjectDocument)
+                .filter(ProjectDocument.doc_id == source_doc_id)
+                .first()
+            )
+
+        confidence_metrics = self._calculate_confidence_and_risks(
+            tasks_with_details,
+            project_document,
+            dependency_graph,
+        ) if project_document else {}
+
+        stages_completed = [
+            PipelineStage.TASK_DECOMPOSITION.value,
+            PipelineStage.DIRECTORY_BLUEPRINT.value,
+            PipelineStage.EDUCATIONAL_RESOURCES.value,
+        ]
+        if stage4_result:
+            stages_completed.append(stage4_result.get("stage"))
+        if stage5_result:
+            stages_completed.append(stage5_result.get("stage"))
+        stages_completed.append(PipelineStage.LLM_USAGE.value)
+
         final_result = {
-            "tasks": stage5_result["tasks"],
-            "dependency_graph": stage5_result.get("dependency_analysis", {}),
-            "topological_order": stage5_result.get("topological_order", {}),
-            "timeline": stage5_result.get("timeline", {}),
-            "project_dates": stage5_result.get("project_dates", {}),
-            "priority_matrix": self._generate_priority_matrix(stage5_result["tasks"]),
-            "confidence_metrics": self._calculate_confidence_and_risks(
-                stage5_result["tasks"],
-                self.db.query(ProjectDocument).filter(ProjectDocument.doc_id == source_doc_id).first(),
-                stage5_result.get("dependency_analysis", {})
-            ),
-            "educational_summary": self._generate_educational_summary(stage5_result["tasks"]),
+            "tasks": tasks_with_details,
+            "directory_plan": directory_plan,
+            "dependency_graph": dependency_graph,
+            "topological_order": topological_order,
+            "timeline": timeline,
+            "project_dates": project_dates,
+            "reactflow": reactflow_payload,
+            "priority_matrix": self._generate_priority_matrix(tasks_with_details),
+            "confidence_metrics": confidence_metrics,
+            "educational_summary": self._generate_educational_summary(tasks_with_details),
             "markdown_output": markdown_output,
+            "llm_usage": llm_usage_snapshot,
             "generated_at": datetime.now().isoformat(),
             "metadata": {
                 "project_id": str(project_id),
                 "source_doc_id": str(source_doc_id),
-                "total_tasks": len(stage5_result["tasks"]),
-                "critical_path_length": len(stage5_result.get("topological_order", {}).get("critical_path", [])),
+                "total_tasks": len(tasks_with_details),
+                "critical_path_length": len(topological_order.get("critical_path", [])),
                 "generation_method": "enhanced_full_workflow_v3",
-                "stages_completed": [s for s in [stage5_result.get("stage")] if s]
-            }
+                "stages_completed": [stage for stage in stages_completed if stage],
+                "priority_distribution": stage3_result.get("priority_distribution", {}),
+            },
         }
 
-        if stage5_result.get("stage") == "dependency_analysis_failed":
-            final_result["metadata"]["notes"] = "Dependency analysis was skipped due to unresolvable circular dependencies. Timeline and critical path are not available."
+        notes: List[str] = []
+        if stage4_result and stage4_result.get("stage", "").endswith("failed"):
+            notes.append("Dependency analysis was skipped due to unresolved cycles.")
+        if stage5_result and stage5_result.get("stage") == f"{PipelineStage.TIMELINE_AND_REACTFLOW.value}_skipped":
+            notes.append("Timeline generation was skipped because project dates were missing or dependency analysis failed.")
+        if notes:
+            final_result.setdefault("metadata", {})["notes"] = " ".join(notes)
 
         if self.db:
+            self._upsert_stage_payload(
+                project_id,
+                PipelineStage.LLM_USAGE,
+                {"llm_usage": llm_usage_snapshot},
+            )
             self.db.commit()
 
         self.logger.info("Stage 6 completed: Final result compiled")
@@ -772,28 +1142,43 @@ class EnhancedTasksService(BaseService):
     async def _parallel_educational_details_generation(
         self,
         tasks: List[Dict[str, Any]],
-        project_document: ProjectDocument
+        project_document: ProjectDocument,
+        directory_lookup: Dict[str, List[str]],
     ) -> List[Dict[str, Any]]:
         if not self.task_detail_service:
             return tasks
-        enhanced_tasks = self.task_detail_service.generate_task_details_parallel(
+        detail_results = self.task_detail_service.generate_task_details_parallel(
             tasks,
             project_document.specification,
             batch_size=3,
-            max_workers=4
+            max_workers=4,
+            directory_lookup=directory_lookup,
         )
+        enhanced_tasks: List[Dict[str, Any]] = []
+        for idx, original in enumerate(tasks):
+            enhanced_task = {**original}
+            if idx < len(detail_results):
+                detail = detail_results[idx]
+                if isinstance(detail, dict):
+                    enhanced_task["educational_detail"] = detail
+            enhanced_tasks.append(enhanced_task)
         return enhanced_tasks
 
     def _sequential_educational_details_generation(
         self,
         tasks: List[Dict[str, Any]],
-        project_document: ProjectDocument
+        project_document: ProjectDocument,
+        directory_lookup: Dict[str, List[str]],
     ) -> List[Dict[str, Any]]:
         enhanced_tasks = []
         for task in tasks:
             if self.task_detail_service:
+                identifier = str(task.get("db_task_id") or task.get("task_id") or "")
+                directory_context = directory_lookup.get(identifier, [])
                 enhanced_detail = self.task_detail_service.generate_enhanced_task_detail(
-                    task, project_document.specification
+                    task,
+                    project_document.specification,
+                    directory_context,
                 )
                 enhanced_task = {**task}
                 enhanced_task["educational_detail"] = enhanced_detail.model_dump()
@@ -801,6 +1186,359 @@ class EnhancedTasksService(BaseService):
             else:
                 enhanced_tasks.append(task)
         return enhanced_tasks
+
+    def _parse_directory_info(self, directory_info: str) -> List[str]:
+        if not directory_info:
+            return []
+        matches = re.findall(r"[A-Za-z0-9_./-]+/", directory_info)
+        directories = sorted(set(match.rstrip("/") for match in matches))
+        return directories
+
+    def _map_tasks_to_directories(
+        self,
+        tasks: List[Dict[str, Any]],
+        directories: List[str],
+    ) -> List[Dict[str, Any]]:
+        if not directories:
+            directories = []
+        category_hints = {
+            "frontend": ["front", "client", "ui", "component"],
+            "backend": ["back", "api", "server", "service"],
+            "database": ["db", "schema", "migration", "model"],
+            "devops": ["devcontainer", "infra", "deploy", "docker", "ci"],
+            "testing": ["test", "qa", "spec"],
+            "documentation": ["doc", "readme", "guide"],
+        }
+        default_directories = directories[:3] if directories else []
+        mapping: List[Dict[str, Any]] = []
+        for index, task in enumerate(tasks):
+            category = (task.get("category") or "").lower()
+            task_id = str(task.get("db_task_id") or task.get("task_id") or f"task-{index}")
+            hints = category_hints.get(category, [])
+            suggestions = [path for path in directories if any(hint in path.lower() for hint in hints)]
+            if not suggestions:
+                suggestions = default_directories
+            mapping.append(
+                {
+                    "task_id": task_id,
+                    "task_name": task.get("task_name"),
+                    "category": category,
+                    "suggested_paths": suggestions[:3],
+                    "notes": "Category-based directory suggestion" if suggestions else "Directory suggestions unavailable",
+                }
+            )
+        return mapping
+
+    def _summarize_educational_details(self, tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        total_resources = 0
+        tasks_with_resources = 0
+        technologies = set()
+
+        for task in tasks:
+            detail = task.get("educational_detail") or {}
+            resources = detail.get("learning_resources", [])
+            if resources:
+                tasks_with_resources += 1
+                total_resources += len(resources)
+            for tech in detail.get("technologies_used", []):
+                if isinstance(tech, dict):
+                    name = tech.get("name")
+                    if name:
+                        technologies.add(name)
+
+        return {
+            "tasks_with_resources": tasks_with_resources,
+            "total_learning_resources": total_resources,
+            "unique_technologies": sorted(technologies),
+        }
+
+    def _upsert_stage_payload(
+        self,
+        project_id: uuid.UUID,
+        stage: PipelineStage,
+        payload: Dict[str, Any],
+        status: str = "completed",
+    ) -> None:
+        if not self.db:
+            return
+
+        serialized_payload = json.loads(json.dumps(payload, cls=UUIDEncoder))
+
+        stage_record = (
+            self.db.query(TaskPipelineStage)
+            .filter(
+                TaskPipelineStage.project_id == project_id,
+                TaskPipelineStage.stage_name == stage.value,
+            )
+            .first()
+        )
+        if stage_record:
+            stage_record.payload = serialized_payload
+            stage_record.status = status
+        else:
+            stage_record = TaskPipelineStage(
+                project_id=project_id,
+                stage_name=stage.value,
+                status=status,
+                payload=serialized_payload,
+            )
+            self.db.add(stage_record)
+        self.db.flush()
+
+    def _get_stage_payload(self, project_id: uuid.UUID, stage: PipelineStage) -> Optional[Dict[str, Any]]:
+        if not self.db:
+            return None
+        stage_record = (
+            self.db.query(TaskPipelineStage)
+            .filter(
+                TaskPipelineStage.project_id == project_id,
+                TaskPipelineStage.stage_name == stage.value,
+            )
+            .first()
+        )
+        if not stage_record:
+            return None
+        return stage_record.payload or None
+
+    def _build_reactflow_payload(self, stage4_result: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        if not stage4_result or stage4_result.get("stage", "").endswith("failed"):
+            return {}
+
+        tasks = stage4_result.get("tasks", [])
+        db_task_ids = stage4_result.get("db_task_ids", {})
+        dependency_analysis = stage4_result.get("dependency_analysis", {})
+        topological_data = stage4_result.get("topological_order", {})
+
+        index_to_uuid = {
+            idx: str(task_id) for idx, task_id in db_task_ids.items() if task_id
+        }
+
+        category_offsets = {
+            "frontend": 0,
+            "backend": 220,
+            "database": 440,
+            "devops": 660,
+            "testing": 880,
+            "documentation": 1100,
+        }
+
+        nodes = []
+        for index, task in enumerate(tasks):
+            task_identifier = str(task.get("db_task_id") or index_to_uuid.get(index) or index)
+            label = task.get("task_name", f"Task {index + 1}")
+            category = (task.get("category") or "general").lower()
+            position_x = category_offsets.get(category, 1320)
+            position_y = index * 140
+            nodes.append(
+                {
+                    "id": task_identifier,
+                    "type": "default",
+                    "data": {
+                        "label": label,
+                        "category": category,
+                        "moscow": task.get("moscow_priority"),
+                        "estimated_hours": task.get("estimated_hours"),
+                    },
+                    "position": {"x": position_x, "y": position_y},
+                }
+            )
+
+        edges = []
+        for edge_index, edge in enumerate(dependency_analysis.get("edges", [])):
+            from_idx = edge.get("from_task_index")
+            to_idx = edge.get("to_task_index")
+            source_id = index_to_uuid.get(from_idx)
+            target_id = index_to_uuid.get(to_idx)
+            if source_id and target_id:
+                edges.append(
+                    {
+                        "id": f"edge-{edge_index}",
+                        "source": source_id,
+                        "target": target_id,
+                        "data": {"strength": edge.get("strength", 5)},
+                    }
+                )
+
+        reactflow_payload = {
+            "nodes": nodes,
+            "edges": edges,
+            "meta": {
+                "graph_stats": topological_data.get("graph_stats", {}),
+                "critical_path": [str(node) for node in topological_data.get("critical_path", [])],
+                "parallel_groups": [
+                    [str(task_id) for task_id in group]
+                    for group in topological_data.get("parallel_groups", [])
+                ],
+            },
+        }
+        return reactflow_payload
+
+    def _serialize_topological_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        if not result:
+            return {}
+        serialized = dict(result)
+        order = result.get("topological_order")
+        if isinstance(order, list):
+            serialized["topological_order"] = [str(node) for node in order]
+        else:
+            serialized["topological_order"] = order or []
+
+        critical_path = result.get("critical_path")
+        if isinstance(critical_path, list):
+            serialized["critical_path"] = [str(node) for node in critical_path]
+        else:
+            serialized["critical_path"] = critical_path or []
+
+        parallel_groups = result.get("parallel_groups")
+        if isinstance(parallel_groups, list):
+            serialized["parallel_groups"] = [
+                [str(node) for node in group]
+                for group in parallel_groups
+                if isinstance(group, list)
+            ]
+        else:
+            serialized["parallel_groups"] = parallel_groups or []
+        return serialized
+
+    async def run_stage1(
+        self,
+        project_id: uuid.UUID,
+        hackathon_mode: bool = True,
+        use_parallel_processing: bool = True,
+    ) -> Dict[str, Any]:
+        project_document, _ = self._load_project_entities(project_id)
+        return await self._stage1_initial_task_decomposition(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+
+    async def run_stage2(
+        self,
+        project_id: uuid.UUID,
+        hackathon_mode: bool = True,
+        use_parallel_processing: bool = True,
+    ) -> Dict[str, Any]:
+        project_document, _ = self._load_project_entities(project_id)
+        return await self._ensure_stage2_result(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+
+    async def run_stage3(
+        self,
+        project_id: uuid.UUID,
+        hackathon_mode: bool = True,
+        use_parallel_processing: bool = True,
+    ) -> Dict[str, Any]:
+        project_document, _ = self._load_project_entities(project_id)
+        return await self._ensure_stage3_result(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+
+    async def run_stage4(
+        self,
+        project_id: uuid.UUID,
+        hackathon_mode: bool = True,
+        use_parallel_processing: bool = True,
+    ) -> Dict[str, Any]:
+        project_document, _ = self._load_project_entities(project_id)
+        stage3_result = await self._ensure_stage3_result(
+            project_document,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+        return await self._stage4_dependency_analysis_and_topological_sort(
+            stage3_result,
+            project_document,
+        )
+
+    async def run_stage5(
+        self,
+        project_id: uuid.UUID,
+        hackathon_mode: bool = True,
+        use_parallel_processing: bool = True,
+    ) -> Dict[str, Any]:
+        project_document, project_base = self._load_project_entities(project_id)
+        stage4_result = await self.run_stage4(
+            project_id,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+        project_duration_days = max(
+            1,
+            int((project_base.end_date - project_base.start_date).days)
+            if project_base.end_date and project_base.start_date
+            else 30,
+        )
+        team_size = project_base.num_people or 1
+        return await self._stage5_timeline_generation_with_project_dates(
+            stage4_result,
+            project_base,
+            project_duration_days,
+            team_size,
+        )
+
+    async def run_full_workflow(
+        self,
+        project_id: uuid.UUID,
+        hackathon_mode: bool = True,
+        use_parallel_processing: bool = True,
+    ) -> Dict[str, Any]:
+        project_document, project_base = self._load_project_entities(project_id)
+        project_duration_days = max(
+            1,
+            int((project_base.end_date - project_base.start_date).days)
+            if project_base.end_date and project_base.start_date
+            else 30,
+        )
+        team_size = project_base.num_people or 1
+        return await self.generate_comprehensive_tasks_with_full_workflow(
+            project_document,
+            project_base,
+            project_duration_days,
+            team_size,
+            hackathon_mode,
+            use_parallel_processing,
+        )
+
+    def _load_project_entities(
+        self,
+        project_id: uuid.UUID,
+    ) -> Tuple[ProjectDocument, ProjectBase]:
+        if not self.db:
+            raise RuntimeError("Database session is required for this operation")
+        project_base = (
+            self.db.query(ProjectBase)
+            .filter(ProjectBase.project_id == project_id)
+            .first()
+        )
+        if not project_base:
+            raise ValueError(f"Project {project_id} not found")
+        project_document = (
+            self.db.query(ProjectDocument)
+            .filter(ProjectDocument.project_id == project_id)
+            .first()
+        )
+        if not project_document:
+            raise ValueError(f"Project document for {project_id} not found")
+        return project_document, project_base
+
+    def build_reactflow_payload(self, stage4_result: Dict[str, Any]) -> Dict[str, Any]:
+        return self._build_reactflow_payload(stage4_result)
+
+    def serialize_topological_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        return self._serialize_topological_result(result)
+
+    def get_stage_payload(
+        self,
+        project_id: uuid.UUID,
+        stage: PipelineStage,
+    ) -> Optional[Dict[str, Any]]:
+        return self._get_stage_payload(project_id, stage)
 
     def _save_dependencies_to_db(self, dependency_analysis, db_task_ids, project_id):
         if not self.db or dependency_analysis.get("error"):

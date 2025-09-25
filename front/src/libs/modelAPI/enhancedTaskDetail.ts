@@ -1,6 +1,8 @@
 import useSWR, { mutate } from 'swr';
 import { EnhancedTaskDetail, EnhancedTaskBatchResponse, TaskItem } from '@/types/taskTypes';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Fetcher for SWR

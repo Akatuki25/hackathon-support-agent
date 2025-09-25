@@ -35,3 +35,5 @@ const LightGridEdges: React.FC<DarkModeType> = () => {
     </>
   );
 };
+
+export default LightGridEdges;

@@ -5,7 +5,14 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from database import get_db
-from models.project_base import Task, TaskStatusEnum, PriorityEnum, TaskDependency
+from models.project_base import (
+    Task,
+    TaskStatusEnum,
+    PriorityEnum,
+    TaskDependency,
+    TaskAssignment,
+    ProjectMember,
+)
 
 router = APIRouter()
 
@@ -541,6 +548,388 @@ class TaskTimelineResponse(BaseModel):
     planned_end_date: Optional[datetime]
     estimated_hours: Optional[int]
     dependencies: List[uuid.UUID]
+
+
+class TaskAssignmentRequest(BaseModel):
+    project_member_id: uuid.UUID = Field(..., description="割り当てるプロジェクトメンバーID")
+    role: Optional[str] = Field(None, description="タスク内での役割")
+
+
+class TaskAssignmentPatchRequest(BaseModel):
+    """タスク割当部分更新用（任意フィールドのみ更新）"""
+    project_member_id: Optional[uuid.UUID] = Field(None, description="割り当てるプロジェクトメンバーID")
+    role: Optional[str] = Field(None, description="タスク内での役割")
+
+
+class TaskAssignmentResponse(BaseModel):
+    task_assignment_id: uuid.UUID
+    task_id: uuid.UUID
+    project_member_id: uuid.UUID
+    member_name: str
+    role: Optional[str]
+    assigned_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TaskDependencyCreateRequest(BaseModel):
+    prerequisite_task_id: uuid.UUID = Field(..., description="先行タスクID")
+    dependent_task_id: uuid.UUID = Field(..., description="従属タスクID")
+    dependency_type: str = Field("FINISH_TO_START", description="依存タイプ")
+    lag_time_hours: int = Field(0, ge=0)
+    dependency_strength: int = Field(5, ge=1, le=10)
+    is_critical: bool = Field(False)
+    notes: Optional[str] = Field(None, description="補足メモ")
+
+
+class TaskDependencyUpdateRequest(BaseModel):
+    dependency_type: Optional[str] = Field(None)
+    lag_time_hours: Optional[int] = Field(None, ge=0)
+    dependency_strength: Optional[int] = Field(None, ge=1, le=10)
+    is_critical: Optional[bool] = Field(None)
+    notes: Optional[str] = Field(None)
+    violation_risk: Optional[int] = Field(None, ge=1, le=10)
+
+
+DEPENDENCY_TYPES = {"FINISH_TO_START", "START_TO_START", "FINISH_TO_FINISH", "START_TO_FINISH"}
+
+
+def _to_assignment_response(assignment: TaskAssignment) -> TaskAssignmentResponse:
+    member_name = assignment.project_member.member_name if assignment.project_member else ""
+    return TaskAssignmentResponse(
+        task_assignment_id=assignment.task_assignment_id,
+        task_id=assignment.task_id,
+        project_member_id=assignment.project_member_id,
+        member_name=member_name,
+        role=assignment.role,
+        assigned_at=assignment.assigned_at,
+    )
+
+
+@router.post(
+    "/task/{task_id}/assignments",
+    response_model=TaskAssignmentResponse,
+    summary="タスクへのメンバー割当",
+    description="指定タスクへプロジェクトメンバーを割り当てる",
+)
+async def assign_member_to_task(
+    task_id: uuid.UUID,
+    payload: TaskAssignmentRequest,
+    db: Session = Depends(get_db),
+):
+    task = db.query(Task).filter(Task.task_id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    project_member = (
+        db.query(ProjectMember)
+        .filter(ProjectMember.project_member_id == payload.project_member_id)
+        .first()
+    )
+    if not project_member:
+        raise HTTPException(status_code=404, detail="Project member not found")
+    if project_member.project_id != task.project_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Project member does not belong to the same project as the task",
+        )
+
+    existing_assignment = (
+        db.query(TaskAssignment)
+        .filter(
+            TaskAssignment.task_id == task_id,
+            TaskAssignment.project_member_id == payload.project_member_id,
+        )
+        .first()
+    )
+    if existing_assignment:
+        raise HTTPException(status_code=409, detail="Member already assigned to this task")
+
+    assignment = TaskAssignment(
+        task_id=task_id,
+        project_member_id=payload.project_member_id,
+        role=payload.role,
+    )
+    db.add(assignment)
+    db.commit()
+    db.refresh(assignment)
+    return _to_assignment_response(assignment)
+
+
+@router.get(
+    "/task/{task_id}/assignments",
+    response_model=List[TaskAssignmentResponse],
+    summary="タスク割当一覧",
+    description="指定タスクに割り当てられたメンバー一覧を取得",
+)
+async def list_task_assignments(task_id: uuid.UUID, db: Session = Depends(get_db)):
+    assignments = (
+        db.query(TaskAssignment)
+        .filter(TaskAssignment.task_id == task_id)
+        .order_by(TaskAssignment.assigned_at.asc())
+        .all()
+    )
+    if not assignments:
+        return []
+    # eager load member names
+    for assignment in assignments:
+        if assignment.project_member is None:
+            assignment.project_member = (
+                db.query(ProjectMember)
+                .filter(ProjectMember.project_member_id == assignment.project_member_id)
+                .first()
+            )
+    return [_to_assignment_response(assignment) for assignment in assignments]
+
+
+@router.patch(
+    "/task/{task_id}/assignments/{assignment_id}",
+    response_model=TaskAssignmentResponse,
+    summary="タスク割当更新",
+    description="割り当て情報（役割など）を更新",
+)
+async def update_task_assignment(
+    task_id: uuid.UUID,
+    assignment_id: uuid.UUID,
+    payload: TaskAssignmentPatchRequest,
+    db: Session = Depends(get_db),
+):
+    assignment = (
+        db.query(TaskAssignment)
+        .filter(
+            TaskAssignment.task_assignment_id == assignment_id,
+            TaskAssignment.task_id == task_id,
+        )
+        .first()
+    )
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Task assignment not found")
+
+    update_data = payload.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    if "project_member_id" in update_data and update_data["project_member_id"]:
+        project_member = (
+            db.query(ProjectMember)
+            .filter(ProjectMember.project_member_id == update_data["project_member_id"])
+            .first()
+        )
+        if not project_member:
+            raise HTTPException(status_code=404, detail="Project member not found")
+        if project_member.project_id != assignment.task.project_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Project member does not belong to the same project as the task",
+            )
+        assignment.project_member_id = update_data["project_member_id"]
+
+    if "role" in update_data:
+        assignment.role = update_data["role"]
+    db.commit()
+    db.refresh(assignment)
+    return _to_assignment_response(assignment)
+
+
+@router.delete(
+    "/task/{task_id}/assignments/{assignment_id}",
+    summary="タスク割当削除",
+    description="タスクからメンバーの割当を解除",
+)
+async def remove_task_assignment(
+    task_id: uuid.UUID,
+    assignment_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    assignment = (
+        db.query(TaskAssignment)
+        .filter(
+            TaskAssignment.task_assignment_id == assignment_id,
+            TaskAssignment.task_id == task_id,
+        )
+        .first()
+    )
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Task assignment not found")
+
+    db.delete(assignment)
+    db.commit()
+    return {
+        "task_assignment_id": assignment_id,
+        "message": "Assignment removed",
+        "removed_at": datetime.now(timezone.utc),
+    }
+
+
+@router.get(
+    "/project/{project_id}/assignments",
+    response_model=List[TaskAssignmentResponse],
+    summary="プロジェクト割当一覧",
+    description="プロジェクト内の全タスク割当を取得",
+)
+async def list_project_assignments(project_id: uuid.UUID, db: Session = Depends(get_db)):
+    assignments = (
+        db.query(TaskAssignment)
+        .join(Task, TaskAssignment.task_id == Task.task_id)
+        .filter(Task.project_id == project_id)
+        .order_by(TaskAssignment.assigned_at.asc())
+        .all()
+    )
+    if not assignments:
+        return []
+    for assignment in assignments:
+        if assignment.project_member is None:
+            assignment.project_member = (
+                db.query(ProjectMember)
+                .filter(ProjectMember.project_member_id == assignment.project_member_id)
+                .first()
+            )
+    return [_to_assignment_response(assignment) for assignment in assignments]
+
+
+@router.post(
+    "/project/{project_id}/tasks/dependencies",
+    response_model=TaskDependencyResponse,
+    summary="依存関係追加",
+    description="タスク間の依存関係を手動で登録",
+)
+async def create_task_dependency(
+    project_id: uuid.UUID,
+    payload: TaskDependencyCreateRequest,
+    db: Session = Depends(get_db),
+):
+    if payload.dependency_type not in DEPENDENCY_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid dependency type")
+    if payload.prerequisite_task_id == payload.dependent_task_id:
+        raise HTTPException(status_code=400, detail="A task cannot depend on itself")
+
+    prerequisite_task = (
+        db.query(Task)
+        .filter(Task.task_id == payload.prerequisite_task_id)
+        .first()
+    )
+    dependent_task = (
+        db.query(Task)
+        .filter(Task.task_id == payload.dependent_task_id)
+        .first()
+    )
+
+    if not prerequisite_task or not dependent_task:
+        raise HTTPException(status_code=404, detail="One or more tasks not found")
+
+    if prerequisite_task.project_id != project_id or dependent_task.project_id != project_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Both tasks must belong to the specified project",
+        )
+
+    existing_dependency = (
+        db.query(TaskDependency)
+        .filter(
+            TaskDependency.prerequisite_task_id == payload.prerequisite_task_id,
+            TaskDependency.dependent_task_id == payload.dependent_task_id,
+            TaskDependency.dependency_type == payload.dependency_type,
+        )
+        .first()
+    )
+    if existing_dependency:
+        raise HTTPException(status_code=409, detail="Dependency already exists")
+
+    dependency = TaskDependency(
+        project_id=project_id,
+        prerequisite_task_id=payload.prerequisite_task_id,
+        dependent_task_id=payload.dependent_task_id,
+        dependency_type=payload.dependency_type,
+        lag_time_hours=payload.lag_time_hours,
+        dependency_strength=payload.dependency_strength,
+        is_critical=payload.is_critical,
+        notes=payload.notes,
+        auto_detected=False,
+    )
+    db.add(dependency)
+    db.commit()
+    db.refresh(dependency)
+    return dependency
+
+
+@router.patch(
+    "/project/{project_id}/tasks/dependencies/{dependency_id}",
+    response_model=TaskDependencyResponse,
+    summary="依存関係更新",
+    description="既存の依存関係属性を更新",
+)
+async def update_task_dependency(
+    project_id: uuid.UUID,
+    dependency_id: uuid.UUID,
+    payload: TaskDependencyUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    dependency = (
+        db.query(TaskDependency)
+        .filter(
+            TaskDependency.dependency_id == dependency_id,
+            TaskDependency.project_id == project_id,
+        )
+        .first()
+    )
+    if not dependency:
+        raise HTTPException(status_code=404, detail="Dependency not found")
+
+    update_data = payload.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    if "dependency_type" in update_data:
+        dep_type = update_data["dependency_type"]
+        if dep_type and dep_type not in DEPENDENCY_TYPES:
+            raise HTTPException(status_code=400, detail="Invalid dependency type")
+        dependency.dependency_type = dep_type or dependency.dependency_type
+
+    if "lag_time_hours" in update_data:
+        dependency.lag_time_hours = update_data["lag_time_hours"]
+    if "dependency_strength" in update_data:
+        dependency.dependency_strength = update_data["dependency_strength"]
+    if "is_critical" in update_data:
+        dependency.is_critical = update_data["is_critical"]
+    if "notes" in update_data:
+        dependency.notes = update_data["notes"]
+    if "violation_risk" in update_data:
+        dependency.violation_risk = update_data["violation_risk"]
+
+    db.commit()
+    db.refresh(dependency)
+    return dependency
+
+
+@router.delete(
+    "/project/{project_id}/tasks/dependencies/{dependency_id}",
+    summary="依存関係削除",
+    description="タスク間依存関係を削除",
+)
+async def delete_task_dependency(
+    project_id: uuid.UUID,
+    dependency_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    dependency = (
+        db.query(TaskDependency)
+        .filter(
+            TaskDependency.dependency_id == dependency_id,
+            TaskDependency.project_id == project_id,
+        )
+        .first()
+    )
+    if not dependency:
+        raise HTTPException(status_code=404, detail="Dependency not found")
+
+    db.delete(dependency)
+    db.commit()
+    return {
+        "dependency_id": dependency_id,
+        "message": "Dependency removed",
+        "removed_at": datetime.now(timezone.utc),
+    }
 
 @router.get("/task/{task_id}/dependencies", response_model=List[TaskDependencyResponse],
            summary="タスク依存関係取得", description="指定タスクの依存関係を取得")

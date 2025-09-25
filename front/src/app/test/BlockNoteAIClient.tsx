@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { BlockNoteEditor, filterSuggestionItems } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";

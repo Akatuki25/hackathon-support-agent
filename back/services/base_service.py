@@ -1,6 +1,8 @@
 import os
 import tomllib
 import logging
+from collections import defaultdict
+from datetime import datetime
 from logging import Logger
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
@@ -9,7 +11,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_anthropic import ChatAnthropic
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from models.project_base import ProjectDocument  # 未使用なら削除可
 from sqlalchemy.orm import Session
 
@@ -72,6 +74,9 @@ class BaseService:
         self.db = db
         self.logger = logging.getLogger(f"{LOGGER.name}.{self.__class__.__name__}")
         self.logger.debug("Initializing BaseService (provider=%s)", default_model_provider)
+        self.llm_usage: Dict[str, Dict[str, Any]] = defaultdict(
+            lambda: {"calls": 0, "tokens": 0, "last_called_at": None}
+        )
 
         # プロンプトの読み込み
         prompts_path = os.path.join(os.path.dirname(__file__), "prompts.toml")
@@ -88,10 +93,10 @@ class BaseService:
 
         # AIモデルの初期化
         # ※ APIキーそのものはログに出さない
-        self.llm_pro = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
-        self.llm_flash = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
-        self.llm_flash_thinking = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
-        self.llm_lite = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
+        self.llm_pro = self._load_llm(default_model_provider, "gemini-2.5-flash")
+        self.llm_flash = self._load_llm(default_model_provider, "gemini-2.5-flash")
+        self.llm_flash_thinking = self._load_llm(default_model_provider, "gemini-2.5-flash")
+        self.llm_lite = self._load_llm(default_model_provider, "gemini-2.5-flash")
         self.logger.debug("LLMs initialized")
 
     def _load_llm(self, model_provider: str, model_type: str, temperature: float = 0.5):
@@ -158,3 +163,25 @@ class BaseService:
             raise ValueError(
                 f"Prompt '{prompt_name}' not found in service '{service_name}' in prompts.toml"
             )
+
+    def record_llm_usage(self, model_label: str, tokens: Optional[int] = None) -> None:
+        """LLM使用状況を記録するユーティリティ"""
+        usage = self.llm_usage[model_label]
+        usage["calls"] += 1
+        if tokens:
+            usage["tokens"] += tokens
+        usage["last_called_at"] = datetime.utcnow().isoformat()
+
+    def merge_llm_usage(self, external_usage: Dict[str, Dict[str, Any]]) -> None:
+        """他サービスで記録されたLLM使用状況を集計"""
+        for model_label, metrics in external_usage.items():
+            usage = self.llm_usage[model_label]
+            usage["calls"] += metrics.get("calls", 0)
+            usage["tokens"] += metrics.get("tokens", 0)
+            last_called = metrics.get("last_called_at")
+            if last_called:
+                usage["last_called_at"] = last_called
+
+    def get_llm_usage_snapshot(self) -> Dict[str, Dict[str, Any]]:
+        """現在のLLM使用状況を辞書形式で取得"""
+        return {label: dict(metrics) for label, metrics in self.llm_usage.items()}
