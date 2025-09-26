@@ -90,12 +90,22 @@ export type PriorityEnum = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type TaskType = {
   task_id?: string; // UUID from FastAPI is string
   project_id: string; // UUID from FastAPI is string
+  epic_id?: string;
   title: string;
   description?: string;
   detail?: string;
+  deliverable?: string;
   status?: TaskStatusEnum;
   priority?: PriorityEnum;
   due_at?: string; // datetime from FastAPI is string (ISO 8601)
+  phase?: "P0" | "P1" | "P2";
+  estimate_d?: number;
+  category?: string;
+  required_skills?: string[];
+  refs?: { label: string; pointer: string; note?: string | null }[];
+  dependencies?: string[];
+  parallel_with?: string[];
+  detail_generated?: boolean;
   depends_on_task_id?: string; // UUID from FastAPI is string
   source_doc_id?: string; // UUID from FastAPI is string
 };

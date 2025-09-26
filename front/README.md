@@ -135,13 +135,7 @@ erDiagram
 %%   STRIPE_EVENT_LOG }o--|| BILLING_ACCOUNT : about
 %%   PROJECTBASE }o--|| BILLING_ACCOUNT : billed_to
 
-%%   MEMBER {
-%%     UUID member_id PK
-%%     string member_name
-%%     string member_skill
-%%     string github_name
-%%     string email  "NEW: Stripe顧客作成に必須"
-%%   }
+
 
 %%   BILLING_ACCOUNT {
 %%     UUID billing_account_id PK

@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from sqlalchemy import (
     Column, String, Integer, Text, Date, DateTime, ForeignKey, Enum,
-    Boolean, JSON, Index, func
+    Boolean, JSON, Index, func, Float
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -18,10 +18,11 @@ class MemberBase(Base):
 
     member_id     = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     member_name   = Column(String,  nullable=False)
-    member_skill  = Column(String,  nullable=False)
+    member_skill  = Column(String,  nullable=False) #　メンバーのスキルセットについてを記載する場所
     github_name   = Column(String,  nullable=False)
     # NEW: Stripe 顧客作成や通知に備えて（NULL可でOK）
     email         = Column(String,  nullable=True, index=True)
+    capacity_per_day = Column(Float, nullable=True)  # 担当者の1日あたり作業可能時間(時間換算を日単位に)
 
     projects = relationship(
         "ProjectMember",
@@ -43,6 +44,7 @@ class ProjectBase(Base):
     start_date = Column(Date,  nullable=False)
     end_date   = Column(DateTime, nullable=False)
     num_people = Column(Integer, nullable=False)
+    plan_metadata = Column(JSON, nullable=True)
 
     # Relations
     document = relationship(
@@ -165,12 +167,22 @@ class Task(Base):
     task_id      = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id   = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"),
                           nullable=False, index=True)
+    epic_id      = Column(String, nullable=True)
     title        = Column(String, nullable=False)
     description  = Column(Text, nullable=True)
     detail       = Column(Text, nullable=True)  # 追加の詳細フィールド
+    deliverable  = Column(Text, nullable=True)
     status       = Column(TaskStatusEnum, nullable=False, default="TODO")
     priority     = Column(PriorityEnum,   nullable=False, default="MEDIUM")
     due_at       = Column(DateTime(timezone=True), nullable=True)
+    phase        = Column(String, nullable=False, default="P0")
+    estimate_d   = Column(Float, nullable=True)
+    category     = Column(String, nullable=True)
+    required_skills = Column(JSON, nullable=True)
+    refs         = Column(JSON, nullable=True)
+    dependencies = Column(JSON, nullable=True)
+    parallel_with = Column(JSON, nullable=True)
+    detail_generated = Column(Boolean, nullable=False, default=False)
 
     # 自己参照依存
     depends_on_task_id = Column(UUID(as_uuid=True), ForeignKey("task.task_id", ondelete="SET NULL"),

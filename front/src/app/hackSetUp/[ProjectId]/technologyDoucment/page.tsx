@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { Users, ChevronRight } from "lucide-react";
 import TechnologyEditor from "@/components/TechnologyEditor/TechnologyEditor";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Loading from "@/components/PageLoading";
@@ -133,6 +134,23 @@ export default function TechnologyDocumentPage() {
     }
   };
 
+  const handleGoToMembers = async () => {
+    try {
+      // 現在の技術ドキュメントを保存
+      await patchProjectDocument(projectId, {
+        frame_work_doc: technologyDoc
+      });
+      console.log("技術ドキュメントの保存に成功");
+
+      // メンバーページへ遷移
+      router.push(`/hackSetUp/${projectId}/member`);
+    } catch (error) {
+      console.error("技術ドキュメントの保存に失敗:", error);
+      // エラーが発生してもメンバーページに遷移
+      router.push(`/hackSetUp/${projectId}/member`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -157,6 +175,22 @@ export default function TechnologyDocumentPage() {
               onRegenerate={handleRegenerate}
               isRegenerating={isRegenerating}
             />
+          </div>
+
+          {/* メンバー管理ページへの遷移ボタン */}
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={handleGoToMembers}
+              className={`px-6 py-3 flex items-center rounded-lg shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
+                darkMode
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-gray-900 focus:ring-2 focus:ring-cyan-400"
+                  : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+              }`}
+            >
+              <Users size={18} className="mr-2" />
+              <span>チームメンバーを管理</span>
+              <ChevronRight size={18} className="ml-2" />
+            </button>
           </div>
 
           <HackthonSupportAgent/>

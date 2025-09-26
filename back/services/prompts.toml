@@ -205,6 +205,56 @@ evaluate_framework_choice = """
 {format_instructions}
 """
 
+[plan_generator_service]
+skeleton = """
+あなたはプロフェッショナルなプロジェクトプランナーです。以下の資料を読み込み、
+プロジェクトの骨子（ディレクトリ構造・エピック構成）だけを設計してください。
+
+必須要件:
+1. ディレクトリ構造はルートからの相対パスで深さ順に並べ、説明は含めない。
+2. エピックは5件以内で、epic_idは短い英数字スネークケース。
+3. depends_on は存在しない場合でも空配列で出力すること。
+4. refs には資料内の根拠箇所を記載すること。
+
+出力は必ず次のフォーマット指示に厳密に従ってください:
+{format_instructions}
+
+# プロジェクト情報
+タイトル: {project_title}
+仕様書:
+{specification}
+機能要件定義書:
+{function_doc}
+技術選定資料:
+{technology_doc}
+既存ディレクトリ情報:
+{directory_hint}
+"""
+
+epic_detail = """
+あなたはエピック別タスク分解の専門家です。指定されたエピックについて、
+実行タスクを3〜7個に分割し、各タスクには以下を必ず含めてください:
+- local_id: エピック内でユニークな短い英数字スネークケース
+- deliverable: 具体的な成果物
+- category: {research, analysis, architecture, design, implementation, integration, testing, deployment, operation} のいずれか
+- estimate_d: 0.5 / 1.0 / 1.5 のいずれか
+- refs: 根拠となる資料の引用（1件以上）
+- required_skills: スキルタグ（例: fastapi, react, sql）
+
+LLMは説明ではなく JSON 形式のみを出力してください。format_instructions に従うこと。
+{format_instructions}
+
+# 対象エピック
+{epic}
+
+# 参考情報
+タイトル: {project_title}
+仕様書:
+{specification}
+機能要件定義書:
+{function_doc}
+"""
+
 generate_framework_document = """
 あなたはプロダクト開発のエキスパートです。以下の仕様書の内容と、今回ユーザーが選定した技術要件の内容からフレームワークに沿った技術要件書を作成してください。
 以下は仕様書と技術要件書の内容です。
@@ -645,5 +695,4 @@ generate_environment_setup = """
 
 回答はマークダウン形式のみで出力し、```markdown```で囲む必要はありません。
 """
-
 

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import uuid
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 from database import get_db
 from models.project_base import Task, TaskStatusEnum, PriorityEnum
 
@@ -11,12 +11,22 @@ router = APIRouter()
 
 class TaskType(BaseModel):
     project_id: uuid.UUID
+    epic_id: Optional[str] = None
     title: str
     description: Optional[str] = None
     detail: Optional[str] = None
+    deliverable: Optional[str] = None
     status: Optional[str] = None
     priority: Optional[str] = None
     due_at: Optional[datetime] = None
+    phase: Optional[str] = None
+    estimate_d: Optional[float] = None
+    category: Optional[str] = None
+    required_skills: Optional[List[str]] = None
+    refs: Optional[List[Dict[str, str]]] = None
+    dependencies: Optional[List[str]] = None
+    parallel_with: Optional[List[str]] = None
+    detail_generated: Optional[bool] = None
     depends_on_task_id: Optional[uuid.UUID] = None
     source_doc_id: Optional[uuid.UUID] = None
     
@@ -32,12 +42,22 @@ class TaskType(BaseModel):
 
 class TaskPatch(BaseModel):
     project_id: Optional[uuid.UUID] = None
+    epic_id: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
     detail: Optional[str] = None
+    deliverable: Optional[str] = None
     status: Optional[str] = None
     priority: Optional[str] = None
     due_at: Optional[datetime] = None
+    phase: Optional[str] = None
+    estimate_d: Optional[float] = None
+    category: Optional[str] = None
+    required_skills: Optional[List[str]] = None
+    refs: Optional[List[Dict[str, str]]] = None
+    dependencies: Optional[List[str]] = None
+    parallel_with: Optional[List[str]] = None
+    detail_generated: Optional[bool] = None
     depends_on_task_id: Optional[uuid.UUID] = None
     source_doc_id: Optional[uuid.UUID] = None
 
@@ -57,12 +77,22 @@ async def create_task(task: TaskType, db: Session = Depends(get_db)):
     db_task = Task(
         task_id=uuid.uuid4(),
         project_id=task.project_id,
+        epic_id=task.epic_id,
         title=task.title,
         description=task.description,
         detail=task.detail,
+        deliverable=task.deliverable,
         status=task.status if task.status is not None else TaskStatusEnum.TODO,
         priority=task.priority if task.priority is not None else PriorityEnum.MEDIUM,
         due_at=task.due_at,
+        phase=task.phase if task.phase is not None else "P0",
+        estimate_d=task.estimate_d,
+        category=task.category,
+        required_skills=task.required_skills,
+        refs=task.refs,
+        dependencies=task.dependencies,
+        parallel_with=task.parallel_with,
+        detail_generated=task.detail_generated if task.detail_generated is not None else False,
         depends_on_task_id=task.depends_on_task_id,
         source_doc_id=task.source_doc_id
     )
@@ -92,12 +122,23 @@ async def update_task(task_id: uuid.UUID, task: TaskType, db: Session = Depends(
         raise HTTPException(status_code=404, detail="Task not found")
     
     db_task.project_id = task.project_id
+    db_task.epic_id = task.epic_id if task.epic_id is not None else db_task.epic_id
     db_task.title = task.title
     db_task.description = task.description
     db_task.detail = task.detail
+    db_task.deliverable = task.deliverable
     db_task.status = task.status
     db_task.priority = task.priority
     db_task.due_at = task.due_at
+    db_task.phase = task.phase if task.phase is not None else db_task.phase
+    db_task.estimate_d = task.estimate_d
+    db_task.category = task.category
+    db_task.required_skills = task.required_skills
+    db_task.refs = task.refs
+    db_task.dependencies = task.dependencies
+    db_task.parallel_with = task.parallel_with
+    if task.detail_generated is not None:
+        db_task.detail_generated = task.detail_generated
     db_task.depends_on_task_id = task.depends_on_task_id
     db_task.source_doc_id = task.source_doc_id
     db.commit()

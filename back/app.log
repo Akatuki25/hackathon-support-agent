@@ -4998,3 +4998,7 @@ KeyError: 'confidence_feedback'
 2025-09-22 13:38:57,300 | INFO | hackthon_support_agent.TechnologyService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
 2025-09-22 13:38:57,303 | DEBUG | hackthon_support_agent.TechnologyService | LLMs initialized
 2025-09-22 13:38:57,303 | DEBUG | hackthon_support_agent.TechnologyService | Fetching prompt 'technology_service.generate_technology_document'
+2025-09-26 01:11:42,731 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-26 01:11:44,056 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-26 01:19:01,495 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-09-26 01:19:02,722 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local

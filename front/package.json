@@ -32,6 +32,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.60.0",
     "react-markdown": "^10.1.0",
+    "reactflow": "^11.11.4",
     "swr": "^2.3.6",
     "undici": "^7.16.0",
     "zod": "^3.25.76"

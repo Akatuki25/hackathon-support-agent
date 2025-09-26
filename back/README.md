@@ -20,6 +20,7 @@ LLMを利用して、アイデアや仕様書から具体的な成果物（タ�
 | `/environment` | `POST` | 仕様書、ディレクトリ構成、フレームワークを受け取り、環境構築手順を生成します。 | `{"specification": "string", "directory": "string", "framework": "string"}` | `{"overall": "string", "devcontainer": "string", ...}` |
 | `/deploy` | `POST` | 仕様書とフレームワークを受け取り、デプロイ構成案を生成します。 | `{"framework": "string", "specification": "string"}` | `{"deploy_structure": "string"}` |
 | `/taskChat` | `POST` | チャット履歴やタスク詳細などを受け取り、AIアシスタントの応答を生成します。 | `{"specification": "string", "directory_structure": "string", ...}` | `{"response": "string"}` |
+| `/plan` | `POST` | 要件・機能・技術定義書から計画骨子、タスク、フェーズ、担当者を自動生成します。 | `{"project_id": "uuid"}` | `PlanResult` |
 
 ---
 
@@ -133,3 +134,14 @@ LLMを利用して、アイデアや仕様書から具体的な成果物（タ�
 | `/qa/{id}` | `PUT` | QAを更新 | **Path**: `id: uuid`, **Body**: `QAType` | `{"qa_id": "uuid", ...}` |
 | `/qa/{id}` | `PATCH` | QAを部分更新 | **Path**: `id: uuid`, **Body**: `QAPatch` | `{"message": "string"}` |
 | `/qa/{id}` | `DELETE` | QAを削除 | **Path**: `id: uuid` | `{"qa_id": "uuid", ...}` |
+
+---
+
+## 5. 実装メモ
+
+### 5.1 プラン自動生成機能 (2024-xx-xx 更新)
+
+- `MemberBase` に `capacity_per_day` 列を追加し、メンバーごとの日次稼働を保持できるようにしました。
+- LangGraph を活用した計画生成サービス `services/plan_generator_service.py` を実装し、LLM による PlanSkeleton/EpicPlan 生成と Pydantic 検証、DAG 化・トポロジカルソートによるフェーズ分割と締切逆算、メンバー自動割当までを一貫処理するパイプラインを構築しました。
+- `/api/plan` エンドポイントを追加し、 `PlanResult` (Pydantic) を JSON で返却。ディレクトリ構造、フェーズごとのタスク詳細、メンバー割当を一括取得できます。
+- LLM プロンプト（`services/prompts.toml`）を追加し、骨子生成とエピック詳細生成の整合性を担保しました。
