@@ -16,7 +16,6 @@ export default function Home() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [idea, setIdea] = useState("");
-  const [numPeople, setNumPeople] = useState("");
   const [loading, setLoading] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const now = new Date().toTimeString().split(":").slice(0, 2).join(":"); // 現在時刻 "HH:MM"
@@ -34,14 +33,13 @@ export default function Home() {
         title: title,
         idea: idea,
         start_date: startDate,
-        end_date: endDateTime, // ISO形式で保存
-        num_people: parseInt(numPeople, 10),
+        end_date: endDateTime,
       };
 
       const projectId = await postProject(projectData);
 
       // プロジェクト作成後、質問を投稿
-      const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}\n人数: ${numPeople}`;
+      const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}`;
       const questionResponse = await generateQuestions(projectId, questionData);
 
       await saveQuestions(questionResponse, projectId);
@@ -220,31 +218,6 @@ export default function Home() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="mb-6">
-              <label
-                className={`flex items-center ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}
-              >
-                <Users
-                  size={16}
-                  className={`mr-2 ${darkMode ? "text-pink-500" : "text-blue-600"}`}
-                />
-                <span>人数</span>
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={numPeople}
-                onChange={(e) => setNumPeople(e.target.value)}
-                placeholder="例: 3"
-                required
-                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                  darkMode
-                    ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
-                    : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
-                }`}
-              />
             </div>
 
             <form onSubmit={handleSubmit}>

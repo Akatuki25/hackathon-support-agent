@@ -42,7 +42,6 @@ class ProjectBase(Base):
     idea       = Column(String, nullable=False)
     start_date = Column(Date,  nullable=False)
     end_date   = Column(DateTime, nullable=False)
-    num_people = Column(Integer, nullable=False)
 
     # Relations
     document = relationship(
@@ -153,11 +152,27 @@ class Env(Base):
         return f"<Env(id={self.env_id}, project_id={self.project_id})>"
 
 
+# ===================== 
+#  DocumentのDecording 
+# =====================
+
+class AIDocument(Base):
+    __tablename__ = "aiDocument"
+    
+    ai_doc_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"), nullable=False, index=True)
+    environment = Column(Text, nullable=True)  # 環境構築サマリ
+    front_end = Column(Text, nullable=True)  # フロントエンドのAI生成ドキュメント
+    back_end = Column(Text, nullable=True)  # バックエンドのAI生成ドキュメント
+    database = Column(Text, nullable=True)  # データベースのAI生成ドキュメント
+    deployment = Column(Text, nullable=True)  # デプロイメントのAI生成ドキュメント
+    ai_design = Column(Text, nullable=True)  # AI設計のAI生成ドキュメント
+    slide = Column(Text, nullable=True)  # スライド資料作成サマリ
+
 # =========================
 # NEW: Task / TaskAssignment
 # =========================
 TaskStatusEnum = Enum("TODO", "DOING", "DONE", name="task_status_enum")
-PriorityEnum   = Enum("LOW", "MEDIUM", "HIGH", "CRITICAL", name="priority_enum")
 
 class Task(Base):
     __tablename__ = "task"
@@ -168,8 +183,8 @@ class Task(Base):
     title        = Column(String, nullable=False)
     description  = Column(Text, nullable=True)
     detail       = Column(Text, nullable=True)  # 追加の詳細フィールド
+    priority     = Column(String, nullable=True)  # Must/Should/Could などの優先度
     status       = Column(TaskStatusEnum, nullable=False, default="TODO")
-    priority     = Column(PriorityEnum,   nullable=False, default="MEDIUM")
     due_at       = Column(DateTime(timezone=True), nullable=True)
 
     # 自己参照依存

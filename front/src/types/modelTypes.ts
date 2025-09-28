@@ -23,7 +23,6 @@ export type ProjectType = {
   idea: string;
   start_date: string; // date from FastAPI is string (YYYY-MM-DD)
   end_date: string; // datetime from FastAPI is string (ISO 8601)
-  num_people: number;
 };
 
 export type ProjectResponseType = {
