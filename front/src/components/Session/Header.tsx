@@ -2,12 +2,10 @@
 
 import { useDarkMode } from "@/hooks/useDarkMode";
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import {
-  LogIn,
-  UserPlus,
   Terminal,
   Shield,
-  Cpu,
   Settings,
   LogOut,
   ChevronDown,
@@ -134,7 +132,7 @@ export default function CyberHeader() {
                     darkMode ? "text-cyan-300/70" : "text-purple-500/70"
                   }`}
                 >
-                  // SYSTEM_ONLINE
+                  {"// SYSTEM_ONLINE"}
                 </span>
               </div>
             </div>
@@ -230,9 +228,11 @@ export default function CyberHeader() {
                     ></div>
                     <div className="flex items-center space-x-3">
                       <div className="relative">
-                        <img
-                          src={session.user?.image ?? ""}
+                        <Image
+                          src={session.user?.image ?? "/window.svg"}
                           alt="Profile"
+                          width={40}
+                          height={40}
                           className={`w-10 h-10 rounded-lg border-2 transition-all duration-300 ${
                             darkMode
                               ? "border-cyan-500/50 group-hover:border-cyan-400"
@@ -265,7 +265,7 @@ export default function CyberHeader() {
                               darkMode ? "text-gray-400" : "text-gray-500"
                             }`}
                           >
-                            // ONLINE
+                            {"// ONLINE"}
                           </span>
                           <ChevronDown
                             className={`w-3 h-3 transition-transform duration-300 ${
@@ -302,9 +302,11 @@ export default function CyberHeader() {
                         }`}
                       >
                         <div className="flex items-center space-x-3">
-                          <img
-                            src={session.user?.image ?? ""}
+                          <Image
+                            src={session.user?.image ?? "/window.svg"}
                             alt="Profile"
+                            width={32}
+                            height={32}
                             className={`w-8 h-8 rounded border ${
                               darkMode
                                 ? "border-cyan-500/50"
@@ -367,7 +369,7 @@ export default function CyberHeader() {
                                 darkMode ? "text-gray-500" : "text-gray-400"
                               }`}
                             >
-                              // Configure system
+                              {"// Configure system"}
                             </p>
                           </div>
                         </button>
@@ -413,7 +415,7 @@ export default function CyberHeader() {
                                 darkMode ? "text-gray-500" : "text-gray-400"
                               }`}
                             >
-                              // End session
+                              {"// End session"}
                             </p>
                           </div>
                         </button>
@@ -432,7 +434,7 @@ export default function CyberHeader() {
                             darkMode ? "text-gray-500" : "text-gray-400"
                           }`}
                         >
-                          // SYSTEM_ACCESS_GRANTED
+                          {"// SYSTEM_ACCESS_GRANTED"}
                         </p>
                       </div>
                     </div>

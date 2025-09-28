@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { FileText, Code, FolderTree, Download, Copy, RefreshCw, Terminal, Database, Cpu } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { FileText, Code, FolderTree, Copy, RefreshCw, Database, Cpu } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
@@ -19,7 +19,6 @@ export type ProjectDocumentType = {
 type TabType = 'specification' | 'framework' | 'directory';
 
 export default function DocumentDashboard() {
-  const router = useRouter();
   const pathname = usePathname();
   const { darkMode } = useDarkMode();
   const [documentData, setDocumentData] = useState<ProjectDocumentType | null>(null);
@@ -30,13 +29,7 @@ export default function DocumentDashboard() {
 
   const projectId = pathname.split("/")[2]; // パスからプロジェクトIDを取得
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && projectId) {
-      fetchDocumentData();
-    }
-  }, [projectId]);
-
-  const fetchDocumentData = async () => {
+  const fetchDocumentData = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -48,7 +41,13 @@ export default function DocumentDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && projectId) {
+      fetchDocumentData();
+    }
+  }, [projectId, fetchDocumentData]);
 
   const handleCopy = async (text: string, section: string) => {
     try {

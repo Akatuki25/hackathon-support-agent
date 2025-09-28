@@ -1,7 +1,7 @@
 "use client";
 
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { BlockNoteEditor, filterSuggestionItems } from "@blocknote/core";
+import { filterSuggestionItems } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { en } from "@blocknote/core/locales";
 import { BlockNoteView } from "@blocknote/mantine";
@@ -36,18 +36,18 @@ const model = createGoogleGenerativeAI({
   ...client.getProviderSettings("google"),
 })("gemini-2.5-flash-lite");
 
+type EditorInstance = ReturnType<typeof useCreateBlockNote>;
+type EditorDictionary = typeof en & { ai?: typeof aiEn };
+
 export default function BlockNoteAIClient() {
   // Creates a new editor instance with AI extension
+  const dictionary: EditorDictionary = { ...en, ai: aiEn };
+  const aiExtension = createAIExtension({ model });
   const editor = useCreateBlockNote({
-    dictionary: {
-      ...en,
-      ai: aiEn, // add default translations for the AI extension
-    } as any,
+    dictionary,
     // Register the AI extension
     _extensions: {
-      ai: createAIExtension({
-        model: model as any,
-      }) as any,
+      ai: aiExtension,
     },
     // Initial content for demo
     initialContent: [
@@ -109,9 +109,7 @@ function FormattingToolbarWithAI() {
 }
 
 // Slash menu with the AI option added
-function SuggestionMenuWithAI(props: {
-  editor: BlockNoteEditor<any, any, any>;
-}) {
+function SuggestionMenuWithAI(props: { editor: EditorInstance }) {
   return (
     <SuggestionMenuController
       triggerCharacter="/"

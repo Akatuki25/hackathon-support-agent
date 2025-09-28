@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Terminal, ChevronRight, Loader2, BarChart3 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
@@ -14,9 +14,175 @@ import {
   FunctionalRequirement,
   QAForRequirement,
   getFunctionalRequirements,
-  generateAndSaveAll
+  generateAndSaveAll,
 } from "@/libs/service/function";
 import { QAType, ConfidenceFeedback as ConfidenceFeedbackType } from "@/types/modelTypes";
+
+const calculateClarityScore = (reqs: FunctionalRequirement[]): number => {
+  if (reqs.length === 0) return 0.5;
+
+  const scores = reqs.map((req) => {
+    let score = 0.5;
+    if (req.description && req.description.length > 50) score += 0.2;
+    if (req.acceptance_criteria && req.acceptance_criteria.length > 0) score += 0.2;
+    if (req.title && req.title.length > 10) score += 0.1;
+    return Math.min(score, 1.0);
+  });
+
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+};
+
+const calculateFeasibilityScore = (reqs: FunctionalRequirement[]): number => {
+  if (reqs.length === 0) return 0.6;
+
+  const scores = reqs.map((req) => {
+    let score = 0.6;
+    if (req.priority === "Could" || req.priority === "Should") score += 0.2;
+    if (req.confidence_level && req.confidence_level > 0.7) score += 0.2;
+    return Math.min(score, 1.0);
+  });
+
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+};
+
+const calculateScopeScore = (reqs: FunctionalRequirement[]): number => {
+  if (reqs.length === 0) return 0.5;
+  if (reqs.length > 20) return 0.4;
+  if (reqs.length < 3) return 0.6;
+  return 0.8;
+};
+
+const calculateValueScore = (reqs: FunctionalRequirement[]): number => {
+  if (reqs.length === 0) return 0.5;
+
+  const highPriorityCount = reqs.filter((req) => req.priority === "Must").length;
+  const ratio = highPriorityCount / reqs.length;
+
+  return Math.min(0.5 + ratio * 0.5, 1.0);
+};
+
+const calculateCompletenessScore = (reqs: FunctionalRequirement[]): number => {
+  if (reqs.length === 0) return 0.3;
+
+  const completeReqs = reqs.filter(
+    (req) =>
+      req.description &&
+      req.acceptance_criteria &&
+      req.acceptance_criteria.length > 0 &&
+      req.priority,
+  ).length;
+
+  return completeReqs / reqs.length;
+};
+
+const getClarityFeedback = (score: number): string => {
+  if (score >= 0.8) return "要件の記述が非常に明確で、理解しやすい内容になっています。";
+  if (score >= 0.6) return "要件の記述は概ね明確ですが、一部詳細化が必要な項目があります。";
+  return "要件の記述をより詳細にし、曖昧さを排除することを推奨します。";
+};
+
+const getFeasibilityFeedback = (score: number): string => {
+  if (score >= 0.8) return "提案された機能は技術的に実現可能性が高く、リスクも低いと判断されます。";
+  if (score >= 0.6) return "機能の実現可能性は中程度です。一部の機能について技術的検証が必要です。";
+  return "実現可能性に懸念があります。技術的な検証と代替案の検討を推奨します。";
+};
+
+const getScopeFeedback = (score: number): string => {
+  if (score >= 0.8) return "プロジェクトのスコープは適切に設定されており、期間内での実現が期待できます。";
+  if (score >= 0.6) return "スコープは概ね適切ですが、優先度の見直しを検討してください。";
+  return "スコープの調整が必要です。機能を絞り込むか、期間の延長を検討してください。";
+};
+
+const getValueFeedback = (score: number): string => {
+  if (score >= 0.8) return "ユーザーにとって高い価値を提供する機能が適切に含まれています。";
+  if (score >= 0.6) return "ユーザー価値は中程度です。より価値の高い機能の追加を検討してください。";
+  return "ユーザー価値の向上が必要です。ユーザーニーズの再検討を推奨します。";
+};
+
+const getCompletenessFeedback = (score: number): string => {
+  if (score >= 0.8) return "要件の記述が完全で、開発に必要な情報が十分に含まれています。";
+  if (score >= 0.6) return "要件は概ね完全ですが、一部の項目で詳細化が必要です。";
+  return "要件の完全性を向上させる必要があります。受入基準や詳細仕様の追加を推奨します。";
+};
+
+const getImprovementSuggestions = (
+  clarity: number,
+  feasibility: number,
+  scope: number,
+  value: number,
+  completeness: number,
+): string[] => {
+  const suggestions: string[] = [];
+
+  if (clarity < 0.7) suggestions.push("要件の記述をより具体的にしてください");
+  if (feasibility < 0.7) suggestions.push("技術的なリスク評価を実施してください");
+  if (scope < 0.7) suggestions.push("機能の優先度を見直し、スコープを調整してください");
+  if (value < 0.7) suggestions.push("ユーザー価値の高い機能を追加検討してください");
+  if (completeness < 0.7) suggestions.push("受入基準や詳細仕様を追加してください");
+
+  if (suggestions.length === 0) {
+    suggestions.push("現在の要件は良好な状態です。継続的な見直しを行ってください");
+  }
+
+  return suggestions;
+};
+
+const getConfidenceReason = (
+  clarity: number,
+  feasibility: number,
+  scope: number,
+  value: number,
+  completeness: number,
+): string => {
+  const avgScore = (clarity + feasibility + scope + value + completeness) / 5;
+
+  if (avgScore >= 0.8) {
+    return "要件の品質が高く、プロジェクトの成功可能性が高いと判断されます。";
+  }
+  if (avgScore >= 0.6) {
+    return "要件の品質は中程度です。いくつかの改善点がありますが、プロジェクトは実現可能と考えられます。";
+  }
+  return "要件の品質向上が必要です。詳細な分析と改善を行うことで、プロジェクトの成功可能性を高めることができます。";
+};
+
+const generateConfidenceFeedback = (
+  reqs: FunctionalRequirement[],
+  confidence: number,
+): ConfidenceFeedbackType => {
+  const clarity = calculateClarityScore(reqs);
+  const feasibility = calculateFeasibilityScore(reqs);
+  const scope = calculateScopeScore(reqs);
+  const value = calculateValueScore(reqs);
+  const completeness = calculateCompletenessScore(reqs);
+
+  return {
+    overall_confidence: confidence,
+    clarity_score: clarity,
+    feasibility_score: feasibility,
+    scope_score: scope,
+    value_score: value,
+    completeness_score: completeness,
+    clarity_feedback: getClarityFeedback(clarity),
+    feasibility_feedback: getFeasibilityFeedback(feasibility),
+    scope_feedback: getScopeFeedback(scope),
+    value_feedback: getValueFeedback(value),
+    completeness_feedback: getCompletenessFeedback(completeness),
+    improvement_suggestions: getImprovementSuggestions(
+      clarity,
+      feasibility,
+      scope,
+      value,
+      completeness,
+    ),
+    confidence_reason: getConfidenceReason(
+      clarity,
+      feasibility,
+      scope,
+      value,
+      completeness,
+    ),
+  };
+};
 
 type FlowState = 'loading' | 'ready';
 
@@ -35,7 +201,13 @@ export default function FunctionSummary() {
   const [confidenceFeedback, setConfidenceFeedback] = useState<ConfidenceFeedbackType | null>(null);
   const [showConfidenceFeedback, setShowConfidenceFeedback] = useState(false);
 
-  // 初期処理：機能要件とQ&Aを取得
+  const handleConfidence = useCallback(
+    (reqs: FunctionalRequirement[], confidence: number) => {
+      setConfidenceFeedback(generateConfidenceFeedback(reqs, confidence));
+    },
+    [],
+  );
+
   useEffect(() => {
     const initializeFlow = async () => {
       if (!projectId) return;
@@ -72,7 +244,7 @@ export default function FunctionSummary() {
             setQAList(convertedQAs);
 
             // 確信度フィードバックを生成
-            generateConfidenceFeedback(result.requirements, result.overall_confidence);
+            handleConfidence(result.requirements, result.overall_confidence);
           } else {
             // 既存のドキュメントが存在する場合はそれを使用
             console.log("既存の機能要件ドキュメントを読み込みます");
@@ -100,35 +272,7 @@ export default function FunctionSummary() {
     };
 
     initializeFlow();
-  }, [projectId]);
-
-  // 確信度フィードバックを生成
-  const generateConfidenceFeedback = (reqs: FunctionalRequirement[], confidence: number) => {
-    // 要件の品質を分析
-    const clarity = calculateClarityScore(reqs);
-    const feasibility = calculateFeasibilityScore(reqs);
-    const scope = calculateScopeScore(reqs);
-    const value = calculateValueScore(reqs);
-    const completeness = calculateCompletenessScore(reqs);
-
-    const feedback: ConfidenceFeedbackType = {
-      overall_confidence: confidence,
-      clarity_score: clarity,
-      feasibility_score: feasibility,
-      scope_score: scope,
-      value_score: value,
-      completeness_score: completeness,
-      clarity_feedback: getClarityFeedback(clarity),
-      feasibility_feedback: getFeasibilityFeedback(feasibility),
-      scope_feedback: getScopeFeedback(scope),
-      value_feedback: getValueFeedback(value),
-      completeness_feedback: getCompletenessFeedback(completeness),
-      improvement_suggestions: getImprovementSuggestions(clarity, feasibility, scope, value, completeness),
-      confidence_reason: getConfidenceReason(clarity, feasibility, scope, value, completeness)
-    };
-
-    setConfidenceFeedback(feedback);
-  };
+  }, [projectId, handleConfidence]);
 
   // デフォルトの確信度フィードバックを生成
   const generateDefaultConfidenceFeedback = (confidence: number) => {
@@ -153,134 +297,6 @@ export default function FunctionSummary() {
     };
 
     setConfidenceFeedback(feedback);
-  };
-
-  // スコア計算関数群
-  const calculateClarityScore = (reqs: FunctionalRequirement[]): number => {
-    if (reqs.length === 0) return 0.5;
-
-    const scores = reqs.map(req => {
-      let score = 0.5;
-      if (req.description && req.description.length > 50) score += 0.2;
-      if (req.acceptance_criteria && req.acceptance_criteria.length > 0) score += 0.2;
-      if (req.title && req.title.length > 10) score += 0.1;
-      return Math.min(score, 1.0);
-    });
-
-    return scores.reduce((sum, score) => sum + score, 0) / scores.length;
-  };
-
-  const calculateFeasibilityScore = (reqs: FunctionalRequirement[]): number => {
-    if (reqs.length === 0) return 0.6;
-
-    const scores = reqs.map(req => {
-      let score = 0.6;
-      if (req.priority === "Could" || req.priority === "Should") score += 0.2;
-      if (req.confidence_level && req.confidence_level > 0.7) score += 0.2;
-      return Math.min(score, 1.0);
-    });
-
-    return scores.reduce((sum, score) => sum + score, 0) / scores.length;
-  };
-
-  const calculateScopeScore = (reqs: FunctionalRequirement[]): number => {
-    if (reqs.length === 0) return 0.5;
-    if (reqs.length > 20) return 0.4; // スコープが大きすぎる
-    if (reqs.length < 3) return 0.6; // スコープが小さすぎる
-    return 0.8; // 適切なスコープ
-  };
-
-  const calculateValueScore = (reqs: FunctionalRequirement[]): number => {
-    if (reqs.length === 0) return 0.5;
-
-    const highPriorityCount = reqs.filter(req => req.priority === "Must").length;
-    const ratio = highPriorityCount / reqs.length;
-
-    return Math.min(0.5 + ratio * 0.5, 1.0);
-  };
-
-  const calculateCompletenessScore = (reqs: FunctionalRequirement[]): number => {
-    if (reqs.length === 0) return 0.3;
-
-    const completeReqs = reqs.filter(req =>
-      req.description &&
-      req.acceptance_criteria &&
-      req.acceptance_criteria.length > 0 &&
-      req.priority
-    ).length;
-
-    return completeReqs / reqs.length;
-  };
-
-  // フィードバック生成関数群
-  const getClarityFeedback = (score: number): string => {
-    if (score >= 0.8) return "要件の記述が非常に明確で、理解しやすい内容になっています。";
-    if (score >= 0.6) return "要件の記述は概ね明確ですが、一部詳細化が必要な項目があります。";
-    return "要件の記述をより詳細にし、曖昧さを排除することを推奨します。";
-  };
-
-  const getFeasibilityFeedback = (score: number): string => {
-    if (score >= 0.8) return "提案された機能は技術的に実現可能性が高く、リスクも低いと判断されます。";
-    if (score >= 0.6) return "機能の実現可能性は中程度です。一部の機能について技術的検証が必要です。";
-    return "実現可能性に懸念があります。技術的な検証と代替案の検討を推奨します。";
-  };
-
-  const getScopeFeedback = (score: number): string => {
-    if (score >= 0.8) return "プロジェクトのスコープは適切に設定されており、期間内での実現が期待できます。";
-    if (score >= 0.6) return "スコープは概ね適切ですが、優先度の見直しを検討してください。";
-    return "スコープの調整が必要です。機能を絞り込むか、期間の延長を検討してください。";
-  };
-
-  const getValueFeedback = (score: number): string => {
-    if (score >= 0.8) return "ユーザーにとって高い価値を提供する機能が適切に含まれています。";
-    if (score >= 0.6) return "ユーザー価値は中程度です。より価値の高い機能の追加を検討してください。";
-    return "ユーザー価値の向上が必要です。ユーザーニーズの再検討を推奨します。";
-  };
-
-  const getCompletenessFeedback = (score: number): string => {
-    if (score >= 0.8) return "要件の記述が完全で、開発に必要な情報が十分に含まれています。";
-    if (score >= 0.6) return "要件は概ね完全ですが、一部の項目で詳細化が必要です。";
-    return "要件の完全性を向上させる必要があります。受入基準や詳細仕様の追加を推奨します。";
-  };
-
-  const getImprovementSuggestions = (
-    clarity: number,
-    feasibility: number,
-    scope: number,
-    value: number,
-    completeness: number
-  ): string[] => {
-    const suggestions: string[] = [];
-
-    if (clarity < 0.7) suggestions.push("要件の記述をより具体的にしてください");
-    if (feasibility < 0.7) suggestions.push("技術的なリスク評価を実施してください");
-    if (scope < 0.7) suggestions.push("機能の優先度を見直し、スコープを調整してください");
-    if (value < 0.7) suggestions.push("ユーザー価値の高い機能を追加検討してください");
-    if (completeness < 0.7) suggestions.push("受入基準や詳細仕様を追加してください");
-
-    if (suggestions.length === 0) {
-      suggestions.push("現在の要件は良好な状態です。継続的な見直しを行ってください");
-    }
-
-    return suggestions;
-  };
-
-  const getConfidenceReason = (
-    clarity: number,
-    feasibility: number,
-    scope: number,
-    value: number,
-    completeness: number
-  ): string => {
-    const avgScore = (clarity + feasibility + scope + value + completeness) / 5;
-
-    if (avgScore >= 0.8) {
-      return "要件の品質が高く、プロジェクトの成功可能性が高いと判断されます。";
-    } else if (avgScore >= 0.6) {
-      return "要件の品質は中程度です。いくつかの改善点がありますが、プロジェクトは実現可能と考えられます。";
-    } else {
-      return "要件の品質向上が必要です。詳細な分析と改善を行うことで、プロジェクトの成功可能性を高めることができます。";
-    }
   };
 
   // 要件をMarkdown形式に変換
@@ -354,7 +370,7 @@ export default function FunctionSummary() {
   const handleRequirementsUpdate = (updatedRequirements: FunctionalRequirement[]) => {
     setRequirements(updatedRequirements);
     if (updatedRequirements.length > 0) {
-      generateConfidenceFeedback(updatedRequirements, overallConfidence);
+      handleConfidence(updatedRequirements, overallConfidence);
     }
   };
 
@@ -362,7 +378,7 @@ export default function FunctionSummary() {
   const handleConfidenceUpdate = (newConfidence: number) => {
     setOverallConfidence(newConfidence);
     if (requirements.length > 0) {
-      generateConfidenceFeedback(requirements, newConfidence);
+      handleConfidence(requirements, newConfidence);
     }
   };
 

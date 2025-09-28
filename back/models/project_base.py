@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 # =====================================================================
-# 既存：Member / ProjectBase / ProjectMember / ProjectDocument（最小差分）
+# 既存：Member / ProjectBase / ProjectMember
 # =====================================================================
 
 # ---------- Member -----------------------------------------------------------
@@ -176,11 +176,6 @@ class Task(Base):
     depends_on_task_id = Column(UUID(as_uuid=True), ForeignKey("task.task_id", ondelete="SET NULL"),
                                 nullable=True)
     depends_task = relationship("Task", remote_side="Task.task_id", uselist=False)
-
-    # どのドキュメントから生まれたタスクか（任意）
-    source_doc_id = Column(UUID(as_uuid=True), ForeignKey("projectDocument.doc_id", ondelete="SET NULL"),
-                           nullable=True)
-    source_doc = relationship("ProjectDocument", back_populates="tasks")
 
     # 割当（M:N）
     assignees = relationship(

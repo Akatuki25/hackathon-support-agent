@@ -1,23 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import {
-  Calendar,
-  Users,
-  Lightbulb,
-  Clock,
-  Plus,
-  Search,
-  Filter,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Users, Lightbulb, Clock, Search } from "lucide-react";
 import { ProjectType } from "@/types/modelTypes";
 import { getAllProjects } from "@/libs/modelAPI/project";
 import { useDarkMode } from "@/hooks/useDarkMode";
 
 export default function AllProjectPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const { darkMode } = useDarkMode();
   const [allprojects, setAllProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,7 +154,7 @@ export default function AllProjectPage() {
                 : "bg-purple-500/10 text-purple-600 border border-purple-300/30"
             }`}
           >
-            // PROJECT_DATABASE_ACCESS
+            {"// PROJECT_DATABASE_ACCESS"}
           </div>
 
           <h1
@@ -375,7 +366,7 @@ export default function AllProjectPage() {
                             darkMode ? "text-cyan-400" : "text-purple-600"
                           }`}
                         >
-                          // PROJECT_CONCEPT
+                          {"// PROJECT_CONCEPT"}
                         </span>
                       </div>
                       <p

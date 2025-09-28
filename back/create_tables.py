@@ -1,5 +1,11 @@
 from database import engine, Base
-from models.project_base import MemberBase, ProjectBase, ProjectMember
+from models.project_base import (
+    MemberBase,
+    ProjectBase,
+    ProjectMember,
+    Task,
+    TaskAssignment,
+)
 
 def reset_db():
     # 既存のテーブルをすべて削除
