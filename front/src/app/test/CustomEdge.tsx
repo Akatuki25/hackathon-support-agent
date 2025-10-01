@@ -6,6 +6,7 @@ interface CustomEdgeProps extends EdgeProps {
   data?: {
     animated?: boolean;
     glowColor?: string;
+    isNextDay?: boolean;
   };
 }
 
@@ -19,7 +20,7 @@ export function CustomEdge({
   selected
 }: CustomEdgeProps) {
   const { darkMode } = useDarkMode();
-  const [edgePath] = getStraightPath({
+  const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
     sourceY,
     targetX,
@@ -27,6 +28,7 @@ export function CustomEdge({
   });
 
   const isAnimated = data?.animated || false;
+  const isNextDay = data?.isNextDay || false;
 
   return (
     <>
@@ -34,7 +36,10 @@ export function CustomEdge({
       <path
         d={edgePath}
         fill="none"
-        stroke={darkMode ? '#06b6d4' : '#3b82f6'}
+        stroke={isNextDay
+          ? (darkMode ? '#f97316' : '#ea580c')
+          : (darkMode ? '#06b6d4' : '#3b82f6')
+        }
         strokeWidth={selected ? 8 : 5}
         opacity={0.3}
         filter={`blur(3px)`}
@@ -45,7 +50,10 @@ export function CustomEdge({
       <path
         d={edgePath}
         fill="none"
-        stroke={darkMode ? '#67e8f9' : '#60a5fa'}
+        stroke={isNextDay
+          ? (darkMode ? '#fb923c' : '#f97316')
+          : (darkMode ? '#67e8f9' : '#60a5fa')
+        }
         strokeWidth={selected ? 5 : 3}
         opacity={0.6}
         filter={`blur(1px)`}
@@ -57,22 +65,35 @@ export function CustomEdge({
         id={id}
         path={edgePath}
         style={{
-          stroke: darkMode ? '#a7f3d0' : '#ffffff',
+          stroke: isNextDay
+            ? (darkMode ? '#fed7aa' : '#ffffff')
+            : (darkMode ? '#a7f3d0' : '#ffffff'),
           strokeWidth: selected ? 2 : 1.5,
           fill: 'none',
-          filter: darkMode
-            ? 'drop-shadow(0 0 2px #06b6d4)'
-            : 'drop-shadow(0 0 2px #3b82f6)',
+          filter: isNextDay
+            ? (darkMode ? 'drop-shadow(0 0 2px #f97316)' : 'drop-shadow(0 0 2px #ea580c)')
+            : (darkMode ? 'drop-shadow(0 0 2px #06b6d4)' : 'drop-shadow(0 0 2px #3b82f6)'),
         }}
-        className={`transition-all duration-300 ${isAnimated ? 'animate-pulse' : ''}`}
+        className={`transition-all duration-300 ${isAnimated ? 'animate-pulse' : ''} cursor-pointer`}
+        onClick={() => {
+          // Toggle next day status
+          console.log('Edge clicked, toggling next day status');
+        }}
       />
 
       {/* Flowing particle */}
       {isAnimated && (
         <circle
           r="2"
-          fill={darkMode ? '#67e8f9' : '#60a5fa'}
-          filter={`drop-shadow(0 0 4px ${darkMode ? '#06b6d4' : '#3b82f6'})`}
+          fill={isNextDay
+            ? (darkMode ? '#fb923c' : '#f97316')
+            : (darkMode ? '#67e8f9' : '#60a5fa')
+          }
+          filter={`drop-shadow(0 0 4px ${
+            isNextDay
+              ? (darkMode ? '#f97316' : '#ea580c')
+              : (darkMode ? '#06b6d4' : '#3b82f6')
+          })`}
         >
           <animateMotion
             dur="1.5s"
@@ -80,6 +101,27 @@ export function CustomEdge({
             path={edgePath}
           />
         </circle>
+      )}
+
+      {/* Next Day Label */}
+      {isNextDay && (
+        <foreignObject
+          x={labelX - 20}
+          y={labelY - 10}
+          width={40}
+          height={20}
+          className="pointer-events-none"
+        >
+          <div className={`
+            text-xs px-2 py-1 rounded-full text-center font-semibold
+            ${darkMode
+              ? 'bg-orange-500/20 text-orange-300 border border-orange-400/30'
+              : 'bg-orange-400/20 text-orange-700 border border-orange-500/30'
+            }
+          `}>
+            翌日
+          </div>
+        </foreignObject>
       )}
     </>
   );
