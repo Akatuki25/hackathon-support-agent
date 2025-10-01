@@ -13,7 +13,7 @@ from langchain.tools import StructuredTool
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 
-from models.project_base import AIDocument, Task
+from models.project_base import  Task
 
 from .base_service import BaseService
 

@@ -329,7 +329,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
             setCategory(e.target.value as NodeCategory);
           }}
           onClick={(e) => e.stopPropagation()}
-          className={`text-[9px] px-1 py-0 rounded-full font-medium border cursor-pointer appearance-none ${colors.bg} ${colors.border} ${colors.text} bg-opacity-80`}
+          className={`text-[9px] px-1 py-0 rounded-full font-medium border cursor-pointer appearance-none text-center ${colors.bg} ${colors.border} ${colors.text} bg-opacity-80`}
           title="カテゴリー"
         >
           <option value="default">通常</option>

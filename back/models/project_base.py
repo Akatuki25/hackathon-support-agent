@@ -180,6 +180,7 @@ class Task(Base):
     task_id      = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id   = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"),
                           nullable=False, index=True)
+    source_doc_id = Column(UUID(as_uuid=True), ForeignKey("projectDocument.doc_id", ondelete="SET NULL"), nullable=True)
     title        = Column(String, nullable=False)
     description  = Column(Text, nullable=True)
     detail       = Column(Text, nullable=True)  # 追加の詳細フィールド
@@ -200,6 +201,7 @@ class Task(Base):
     )
 
     project = relationship("ProjectBase", back_populates="tasks")
+    source_doc = relationship("ProjectDocument", back_populates="tasks")
 
     __table_args__ = (
         Index("ix_task_due_at", "due_at"),
