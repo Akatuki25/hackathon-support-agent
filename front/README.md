@@ -60,7 +60,6 @@ erDiagram
     string idea
     date   start_date
     datetime end_date
-    int    num_people
   }
 
   PROJECT_MEMBER {

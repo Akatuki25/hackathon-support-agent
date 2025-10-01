@@ -10,8 +10,8 @@ import Loading from "@/components/PageLoading";
 import SpecificationEditor from "@/components/SpecificationEditor/SpecificationEditor";
 import QASection from "@/components/QASection/QASection";
 import { getProjectDocument } from "@/libs/modelAPI/document";
-import { ProjectDocumentType, ConfidenceFeedback } from "@/types/modelTypes";
-import { evaluateSummary, getConfidenceFeedback } from "@/libs/service/summary";
+import { ProjectDocumentType } from "@/types/modelTypes";
+import { evaluateSummary } from "@/libs/service/summary";
 import { QAType } from "@/types/modelTypes";
  
 type FlowState = 'loading' | 'ready';
@@ -28,8 +28,6 @@ export default function SummaryQA() {
   const [score, setScore] = useState<number>(0);
   const [question, setQuestion] = useState<QAType[]>([]);
   const [mvpFeasible, setMvpFeasible] = useState<boolean>(false);
-  const [confidenceFeedback, setConfidenceFeedback] = useState<ConfidenceFeedback | null>(null);
-
 
   // 初期処理：document取得
   useEffect(() => {
@@ -63,17 +61,6 @@ export default function SummaryQA() {
           setMvpFeasible(false);
         }
 
-        // 確信度フィードバックを取得（存在する場合のみ）
-        try {
-          const projectDoc = await getProjectDocument(projectId);
-          if (projectDoc && projectDoc.specification) {
-            const feedback = await getConfidenceFeedback(projectId);
-            setConfidenceFeedback(feedback);
-          }
-        } catch (error) {
-          console.warn("確信度フィードバックの取得に失敗:", error);
-          // エラーは無視（まだ生成されていない可能性がある）
-        }
         setFlowState('ready');
       } catch (error) {
         console.error("初期処理に失敗:", error);
@@ -104,8 +91,6 @@ export default function SummaryQA() {
   // ドキュメント更新のハンドラー（確信度フィードバックも更新）
   const handleDocumentUpdate = async (document: ProjectDocumentType) => {
     setProjectDocument(document);
-    // ドキュメントが更新されたら確信度フィードバックをクリア（再評価が必要）
-    setConfidenceFeedback(null);
   };
 
   // ローディング状態の処理

@@ -2,6 +2,185 @@
 
 このドキュメントは、バックエンドAPIの仕様をまとめたものです。
 
+## ディレクトリ構成サマリ (@back)
+
+LLMと人間の両方が把握しやすいように、完全なパスリストと役割表を併記しています。
+
+```text
+.
+├─ __pycache__
+│  ├─ app.cpython-311.pyc
+│  ├─ app.cpython-312.pyc
+│  ├─ create_tables.cpython-312.pyc
+│  ├─ database.cpython-311.pyc
+│  └─ database.cpython-312.pyc
+├─ memo
+│  ├─ __pycache__
+│  │  └─ memo.cpython-312.pyc
+│  └─ memo.py
+├─ models
+│  ├─ __pycache__
+│  │  ├─ project.cpython-311.pyc
+│  │  ├─ project_base.cpython-311.pyc
+│  │  ├─ project_base.cpython-312.pyc
+│  │  └─ project_legacy.cpython-311.pyc
+│  └─ project_base.py
+├─ routers
+│  ├─ __pycache__
+│  │  ├─ __init__.cpython-311.pyc
+│  │  ├─ __init__.cpython-312.pyc
+│  │  ├─ ai_chat.cpython-312.pyc
+│  │  ├─ deploy.cpython-311.pyc
+│  │  ├─ deploy.cpython-312.pyc
+│  │  ├─ directory.cpython-311.pyc
+│  │  ├─ directory.cpython-312.pyc
+│  │  ├─ durationTask.cpython-311.pyc
+│  │  ├─ durationTask.cpython-312.pyc
+│  │  ├─ enhanced_tasks.cpython-312.pyc
+│  │  ├─ environment.cpython-311.pyc
+│  │  ├─ environment.cpython-312.pyc
+│  │  ├─ framework.cpython-311.pyc
+│  │  ├─ framework.cpython-312.pyc
+│  │  ├─ function_requirements.cpython-312.pyc
+│  │  ├─ graphTask.cpython-311.pyc
+│  │  ├─ graphTask.cpython-312.pyc
+│  │  ├─ plan_generator.cpython-312.pyc
+│  │  ├─ projects.cpython-311.pyc
+│  │  ├─ qanda.cpython-311.pyc
+│  │  ├─ qanda.cpython-312.pyc
+│  │  ├─ summary.cpython-311.pyc
+│  │  ├─ summary.cpython-312.pyc
+│  │  ├─ taskChat.cpython-311.pyc
+│  │  ├─ taskChat.cpython-312.pyc
+│  │  ├─ taskDetail.cpython-311.pyc
+│  │  ├─ taskDetail.cpython-312.pyc
+│  │  ├─ tasks.cpython-311.pyc
+│  │  ├─ tasks.cpython-312.pyc
+│  │  └─ technology.cpython-312.pyc
+│  ├─ project
+│  │  ├─ __pycache__
+│  │  │  ├─ env.cpython-312.pyc
+│  │  │  ├─ member.cpython-311.pyc
+│  │  │  ├─ member.cpython-312.pyc
+│  │  │  ├─ project.cpython-311.pyc
+│  │  │  ├─ project.cpython-312.pyc
+│  │  │  ├─ project_document.cpython-312.pyc
+│  │  │  ├─ project_member.cpython-311.pyc
+│  │  │  ├─ project_member.cpython-312.pyc
+│  │  │  ├─ project_project.cpython-311.pyc
+│  │  │  ├─ project_qa.cpython-312.pyc
+│  │  │  ├─ task.cpython-312.pyc
+│  │  │  └─ task_assignment.cpython-312.pyc
+│  │  ├─ env.py
+│  │  ├─ member.py
+│  │  ├─ project.py
+│  │  ├─ project_document.py
+│  │  ├─ project_member.py
+│  │  ├─ project_qa.py
+│  │  ├─ task.py
+│  │  └─ task_assignment.py
+│  ├─ __init__.py
+│  ├─ deploy.py
+│  ├─ directory.py
+│  ├─ durationTask.py
+│  ├─ environment.py
+│  ├─ framework.py
+│  ├─ function_requirements.py
+│  ├─ graphTask.py
+│  ├─ qanda.py
+│  ├─ summary.py
+│  ├─ taskChat.py
+│  ├─ taskDetail.py
+│  ├─ tasks.py
+│  └─ technology.py
+├─ services
+│  ├─ __pycache__
+│  │  ├─ __init__.cpython-311.pyc
+│  │  ├─ __init__.cpython-312.pyc
+│  │  ├─ base_service.cpython-311.pyc
+│  │  ├─ base_service.cpython-312.pyc
+│  │  ├─ deploy_service.cpython-311.pyc
+│  │  ├─ deploy_service.cpython-312.pyc
+│  │  ├─ directory_service.cpython-311.pyc
+│  │  ├─ directory_service.cpython-312.pyc
+│  │  ├─ durationTask_service.cpython-311.pyc
+│  │  ├─ durationTask_service.cpython-312.pyc
+│  │  ├─ enhanced_tasks_service.cpython-312.pyc
+│  │  ├─ environment_service.cpython-311.pyc
+│  │  ├─ environment_service.cpython-312.pyc
+│  │  ├─ framework_service.cpython-311.pyc
+│  │  ├─ framework_service.cpython-312.pyc
+│  │  ├─ function_service.cpython-312.pyc
+│  │  ├─ graphTask_service.cpython-311.pyc
+│  │  ├─ graphTask_service.cpython-312.pyc
+│  │  ├─ mvp_judge_service.cpython-312.pyc
+│  │  ├─ plan_generator_service.cpython-312.pyc
+│  │  ├─ question_service.cpython-311.pyc
+│  │  ├─ question_service.cpython-312.pyc
+│  │  ├─ summary_service.cpython-311.pyc
+│  │  ├─ summary_service.cpython-312.pyc
+│  │  ├─ taskChat_service.cpython-311.pyc
+│  │  ├─ taskChat_service.cpython-312.pyc
+│  │  ├─ taskDetail_service.cpython-311.pyc
+│  │  ├─ taskDetail_service.cpython-312.pyc
+│  │  ├─ tasks_service.cpython-311.pyc
+│  │  ├─ tasks_service.cpython-312.pyc
+│  │  └─ technology_service.cpython-312.pyc
+│  ├─ __init__.py
+│  ├─ base_service.py
+│  ├─ deploy_service.py
+│  ├─ directory_service.py
+│  ├─ durationTask_service.py
+│  ├─ environment_service.py
+│  ├─ framework_service.py
+│  ├─ function_service.py
+│  ├─ graphTask_service.py
+│  ├─ mvp_judge_service.py
+│  ├─ prompts.toml
+│  ├─ question_service.py
+│  ├─ summary_service.py
+│  ├─ taskChat_service.py
+│  ├─ taskDetail_service.py
+│  ├─ tasks_service.py
+│  └─ technology_service.py
+├─ .env.local
+├─ .gitignore
+├─ README.md
+├─ app.log
+├─ app.py
+├─ create_tables.py
+├─ database.py
+├─ package-lock.json
+└─ requirements.txt
+```
+
+### モジュール役割クイックリファレンス
+
+| Path | 役割 |
+| :--- | :--- |
+| `app.py` | FastAPIアプリのエントリポイント。全ルーター登録とCORS設定を管理。 |
+| `database.py` | SQLAlchemyエンジン・Session生成と`Base`メタデータを提供。 |
+| `create_tables.py` | モデルからテーブルを作成するユーティリティスクリプト。 |
+| `models/project_base.py` | プロジェクト管理に関わるSQLAlchemyモデル一式。 |
+| `routers/` | 生成系APIとプロジェクト管理APIを公開するFastAPIルーター群。 |
+| `routers/project/` | プロジェクト・メンバー・タスク等のCRUD用サブルーター。 |
+| `services/` | 各種LLM呼び出しとプロンプト管理を行うサービス層。 |
+| `services/base_service.py` | LLMクライアント初期化・プロンプト読み込み・共通ロギングの基底クラス。 |
+| `services/prompts.toml` | サービス毎のテンプレートプロンプト定義。 |
+| `memo/memo.py` | 簡易メモAPI。仕様検証用の補助モジュール。 |
+| `.env.local` | LLM/APIキーやロギング設定を読み込む環境変数ファイル。 |
+| `requirements.txt` | Python依存パッケージ。 |
+| `package-lock.json` | Node依存（フロント連携やビルドツール用）のロックファイル。 |
+| `app.log` | LLMサービス層のロギング出力。ローテーション設定は環境変数で制御。 |
+| `README.md` | API仕様と本構造サマリ。 |
+
+### 備考
+
+- `__pycache__` 配下はPython実行時に生成されるバイトコードで、デプロイやレビューの対象外です。
+- 生成AIの挙動やプロンプトを調整する場合は `services/prompts.toml` と各 `*_service.py` を併読すると意図が掴みやすくなります。
+- ローカル実行時は `LOG_FILE` など環境変数を `.env.local` で制御し、開発者間でのキー共有には注意してください。
+
+
 ## 1. AI生成系API
 
 LLMを利用して、アイデアや仕様書から具体的な成果物（タスク、ディレクトリ構成、各種ドキュメントなど）を生成するAPI群です。

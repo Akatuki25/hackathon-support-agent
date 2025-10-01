@@ -16,14 +16,14 @@ export default function Editor({ initialSummary }: InitialSummaryProps) {
     sessionStorage.setItem("specification", markdown);
   };
 
-  const loadMarkdown = async () => {
-    const blocks = await editor.tryParseMarkdownToBlocks(initialSummary);
-    editor.replaceBlocks(editor.document, blocks);
-  };
-
   useEffect(() => {
-    loadMarkdown();
-  }, []);
+    const loadMarkdown = async () => {
+      const blocks = await editor.tryParseMarkdownToBlocks(initialSummary);
+      editor.replaceBlocks(editor.document, blocks);
+    };
+
+    void loadMarkdown();
+  }, [editor, initialSummary]);
 
   return (
     <div>

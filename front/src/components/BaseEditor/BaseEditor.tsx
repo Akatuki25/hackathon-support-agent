@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { BlockNoteEditor, blocksToMarkdown, markdownToBlocks, filterSuggestionItems } from "@blocknote/core";
+import { blocksToMarkdown, markdownToBlocks, filterSuggestionItems } from "@blocknote/core";
 import type { Block as BlockType, PartialBlock as PartialBlockType } from "@blocknote/core";
 import { en } from "@blocknote/core/locales";
 import { BlockNoteView } from "@blocknote/mantine";
@@ -58,6 +58,9 @@ const client = createBlockNoteAIClient({
 const model = createGoogleGenerativeAI({
   ...client.getProviderSettings("google"),
 })("gemini-2.5-flash-lite");
+
+type BlockNoteEditorInstance = ReturnType<typeof useCreateBlockNote>;
+type EditorDictionary = typeof en & { ai?: typeof aiEn };
 
 export interface BaseEditorProps {
   // コンテンツ関連
@@ -118,6 +121,9 @@ export default function BaseEditor({
   const contentInitialized = isContentInitialized ?? internalContentInitialized;
   const setContentInitialized = onContentInitialized ?? setInternalContentInitialized;
 
+  const dictionary: EditorDictionary = enableAI ? { ...en, ai: aiEn } : en;
+  const aiExtension = enableAI ? createAIExtension({ model }) : null;
+
   // BlockNote エディターの初期化
   const editor = useCreateBlockNote({
     initialContent: [createPlainParagraphBlock(placeholder)],
@@ -126,20 +132,15 @@ export default function BaseEditor({
         class: "focus:outline-none",
       },
     },
-    dictionary: {
-      ...en,
-      ...(enableAI && { ai: aiEn }),
-    } as any,
+    dictionary,
     trailingBlock: editorConfig.trailingBlock ?? true,
     defaultStyles: editorConfig.defaultStyles ?? true,
     uploadFile: undefined,
     ...(editorConfig.blockSpecs && { blockSpecs: editorConfig.blockSpecs }),
     // AI拡張を有効にする
-    ...(enableAI && {
+    ...(enableAI && aiExtension && {
       _extensions: {
-        ai: createAIExtension({
-          model: model as any,
-        }) as any,
+        ai: aiExtension,
       },
     }),
   });
@@ -510,9 +511,7 @@ function FormattingToolbarWithAI() {
 }
 
 // AI機能付きスラッシュメニュー
-function SuggestionMenuWithAI(props: {
-  editor: BlockNoteEditor<any, any, any>;
-}) {
+function SuggestionMenuWithAI(props: { editor: BlockNoteEditorInstance }) {
   return (
     <SuggestionMenuController
       triggerCharacter="/"

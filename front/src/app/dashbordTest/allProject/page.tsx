@@ -423,37 +423,6 @@ export default function AllProjectPage() {
                           日間
                         </span>
                       </div>
-
-                      {/* Team Size */}
-                      <div
-                        className={`p-3 rounded border ${
-                          darkMode
-                            ? "bg-gray-800/50 border-gray-600/50"
-                            : "bg-gray-50/50 border-gray-300/50"
-                        }`}
-                      >
-                        <div className="flex items-center mb-1">
-                          <Users
-                            className={`w-3 h-3 mr-1 ${
-                              darkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
-                          />
-                          <span
-                            className={`text-xs font-mono ${
-                              darkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
-                          >
-                            チーム
-                          </span>
-                        </div>
-                        <span
-                          className={`text-sm font-mono font-bold ${
-                            darkMode ? "text-white" : "text-gray-900"
-                          }`}
-                        >
-                          {project.num_people || 0}人
-                        </span>
-                      </div>
                     </div>
 
                     {/* Dates */}

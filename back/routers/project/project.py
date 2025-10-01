@@ -15,14 +15,12 @@ class ProjectBaseType(BaseModel):
     idea: str
     start_date: date
     end_date: datetime
-    num_people: int
 
 class ProjectPatch(BaseModel):
     title: Optional[str] = None
     idea: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[datetime] = None
-    num_people: Optional[int] = None
 
 from database import get_db
         
@@ -35,7 +33,6 @@ async def create_project(project: ProjectBaseType, db: Session = Depends(get_db)
         idea=project.idea,
         start_date=project.start_date,
         end_date=project.end_date,
-        num_people=project.num_people
     )
     db.add(db_project)
     db.commit()
@@ -60,7 +57,6 @@ async def update_project(project_id: str, project: ProjectBaseType, db: Session 
     db_project.idea = project.idea
     db_project.start_date = project.start_date
     db_project.end_date = project.end_date
-    db_project.num_people = project.num_people
     db.commit()
     db.refresh(db_project)
     return {"message": "プロジェクトが更新されました"}

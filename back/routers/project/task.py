@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from database import get_db
-from models.project_base import Task, TaskStatusEnum, PriorityEnum
+from models.project_base import Task, TaskStatusEnum
 
 router = APIRouter()
 
@@ -27,8 +27,6 @@ class TaskType(BaseModel):
         super().__init__(**data)
         if self.status is not None:
             self.status = TaskStatusEnum(self.status)
-        if self.priority is not None:
-            self.priority = PriorityEnum(self.priority)
 
 class TaskPatch(BaseModel):
     project_id: Optional[uuid.UUID] = None

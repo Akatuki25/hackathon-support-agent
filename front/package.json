@@ -22,6 +22,7 @@
     "@blocknote/xl-ai": "^0.39.1",
     "@google/gemini-cli": "^0.3.2",
     "@hookform/resolvers": "^5.1.1",
+    "@xyflow/react": "^12.8.6",
     "ai": "^5.0.48",
     "axios": "^1.12.2",
     "lucide-react": "^0.503.0",

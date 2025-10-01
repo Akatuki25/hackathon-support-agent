@@ -1,5 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { TaskType, TaskResponseType, TaskPatch, TaskStatusEnum, PriorityEnum } from '@/types/modelTypes';
+import { TaskType, TaskResponseType, TaskPatch } from '@/types/modelTypes';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
