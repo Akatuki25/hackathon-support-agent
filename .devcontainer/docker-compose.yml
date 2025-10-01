@@ -1,10 +1,10 @@
 services:
-  hackson_support_agent:
+  hackathon_support_agent:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
     volumes:
-      - ..:/workspaces/hackson_support_agent:cashed
+      - ..:/workspaces/hackathon_support_agent:cashed
     command: ["tail", "-f", "/dev/null"]
   
   db:
@@ -14,8 +14,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: hack_helper
-      POSTGRES_PASSWORD: hackson
-      POSTGRES_DB: hackson_support_agent
+      POSTGRES_PASSWORD: hackathon
+      POSTGRES_DB: hackathon_support_agent
 
 volumes:
   postgres_data:

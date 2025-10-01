@@ -1,42 +1,57 @@
-FROM ubuntu:latest
+# .devcontainer/Dockerfile
+FROM ubuntu:24.04
 
-# 環境変数でタイムゾーン設定を自動化
 ENV DEBIAN_FRONTEND=noninteractive
 
-# curlをダウンロードする
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-    software-properties-common \
-    build-essential \
+# Python 3.12 と基本ツールのインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    python3.12-dev \
+    python3-pip \
     curl \
-    && add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update
-# Pythonのインストール
-RUN apt-get install -y --no-install-recommends \
-    python3.11\
-    python3.11-venv \
-    python3.11-dev \
-    python3-pip
+    git \
+    build-essential \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Python3 をデフォルトの `python` コマンドに設定
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 && \
+# Python と pip のデフォルト設定（Python 3.12を使う）
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 && \
     update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 
-# node_modulesのインストール
-RUN apt install -y nodejs npm && npm install n -g \
-    && n stable \
-    && apt purge -y nodejs npm \
-    && apt autoremove -y \
-    && n stable
+
+
+# 以降の RUN は bash -lc で実行（nvm を素直に使うため）
+SHELL ["/bin/bash", "-lc"]
+
+# ---- nvm + Node (最新安定) + pnpm セットアップ ----
+# nvm は /usr/local/nvm に入れて全ユーザーから使えるように
+ENV NVM_DIR=/usr/local/nvm
+RUN mkdir -p "$NVM_DIR" \
+ && curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+# Node 最新（stable = 'node' エイリアス）を入れてデフォルト化
+# さらに corepack で pnpm を最新化＆有効化
+RUN source "$NVM_DIR/nvm.sh" \
+ && nvm install node --latest-npm \
+ && nvm alias default node \
+ && corepack enable \
+ && corepack prepare pnpm@latest --activate \
+ # nvm 管理の node/npm/pnpm をパスの通った場所にシンボリックリンク
+ && ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node"    /usr/local/bin/node \
+ && ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npm"     /usr/local/bin/npm \
+ && ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npx"     /usr/local/bin/npx \
+ && ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/corepack" /usr/local/bin/corepack \
+ && ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/pnpm"    /usr/local/bin/pnpm
+
+# ---- バージョン確認（ログ出力用）----
+RUN python --version && pip --version && node -v && npm -v && pnpm -v
 
 
 
-# キャッシュを削除してイメージサイズを小さくする。
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
 
-# gitのダウンロード
-RUN apt-get update && apt-get install -y git
+# バージョン確認（デバッグ用・任意）
+RUN python --version && pip --version && node -v && npm -v
 
-# コンテナが終了しないように tail -f /dev/null を実行
+# 開発用コンテナとして止まらないように
 CMD ["tail", "-f", "/dev/null"]

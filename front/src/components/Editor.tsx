@@ -5,35 +5,29 @@ import "@blocknote/mantine/style.css";
 import { useEffect } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
 interface InitialSummaryProps {
-    initialSummary: string;
+  initialSummary: string;
 }
 
+export default function Editor({ initialSummary }: InitialSummaryProps) {
+  const editor = useCreateBlockNote();
 
+  const onChange = async () => {
+    const markdown = await editor.blocksToMarkdownLossy(editor.document);
+    sessionStorage.setItem("specification", markdown);
+  };
 
-
-export default function Editor({initialSummary}: InitialSummaryProps) {
-    const editor = useCreateBlockNote();
-
-    const onChange = async () => {
-        const markdown = await editor.blocksToMarkdownLossy(editor.document);
-        sessionStorage.setItem("specification", markdown);
-    };
-
+  useEffect(() => {
     const loadMarkdown = async () => {
-        const blocks = await editor.tryParseMarkdownToBlocks(initialSummary);
-        editor.replaceBlocks(editor.document, blocks);
+      const blocks = await editor.tryParseMarkdownToBlocks(initialSummary);
+      editor.replaceBlocks(editor.document, blocks);
     };
 
-    useEffect(() => {
-        loadMarkdown();
-    }
-    , []);
-    
+    void loadMarkdown();
+  }, [editor, initialSummary]);
 
-    return (
-      <div>
-        <BlockNoteView editor={editor} onChange={onChange} />
-      </div>
-    );
+  return (
+    <div>
+      <BlockNoteView editor={editor} onChange={onChange} />
+    </div>
+  );
 }
- 

@@ -18,7 +18,7 @@ $ pip install -r requirements.txt
 
 Google API Key はGoogle AI Platformから取得する
 ```bash
-DATABASE_URL="postgresql://hack_helper:hackson@db/hackson_support_agent"
+DATABASE_URL="postgresql://hack_helper:hackathon@db/hackathon_support_agent"
 GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
 
 ```
@@ -32,6 +32,10 @@ $ npm install
 .envファイルを作成し、以下の内容を記述する
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_NEXT_API_URL=http://localhost:3000/api
+GITHUB_ID="GitHubから取得できるID"
+GITHUB_SECRET="自分のGithubから取得できるSecret"
+NEXTAUTH_SECRET="自分でランダムに生成した文字列"
 ```
 
 

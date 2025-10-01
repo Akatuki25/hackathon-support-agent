@@ -1,7 +1,9 @@
-from fastapi import APIRouter, responses, HTTPException
+from fastapi import APIRouter, responses, HTTPException, Depends
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from typing import List
+from sqlalchemy.orm import Session
+from database import get_db
 from services.taskDetail_service import TaskDetailService, TaskItem
 
 router = APIRouter()
@@ -12,11 +14,11 @@ class TaskDetailRequest(BaseModel):
     specification: str
 
 @router.post("/")
-async def generate_task_details(request: TaskDetailRequest):
+async def generate_task_details(request: TaskDetailRequest, db: Session = Depends(get_db)):
     """
     各タスクを並列に LLM 呼び出しして detail を生成。
     """
-    service = TaskDetailService()
+    service = TaskDetailService(db=db)
     # Pydantic モデルを dict 変換
     task_dicts = [t.model_dump() for t in request.tasks]
     specification = request.specification

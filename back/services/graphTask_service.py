@@ -27,24 +27,7 @@ class GraphTaskService(BaseService):
         parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
         prompt_template = ChatPromptTemplate.from_template(
-            template="""
-            あなたはプロのプロジェクトマネージャーです。
-            以下のタスクリストに基づき、以下のような要件でタスク間の依存関係を推論してください。
-            それぞれのタスクの内容から、タスクのフロー図を考え、構造木として表現します。API設計-API1の構築-API2の構築のように開発のフローを作ることを想定しています。
-            タスクの情報は task_id, task_name, content のみが提供されています。
-            ただし、タスクの親子関係は一方通行であり、循環依存は存在しないものとします。
-            タスクは基本的に木の中に一つだけになるようにしてください。
-            ドキュメント確認などのタスクは、他のタスクに依存しないものとします。
-            また、タスクの親子関係は必ず小さいタスクIDから大きいタスクIDへの依存関係として出力してください。
-            出力は以下のJSON形式に従い、各エッジを {{parent: タスクID, child: タスクID}} の形式で、
-            エッジのリストとして返してください。
-            
-            タスク一覧:
-            {tasks_input}
-            
-            回答は以下のJSON形式で出力してください:
-            {format_instructions}
-            """,
+            template=self.get_prompt("graph_task_service", "generate_task_graph"),
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
 

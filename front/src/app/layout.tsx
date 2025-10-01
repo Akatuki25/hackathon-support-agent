@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider } from "next-themes";
 import DarkToggle from "@/components/theme-switcher";
-import MountedWrapper  from "@/components/MountedWrapper";
+import MountedWrapper from "@/components/MountedWrapper";
 import GridEdge from "@/components/GridEgde";
 import "./globals.css";
+import { NextAuthProvider } from "@/libs/NextAuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,14 +32,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-      <MountedWrapper>
-        <ThemeProvider attribute="class" defaultTheme="system">
-          <GridEdge>
-          <DarkToggle />
-          {children}
-          </GridEdge>
-        </ThemeProvider>
-      </MountedWrapper>
+        <NextAuthProvider>
+          <MountedWrapper>
+            <ThemeProvider attribute="class" defaultTheme="system">
+              <GridEdge>
+                <DarkToggle />
+                {children}
+              </GridEdge>
+            </ThemeProvider>
+          </MountedWrapper>
+        </NextAuthProvider>
       </body>
     </html>
   );

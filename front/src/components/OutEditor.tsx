@@ -474,8 +474,8 @@ const CyberpunkBlockNoteEditor = () => {
     }
   `;
 
-// Custom dark theme configuration for BlockNote
-const darkTheme = {
+  // Custom dark theme configuration for BlockNote
+  const darkTheme = {
     colors: {
       editor: {
         text: "#e2e8f0",
@@ -492,45 +492,45 @@ const darkTheme = {
       highlights: {
         blue: {
           text: "#ffffff",
-          background: "rgba(59, 130, 246, 0.3)"
+          background: "rgba(59, 130, 246, 0.3)",
         },
         red: {
           text: "#ffffff",
-          background: "rgba(244, 114, 182, 0.3)"
+          background: "rgba(244, 114, 182, 0.3)",
         },
         green: {
           text: "#ffffff",
-          background: "rgba(94, 234, 212, 0.3)"
+          background: "rgba(94, 234, 212, 0.3)",
         },
         yellow: {
           text: "#ffffff",
-          background: "rgba(250, 204, 21, 0.3)"
+          background: "rgba(250, 204, 21, 0.3)",
         },
         gray: {
           text: "#ffffff",
-          background: "rgba(156, 163, 175, 0.3)"
+          background: "rgba(156, 163, 175, 0.3)",
         },
         brown: {
           text: "#ffffff",
-          background: "rgba(180, 83, 9, 0.3)"
+          background: "rgba(180, 83, 9, 0.3)",
         },
         orange: {
           text: "#ffffff",
-          background: "rgba(249, 115, 22, 0.3)"
+          background: "rgba(249, 115, 22, 0.3)",
         },
         purple: {
           text: "#ffffff",
-          background: "rgba(124, 58, 237, 0.3)"
+          background: "rgba(124, 58, 237, 0.3)",
         },
         pink: {
           text: "#ffffff",
-          background: "rgba(236, 72, 153, 0.3)"
-        }
+          background: "rgba(236, 72, 153, 0.3)",
+        },
       },
       sideMenu: "#1f2937",
     },
   };
-  
+
   // Custom light theme configuration for BlockNote
   const lightTheme = {
     colors: {
@@ -549,40 +549,40 @@ const darkTheme = {
       highlights: {
         blue: {
           text: "#1e293b",
-          background: "rgba(59, 130, 246, 0.2)"
+          background: "rgba(59, 130, 246, 0.2)",
         },
         red: {
           text: "#1e293b",
-          background: "rgba(244, 114, 182, 0.2)"
+          background: "rgba(244, 114, 182, 0.2)",
         },
         green: {
           text: "#1e293b",
-          background: "rgba(94, 234, 212, 0.2)"
+          background: "rgba(94, 234, 212, 0.2)",
         },
         yellow: {
           text: "#1e293b",
-          background: "rgba(250, 204, 21, 0.2)"
+          background: "rgba(250, 204, 21, 0.2)",
         },
         gray: {
           text: "#1e293b",
-          background: "rgba(156, 163, 175, 0.2)"
+          background: "rgba(156, 163, 175, 0.2)",
         },
         brown: {
           text: "#1e293b",
-          background: "rgba(180, 83, 9, 0.2)"
+          background: "rgba(180, 83, 9, 0.2)",
         },
         orange: {
           text: "#1e293b",
-          background: "rgba(249, 115, 22, 0.2)"
+          background: "rgba(249, 115, 22, 0.2)",
         },
         purple: {
           text: "#1e293b",
-          background: "rgba(124, 58, 237, 0.2)"
+          background: "rgba(124, 58, 237, 0.2)",
         },
         pink: {
           text: "#1e293b",
-          background: "rgba(236, 72, 153, 0.2)"
-        }
+          background: "rgba(236, 72, 153, 0.2)",
+        },
       },
       sideMenu: "#f3f4f6",
     },
@@ -609,7 +609,7 @@ const darkTheme = {
   // Get current date and time for the status bar
   const getCurrentTime = () => {
     const now = new Date();
-    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -625,7 +625,7 @@ const darkTheme = {
 
   // State for theme mode (dark/light)
   const [themeMode, setThemeMode] = useState("dark");
-  
+
   // Handle theme toggle
   const toggleTheme = () => {
     setThemeMode(themeMode === "dark" ? "light" : "dark");
@@ -635,7 +635,7 @@ const darkTheme = {
     <div className={`cyberpunk-${themeMode}`}>
       {/* Custom stylesheet */}
       <style>{cyberpunkStyles}</style>
-      
+
       <div className="cyberpunk-editor-container">
         {/* Visual effects - only shown in dark mode */}
         {themeMode === "dark" && (
@@ -645,35 +645,38 @@ const darkTheme = {
             <div className="scan-line"></div>
           </>
         )}
-        
+
         {/* Editor title */}
         <div className="editor-title">CYBERPUNK BLOCKNOTE TERMINAL</div>
-        
+
         {/* Theme toggle button */}
-        <div style={{ textAlign: 'right', marginBottom: '10px' }}>
-          <button 
+        <div style={{ textAlign: "right", marginBottom: "10px" }}>
+          <button
             onClick={toggleTheme}
             style={{
-              background: 'transparent',
-              border: themeMode === "dark" ? '1px solid #5eead4' : '1px solid #7c3aed',
-              color: themeMode === "dark" ? '#5eead4' : '#7c3aed',
-              padding: '5px 10px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontFamily: 'Orbitron, sans-serif',
-              fontSize: '12px',
+              background: "transparent",
+              border:
+                themeMode === "dark"
+                  ? "1px solid #5eead4"
+                  : "1px solid #7c3aed",
+              color: themeMode === "dark" ? "#5eead4" : "#7c3aed",
+              padding: "5px 10px",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontFamily: "Orbitron, sans-serif",
+              fontSize: "12px",
             }}
           >
             SWITCH TO {themeMode === "dark" ? "LIGHT" : "DARK"} MODE
           </button>
         </div>
-        
+
         {/* The editor view */}
-        <BlockNoteView 
-          editor={editor} 
-          theme={themeMode === "dark" ? darkTheme : lightTheme} 
+        <BlockNoteView
+          editor={editor}
+          theme={themeMode === "dark" ? darkTheme : lightTheme}
         />
-        
+
         {/* Status bar */}
         <div className="status-bar">
           <div>
@@ -684,7 +687,7 @@ const darkTheme = {
           <div>{currentTime} / NIGHT CITY</div>
         </div>
       </div>
-      
+
       {/* Optional: JSON display */}
       <div className="json-display">
         <div className="json-display-title">DOCUMENT STRUCTURE</div>

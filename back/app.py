@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+
 # APIルーターのインポート
-from routers import qanda, summary, tasks, framework, directory, environment, projects, taskDetail, taskChat, graphTask, durationTask, deploy
+from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member
+from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, technology
 
 app = FastAPI(
     title="LangChain Server",
@@ -9,7 +12,7 @@ app = FastAPI(
 )
 
 # CORS設定 多分最後のurl/の/は必要ない
-origins = ["https://hackson-support-agent-lzcy0oa36-vyumas-projects.vercel.app","http://localhost:3000","http://localhost:3001","https://hackson-support-agent-git-hotfix-depolygit-vyumas-projects.vercel.app","https://hackson-support-agent.vercel.app","https://hackson-support-agent-git-develop-vyumas-projects.vercel.app/"]
+origins = ["http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -23,7 +26,20 @@ async def root():
     return {"message": "Hello World"}
 
 # APIルーターの登録
-app.include_router(projects.router)
+# DB のプロジェクト
+app.include_router(member.router)
+app.include_router(project.router)
+app.include_router(project_document.router)
+app.include_router(env.router)
+app.include_router(task.router)
+app.include_router(task_assignment.router)
+app.include_router(project_qa.router)
+app.include_router(project_member.router)
+
+
+
+
+# APIサービス
 app.include_router(qanda.router, prefix="/api/question", tags=["Q&A"])
 app.include_router(summary.router, prefix="/api/summary", tags=["Summary"])
 app.include_router(tasks.router, prefix="/api/get_object_and_tasks", tags=["Tasks"])
@@ -35,9 +51,13 @@ app.include_router(taskChat.router, prefix="/api/taskChat", tags=["TaskChat"])
 app.include_router(graphTask.router, prefix="/api/graphTask", tags=["GraphTask"])
 app.include_router(durationTask.router, prefix="/api/durationTask", tags=["DurationTask"])
 app.include_router(deploy.router, prefix="/api/deploy", tags=["Deploy"])
+app.include_router(function_requirements.router, prefix="/api/function_requirements", tags=["FunctionRequirements"])
+app.include_router(technology.router, prefix="/api/technology", tags=["Technology"])
+
+
 
 # 適宜追加
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='localhost', port=8000)
+    uvicorn.run("app:app", host="localhost", port=8000, reload=True)
