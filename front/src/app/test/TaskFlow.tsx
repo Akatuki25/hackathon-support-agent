@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, Background, useNodesState, useEdgesState, Connection } from '@xyflow/react';
 import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 
 import { TextUpdaterNode } from './CustomNode';
@@ -38,6 +39,7 @@ const formatTime = (minutes: number): string => {
 // Removed unused function addMinutesToTime
 
 export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesChange }: TaskFlowProps) {
+  const router = useRouter();
   const [nodes, setNodes, onNodesStateChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesStateChange] = useEdgesState(initialEdges);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -217,6 +219,14 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
     [onEdgesStateChange, edges, onEdgesChange],
   );
 
+  // Handle node double click to navigate to task detail page
+  const onNodeDoubleClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      router.push(`/test/${node.id}`);
+    },
+    [router],
+  );
+
   // Calculate project stats
   const completedTasks = nodes.filter(node => node.data?.completed).length;
   const totalTasks = nodes.length;
@@ -235,6 +245,7 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onConnect={onConnect}
+        onNodeDoubleClick={onNodeDoubleClick}
         fitView
         colorMode="dark"
         className="cyber-flow"
