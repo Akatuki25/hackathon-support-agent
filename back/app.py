@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 # APIルーターのインポート
-from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member
-from routers import qanda, summary, tasks, framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, technology
+from routers.project import member , project , project_document, env, task_assignment,project_qa,project_member
+from routers import qanda, summary, framework, directory, environment,  taskDetail, graphTask, durationTask, deploy, function_requirements, technology
 
 app = FastAPI(
     title="LangChain Server",
@@ -31,7 +31,6 @@ app.include_router(member.router)
 app.include_router(project.router)
 app.include_router(project_document.router)
 app.include_router(env.router)
-app.include_router(task.router)
 app.include_router(task_assignment.router)
 app.include_router(project_qa.router)
 app.include_router(project_member.router)
@@ -42,12 +41,10 @@ app.include_router(project_member.router)
 # APIサービス
 app.include_router(qanda.router, prefix="/api/question", tags=["Q&A"])
 app.include_router(summary.router, prefix="/api/summary", tags=["Summary"])
-app.include_router(tasks.router, prefix="/api/get_object_and_tasks", tags=["Tasks"])
 app.include_router(framework.router, prefix="/api/framework", tags=["Framework"])
 app.include_router(directory.router, prefix="/api/directory", tags=["Directory"])
 app.include_router(environment.router, prefix="/api/environment", tags=["Environment"])
 app.include_router(taskDetail.router, prefix="/api/taskDetail", tags=["TaskDetail"])
-app.include_router(taskChat.router, prefix="/api/taskChat", tags=["TaskChat"])
 app.include_router(graphTask.router, prefix="/api/graphTask", tags=["GraphTask"])
 app.include_router(durationTask.router, prefix="/api/durationTask", tags=["DurationTask"])
 app.include_router(deploy.router, prefix="/api/deploy", tags=["Deploy"])

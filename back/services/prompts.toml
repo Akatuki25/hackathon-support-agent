@@ -305,7 +305,7 @@ generate_evaluate_summary="""
 
 """
 
-[function_service.confidence_feedback]
+[confidence_feedback]
 generate_confidence_feedback = """
 あなたはプロジェクト仕様書の品質評価エキスパートです。
 以下の仕様書とQ&Aの内容から、仕様書の完成度と確信度を分析し、フィードバックを提供してください。

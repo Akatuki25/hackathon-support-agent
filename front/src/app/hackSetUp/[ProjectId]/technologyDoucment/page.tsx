@@ -119,11 +119,24 @@ export default function TechnologyDocumentPage() {
         frame_work_doc: technologyDoc
       });
       console.log("技術ドキュメントの保存に成功");
-
-      // 次のページへ遷移（例：タスク分割ページ）
-      router.push(`/hackSetUp/${projectId}/taskDivision`);
     } catch (error) {
       console.error("技術ドキュメントの保存に失敗:", error);
+    }
+  };
+
+  const handleNext = async () => {
+    try {
+      // 保存してから次のページへ遷移
+      await patchProjectDocument(projectId, {
+        frame_work_doc: technologyDoc
+      });
+      console.log("技術ドキュメントの保存に成功");
+
+      // 次のページへ遷移
+      router.push(`/hackSetUp/${projectId}/functionCard`);
+    } catch (error) {
+      console.error("技術ドキュメントの保存に失敗:", error);
+      alert("保存に失敗しました。もう一度お試しください。");
     }
   };
 
@@ -150,6 +163,7 @@ export default function TechnologyDocumentPage() {
               onSave={handleSave}
               onRegenerate={handleRegenerate}
               isRegenerating={isRegenerating}
+              onNext={handleNext}
             />
           </div>
 

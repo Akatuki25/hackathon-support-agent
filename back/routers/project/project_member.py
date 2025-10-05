@@ -38,22 +38,14 @@ async def create_project_member(project_member: ProjectMemberType, db: Session =
     db.refresh(db_project_member)
     return {"project_member_id": project_member_id, "message": "プロジェクトメンバーが作成されました"}
 
-@router.get("/project_member/{project_member_id}", summary="プロジェクトメンバー取得")
+@router.get("/project_member/member/{project_member_id}", summary="プロジェクトメンバー取得")
 async def get_project_member(project_member_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
         raise HTTPException(status_code=404, detail="Project member not found")
     return db_project_member
 
-# プロジェクトIDからプロジェクトメンバーを取得する
-@router.get("/project_member/project/{project_id}", summary="プロジェクトIDからプロジェクトメンバー取得")
-async def get_project_members_by_project_id(project_id: uuid.UUID, db: Session = Depends(get_db)):
-    db_project_members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
-    if not db_project_members:
-        raise HTTPException(status_code=404, detail="Project members not found")
-    return db_project_members
-
-@router.put("/project_member/{project_member_id}", summary="プロジェクトメンバー更新")
+@router.put("/project_member/member/{project_member_id}", summary="プロジェクトメンバー更新")
 async def update_project_member(project_member_id: uuid.UUID, project_member: ProjectMemberType, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
@@ -65,7 +57,7 @@ async def update_project_member(project_member_id: uuid.UUID, project_member: Pr
     db.refresh(db_project_member)
     return {"message": "プロジェクトメンバーが更新されました"}
 
-@router.delete("/project_member/{project_member_id}", summary="プロジェクトメンバー削除")
+@router.delete("/project_member/member/{project_member_id}", summary="プロジェクトメンバー削除")
 async def delete_project_member(project_member_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
@@ -76,7 +68,7 @@ async def delete_project_member(project_member_id: uuid.UUID, db: Session = Depe
     
     return {"message": "プロジェクトメンバーが削除されました"}
 
-@router.patch("/project_member/{project_member_id}", summary="プロジェクトメンバー部分更新")
+@router.patch("/project_member/member/{project_member_id}", summary="プロジェクトメンバー部分更新")
 async def patch_project_member(project_member_id: uuid.UUID, project_member: ProjectMemberPatch, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
@@ -89,3 +81,12 @@ async def patch_project_member(project_member_id: uuid.UUID, project_member: Pro
     db.commit()
     db.refresh(db_project_member)
     return {"message": "Project member partially updated successfully"}
+
+
+# プロジェクトIDからプロジェクトメンバーを取得する
+@router.get("/project_member/project/{project_id}", summary="プロジェクトIDからプロジェクトメンバー取得")
+async def get_project_members_by_project_id(project_id: uuid.UUID, db: Session = Depends(get_db)):
+    db_project_members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
+    if not db_project_members:
+        raise HTTPException(status_code=404, detail="Project members not found")
+    return db_project_members

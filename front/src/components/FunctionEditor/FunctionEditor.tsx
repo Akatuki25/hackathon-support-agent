@@ -205,34 +205,6 @@ export default function FunctionEditor({
           </>
         )}
       </button>
-
-      <button
-        onClick={handleGetConfidenceFeedback}
-        disabled={loadingConfidenceFeedback || !functionDocument}
-        className={`px-6 py-2 flex items-center rounded-lg shadow focus:outline-none transform transition ${
-          loadingConfidenceFeedback || !functionDocument
-            ? "cursor-not-allowed opacity-70"
-            : "hover:-translate-y-0.5"
-        } ${
-          darkMode
-            ? "bg-teal-500 hover:bg-teal-600 text-gray-900 focus:ring-2 focus:ring-teal-400"
-            : "bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white focus:ring-2 focus:ring-teal-400"
-        } ${
-          loadingConfidenceFeedback && (darkMode ? "bg-teal-600" : "from-teal-600 to-emerald-700")
-        }`}
-      >
-        {loadingConfidenceFeedback ? (
-          <>
-            <Loader2 size={16} className="mr-2 animate-spin" />
-            分析中...
-          </>
-        ) : (
-          <>
-            <TrendingUp size={16} className="mr-2" />
-            確信度分析
-          </>
-        )}
-      </button>
     </div>
   );
 

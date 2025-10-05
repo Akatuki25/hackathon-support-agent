@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Code, Save, Loader2, RefreshCcw } from "lucide-react";
+import { Code, Save, Loader2, RefreshCcw, ArrowRight } from "lucide-react";
 import { BaseEditor } from "@/components/BaseEditor";
 
 const sanitizeTechnologyContent = (input: string) => {
@@ -49,6 +49,7 @@ interface TechnologyEditorProps {
   onSave?: () => void;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
+  onNext?: () => void;
 }
 
 export default function TechnologyEditor({
@@ -56,7 +57,8 @@ export default function TechnologyEditor({
   onContentChange,
   onSave,
   onRegenerate,
-  isRegenerating = false
+  isRegenerating = false,
+  onNext
 }: TechnologyEditorProps) {
 
   // ヘッダーアクション
@@ -99,32 +101,46 @@ export default function TechnologyEditor({
   );
 
   return (
-    <BaseEditor
-      content={initialContent}
-      placeholder="技術ドキュメントを記述してください..."
-      onContentChange={onContentChange}
-      title="技術ドキュメント編集"
-      icon={Code}
-      headerActions={headerActions}
-      sanitizeContent={sanitizeTechnologyContent}
-      editorConfig={{
-        minHeight: 500,
-        blockSpecs: {
-          // 基本的なブロックのみ許可
-          paragraph: true,
-          heading: true,
-          bulletListItem: true,
-          numberedListItem: true,
-          codeBlock: true,
-          // 複雑なブロックは無効化
-          table: false,
-          file: false,
-          image: false,
-        },
-        trailingBlock: false,
-        defaultStyles: true,
-      }}
-      saveDelay={1000}
-    />
+    <div>
+      <BaseEditor
+        content={initialContent}
+        placeholder="技術ドキュメントを記述してください..."
+        onContentChange={onContentChange}
+        title="技術ドキュメント編集"
+        icon={Code}
+        headerActions={headerActions}
+        sanitizeContent={sanitizeTechnologyContent}
+        editorConfig={{
+          minHeight: 500,
+          blockSpecs: {
+            // 基本的なブロックのみ許可
+            paragraph: true,
+            heading: true,
+            bulletListItem: true,
+            numberedListItem: true,
+            codeBlock: true,
+            // 複雑なブロックは無効化
+            table: false,
+            file: false,
+            image: false,
+          },
+          trailingBlock: false,
+          defaultStyles: true,
+        }}
+        saveDelay={1000}
+      />
+
+      {onNext && (
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onNext}
+            className="px-6 py-3 flex items-center rounded-lg shadow-lg focus:outline-none transition bg-green-600 hover:bg-green-700 text-white font-semibold"
+          >
+            次のページへ
+            <ArrowRight size={20} className="ml-2" />
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
