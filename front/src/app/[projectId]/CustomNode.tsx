@@ -313,11 +313,31 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
             <span className={`${colors.text} opacity-40`}>--:--</span>
           )}
         </div>
-        
-        {/* Minimal assignee */}
-        <div>
-          {assignee}
-        </div>
+
+        {/* Assignee select */}
+        <select
+          value={assignee}
+          onChange={(e) => {
+            e.stopPropagation();
+            setAssignee(e.target.value);
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className={`
+            text-[10px] px-1 py-0 rounded border bg-current/10 border-current/30
+            font-medium nodrag max-w-[80px] truncate
+            ${colors.text} appearance-none cursor-pointer
+          `}
+          title="担当者"
+        >
+          <option value="">未割当</option>
+          <option value="チーム全体">チーム全体</option>
+          <option value="エンジニア">エンジニア</option>
+          <option value="フロントエンド担当">フロントエンド</option>
+          <option value="バックエンド担当">バックエンド</option>
+          <option value="AI担当">AI担当</option>
+          <option value="DevOps担当">DevOps</option>
+          <option value="デザイナー">デザイナー</option>
+        </select>
       </div>
 
       {/* Category badge - very small */}
