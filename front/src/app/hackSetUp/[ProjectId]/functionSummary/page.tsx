@@ -418,7 +418,7 @@ export default function FunctionSummary() {
 
           <div className="flex gap-6 min-h-[80vh]">
             {/* 確信度評価部分 */}
-            <div className="flex-shrink-0" style={{ flexBasis: '20%' }}>
+            <div className="flex-shrink-0" style={{ flexBasis: '15%' }}>
               {confidenceFeedback && (
                 <div className={`rounded-xl border-2 overflow-hidden ${
                   darkMode
@@ -509,7 +509,7 @@ export default function FunctionSummary() {
             </div>
 
             {/* 機能要件編集部分 */}
-            <div className="flex-1" style={{ flexBasis: '51%' }}>
+            <div className="flex-1" style={{ flexBasis: '72%' }}>
               <FunctionEditor
                 projectId={projectId}
                 functionDocument={functionDocument}
@@ -523,7 +523,7 @@ export default function FunctionSummary() {
             </div>
 
             {/* Q&A部分 */}
-            <div className="flex-shrink-0" style={{ flexBasis: '29%' }}>
+            <div className="flex-shrink-0" style={{ flexBasis: '20%' }}>
               <QASection
                 projectId={projectId}
                 questions={qaList}
