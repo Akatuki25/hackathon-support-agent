@@ -908,7 +908,8 @@ class FunctionStructuringAgent:
             self._create_function_structuring_tool(),           # 4. 機能構造化 (structure_functions)
             self._create_validation_tool(),                     # 5. 品質バリデーション (validate_structured_functions)
             self._create_save_tool(),                           # 6. 増分DB追加 (add_structured_functions) ★複数回呼び出す★
-            self._create_coverage_analysis_tool()               # 7. 網羅性分析・完了判定 (analyze_coverage)
+            self._create_coverage_analysis_tool(),              # 7. 網羅性分析・完了判定 (analyze_coverage)
+            self._create_delete_duplicate_tool()                # 8. 重複機能削除 (delete_duplicate_function)
         ]
         
         # Create LangGraph ReAct agent
@@ -1367,26 +1368,72 @@ class FunctionStructuringAgent:
                             "category": func.category
                         })
                 
+                # 機能リストにfunction_idも追加（重複削除用）
+                current_functions_with_id = []
+                for func in existing_functions:
+                    current_functions_with_id.append({
+                        "function_id": str(func.function_id),
+                        "function_name": func.function_name,
+                        "description": func.description,
+                        "category": func.category
+                    })
+                
                 # 網羅性分析をLLMで実行
                 coverage_prompt = f"""
-                仕様書と現在抽出済みの機能を比較し、網羅性を分析してください。
+                仕様書と現在抽出済みの機能を比較し、網羅性と重複を分析してください。
                 
                 仕様書:
                 {specification}
                 
                 現在の機能数: {len(current_functions)}
-                現在の機能: {json.dumps(current_functions, ensure_ascii=False)}
+                現在の機能（function_id付き）: {json.dumps(current_functions_with_id, ensure_ascii=False)}
                 
-                以下を分析してJSON形式で回答:
+                【重要な分析項目】
+                1. **網羅性**: 仕様書の要件をどの程度カバーしているか
+                
+                2. **重複**: 機能リスト内で同じ内容を表す機能がないか
+                   
+                   ⚠️ 重複の定義（重要）:
+                   
+                   ✅ 重複と判定すべき例（削除対象）:
+                   - "ユーザー登録" と "新規ユーザー登録" → 完全に同じ機能
+                   - "AIによる解説の提供" と "AIによる丁寧な解説提供" → 同一機能
+                   - "難易度調整" と "難易度の動的調整" → 同じ機能（表現違い）
+                   
+                   ❌ 重複ではない例（削除禁止）:
+                   - 仕様書の大項目「学習履歴の登録」 vs 機能「テスト結果の登録」
+                     → これは大項目の詳細化であり、重複ではない
+                   - 仕様書の大項目「ユーザー認証」 vs 機能「ログイン」「ユーザー登録」
+                     → これは大項目を具体的な機能に分解したものであり、重複ではない
+                   
+                   【重複検知のルール】:
+                   - **機能リスト内の機能同士のみを比較**してください
+                   - 仕様書の大項目は参照情報であり、削除対象ではありません
+                   - 機能名の類似度が80%以上 かつ 説明が実質的に同じ場合のみ重複
+                
+                3. **抜け漏れ**: 仕様書にあるが機能リストにない要件
+                
+                以下のJSON形式で回答:
                 {{
                     "coverage_percentage": 85,
                     "missing_areas": ["認証機能の詳細", "データ同期機能"],
+                    "duplicate_functions": [
+                        {{
+                            "function_id": "uuid-1",
+                            "function_name": "ユーザー登録",
+                            "duplicate_of": "新規ユーザー登録",
+                            "reason": "同じ機能を指している"
+                        }}
+                    ],
                     "completion_status": "continue",
                     "iteration_count": 1,
-                    "reason": "認証機能の詳細が不足しているため継続が必要"
+                    "reason": "認証機能の詳細が不足、重複が1件あり"
                 }}
                 
                 completion_status: "complete" (完了) または "continue" (継続)
+                
+                ※重複がある場合は、duplicate_functionsリストに含めてください。
+                　重複削除には delete_duplicate_function ツールを使用できます。
                 """
                 
                 result = self.base_service.llm_flash.invoke(coverage_prompt)
@@ -1404,6 +1451,67 @@ class FunctionStructuringAgent:
             func=analyze_coverage,
             name="analyze_coverage",
             description="現在の機能の網羅性を分析し、完了判定を実行します"
+        )
+    
+    def _create_delete_duplicate_tool(self):
+        """重複機能削除ツール"""
+        
+        def delete_duplicate_function(function_id: str, reason: str = "") -> str:
+            """重複している機能をDBから削除
+            
+            Args:
+                function_id: 削除する機能のUUID
+                reason: 削除理由（ログ用）
+            
+            Returns:
+                削除結果のメッセージ
+            """
+            try:
+                from database import get_db_session
+                
+                self.base_service.logger.info(f"[AGENT] Deleting duplicate function: {function_id}, reason: {reason}")
+                
+                # 独立したDBセッションを使用（並列実行対応）
+                with get_db_session() as db:
+                    # 機能を取得
+                    function = db.query(StructuredFunction).filter(
+                        StructuredFunction.function_id == function_id
+                    ).first()
+                    
+                    if not function:
+                        return f"エラー: 機能ID {function_id} が見つかりません"
+                    
+                    function_name = function.function_name
+                    function_code = function.function_code
+                    
+                    # 依存関係も削除
+                    db.query(FunctionDependency).filter(
+                        (FunctionDependency.from_function_id == function_id) |
+                        (FunctionDependency.to_function_id == function_id)
+                    ).delete()
+                    
+                    # 機能を削除
+                    db.delete(function)
+                    db.commit()
+                    
+                    self.base_service.logger.info(f"[AGENT] Deleted function: {function_code} ({function_name})")
+                    
+                    return f"""重複機能削除完了:
+- 機能コード: {function_code}
+- 機能名: {function_name}
+- 削除理由: {reason}
+
+削除後は get_existing_functions を再実行して最新の機能リストを確認してください。
+"""
+                    
+            except Exception as e:
+                self.base_service.logger.error(f"[AGENT] Function deletion failed: {str(e)}")
+                return f"削除エラー: {str(e)}"
+        
+        return StructuredTool.from_function(
+            func=delete_duplicate_function,
+            name="delete_duplicate_function",
+            description="重複している機能をDBから削除します。function_id（UUID）と削除理由を指定してください"
         )
     
     def process_project(self, project_id: str) -> Dict[str, Any]:
@@ -1453,9 +1561,16 @@ class FunctionStructuringAgent:
            更新された既存機能リストを再取得
            ↓
         8. analyze_coverage("{project_id}", specification):
-           網羅性分析を実行
+           網羅性分析を実行（重複チェック含む）
            - completion_status="continue" → ステップ3へ戻る（missing_areasを focus_area に設定）
+           - duplicate_functions が検出された場合 → ステップ9で削除
            - completion_status="complete" → 終了
+           ↓
+        9. delete_duplicate_function(function_id, reason): ★新機能★
+           重複している機能を削除
+           - function_id: analyze_coverageが検出した重複機能のUUID
+           - reason: 重複理由（ログ用）
+           - 削除後は get_existing_functions を再実行して確認
         
         【最重要ポイント】
         ✅ add_structured_functions は**複数回呼ぶ**ことを前提としている
@@ -1474,7 +1589,7 @@ class FunctionStructuringAgent:
         try:
             self.base_service.logger.info(f"[AGENT] Starting ReAct agent execution for project: {project_id}")
             self.base_service.logger.debug(f"[AGENT] Input message length: {len(input_message)} chars")
-            self.base_service.logger.debug(f"[AGENT] Number of tools: {len(self.tools)}")
+            self.base_service.logger.debug(f"[AGENT] Number of tools: {len(self.tools)}")  # 8 tools including delete_duplicate_function
             
             # ツールスキーマのサイズを確認（デバッグ用）
             for i, tool in enumerate(self.tools):
@@ -1554,7 +1669,7 @@ class FunctionStructuringAgent:
                         termination_reason = finish_reason
                 
                 # トークン数を記録
-                if hasattr(last_message, 'usage_metadata'):
+                if hasattr(last_message, 'usage_metadata') and last_message.usage_metadata:
                     input_tokens = last_message.usage_metadata.get('input_tokens', 0)
                     self.base_service.logger.info(f"[AGENT] Token usage: input={input_tokens}, messages={len(result['messages'])}")
                 
