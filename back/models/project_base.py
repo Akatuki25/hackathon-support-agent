@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from sqlalchemy import (
     Column, String, Integer, Text, Date, DateTime, ForeignKey, Enum,
-    Boolean, JSON, Index, func
+    Boolean, JSON, Index, func, Float, UniqueConstraint, CheckConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -73,6 +73,12 @@ class ProjectBase(Base):
         back_populates="project",
         cascade="all, delete-orphan",
     )
+    # NEW: Structured Functions と紐づけ
+    structured_functions = relationship(
+        "StructuredFunction",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     def __repr__(self):
         return f"<Project(id={self.project_id}, title={self.title})>"
 
@@ -120,6 +126,7 @@ class ProjectDocument(Base):
     # NEW: Referenced by Tasks and QAs
     tasks = relationship("Task", back_populates="source_doc")
     qas = relationship("QA", back_populates="source_doc")
+    structured_functions = relationship("StructuredFunction", back_populates="source_doc")
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -202,6 +209,7 @@ class Task(Base):
 
     project = relationship("ProjectBase", back_populates="tasks")
     source_doc = relationship("ProjectDocument", back_populates="tasks")
+    function_mappings = relationship("FunctionToTaskMapping", back_populates="task", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("ix_task_due_at", "due_at"),
@@ -269,3 +277,85 @@ class QA(Base):
 
     def __repr__(self):
         return f"<QA(id={self.qa_id}, project_id={self.project_id})>"
+
+
+# =========================
+# NEW: Structured Functions
+# =========================
+class StructuredFunction(Base):
+    __tablename__ = "structured_functions"
+    
+    function_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    # 基本情報（必須）
+    function_code = Column(String(20), nullable=False)  # F001, F002
+    function_name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=False)
+    
+    # 分類（シンプル）
+    category = Column(String(50))  # 'auth', 'data', 'logic', 'ui', 'api', 'deployment'
+    
+    # 優先度（既存Taskと統一）
+    priority = Column(String(10))
+    
+    # 元ドキュメントとの関連
+    source_doc_id = Column(UUID(as_uuid=True), ForeignKey("projectDocument.doc_id", ondelete="SET NULL"), nullable=True)
+    
+    # 抽出メタデータ
+    extraction_confidence = Column(Float, default=0.8)
+    order_index = Column(Integer)  # 元テキストでの出現順序
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    
+    # Relationships
+    project = relationship("ProjectBase", back_populates="structured_functions")
+    source_doc = relationship("ProjectDocument", back_populates="structured_functions")
+    dependencies_from = relationship("FunctionDependency", foreign_keys="FunctionDependency.from_function_id", cascade="all, delete-orphan")
+    dependencies_to = relationship("FunctionDependency", foreign_keys="FunctionDependency.to_function_id", cascade="all, delete-orphan")
+    task_mappings = relationship("FunctionToTaskMapping", back_populates="function", cascade="all, delete-orphan")
+    
+    __table_args__ = (
+        CheckConstraint("priority IN ('Must', 'Should', 'Could', 'Wont')"),
+        CheckConstraint("category IN ('auth', 'data', 'logic', 'ui', 'api', 'deployment')"),
+        UniqueConstraint('project_id', 'function_code'),
+    )
+    
+    def __repr__(self):
+        return f"<StructuredFunction(id={self.function_id}, code={self.function_code}, name={self.function_name})>"
+
+
+class FunctionDependency(Base):
+    __tablename__ = "function_dependencies"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    from_function_id = Column(UUID(as_uuid=True), ForeignKey("structured_functions.function_id", ondelete="CASCADE"), nullable=False)
+    to_function_id = Column(UUID(as_uuid=True), ForeignKey("structured_functions.function_id", ondelete="CASCADE"), nullable=False)
+    dependency_type = Column(String(20), default='requires')
+    
+    __table_args__ = (
+        UniqueConstraint('from_function_id', 'to_function_id'),
+    )
+    
+    def __repr__(self):
+        return f"<FunctionDependency(from={self.from_function_id}, to={self.to_function_id})>"
+
+
+class FunctionToTaskMapping(Base):
+    __tablename__ = "function_to_task_mapping"
+    
+    mapping_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    function_id = Column(UUID(as_uuid=True), ForeignKey("structured_functions.function_id", ondelete="CASCADE"), nullable=False)
+    task_id = Column(UUID(as_uuid=True), ForeignKey("task.task_id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    
+    # Relationships
+    function = relationship("StructuredFunction", back_populates="task_mappings")
+    task = relationship("Task", back_populates="function_mappings")
+    
+    __table_args__ = (
+        UniqueConstraint('function_id', 'task_id'),
+    )
+    
+    def __repr__(self):
+        return f"<FunctionToTaskMapping(function_id={self.function_id}, task_id={self.task_id})>"
