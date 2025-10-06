@@ -166,10 +166,21 @@ def structure_functions(request: ProjectIdRequest, db: Session = Depends(get_db)
                 "agent_result": result["result"],
                 "success": True
             }
+        elif result.get("partial_success"):
+            # 部分的成功（異常終了したが一部データは保存済み）
+            return {
+                "message": f"Function structuring partially completed. {result['saved_functions_count']} functions were saved, but the agent terminated abnormally.",
+                "project_id": project_id_str,
+                "success": False,
+                "partial_success": True,
+                "saved_functions_count": result.get("saved_functions_count", 0),
+                "error": result.get("error", "Unknown error"),
+                "warning": "Please check the saved functions and consider re-running if incomplete."
+            }
         else:
             raise HTTPException(
                 status_code=500, 
-                detail=f"Function structuring failed: {result['error']}"
+                detail=f"Function structuring failed: {result.get('error', 'Unknown error')}"
             )
             
     except Exception as e:

@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 from langchain.tools import StructuredTool
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -1249,8 +1250,10 @@ class FunctionStructuringAgent:
                     
                     saved_count = 0
                     skipped_count = 0
+                    last_func_data = None  # バグ修正: 空リスト対応
                     
                     for func_data in functions:
+                        last_func_data = func_data  # 最後のfunc_dataを保持
                         function_name = func_data.get("function_name", "")
                         
                         # 重複チェック
@@ -1293,7 +1296,7 @@ class FunctionStructuringAgent:
                     
                     # 依存関係も保存（もしあれば）
                     dependencies_saved = 0
-                    if "dependencies" in func_data:
+                    if last_func_data and "dependencies" in last_func_data:
                         # TODO: 依存関係の保存処理
                         pass
                     
@@ -1484,10 +1487,11 @@ class FunctionStructuringAgent:
                 "recursion_limit": 50  # 最大反復回数を増やす
             }
             
-            result = self.agent_executor.invoke(
-                {"messages": [{"role": "user", "content": input_message}]},
-                config=config
-            )
+            # 初期メッセージ
+            messages = [{"role": "user", "content": input_message}]
+            
+            # 会話履歴の自動圧縮を有効化
+            result = self._execute_agent_with_compression(messages, config)
             
             self.base_service.logger.info(f"[AGENT] ReAct agent execution completed")
             self.base_service.logger.debug(f"[AGENT] Result keys: {list(result.keys()) if isinstance(result, dict) else 'Not a dict'}")
@@ -1537,6 +1541,51 @@ class FunctionStructuringAgent:
                 output = last_message.content if hasattr(last_message, 'content') else str(last_message)
                 self.base_service.logger.info(f"[AGENT] Final output length: {len(output)} chars")
                 self.base_service.logger.debug(f"[AGENT] Final output: {output[:500]}...")
+                
+                # 異常終了の検知
+                is_abnormal_termination = False
+                termination_reason = None
+                input_tokens = 0
+                
+                if hasattr(last_message, 'response_metadata'):
+                    finish_reason = last_message.response_metadata.get('finish_reason', 'unknown')
+                    if finish_reason in ['MALFORMED_FUNCTION_CALL', 'STOP'] and len(output) == 0:
+                        is_abnormal_termination = True
+                        termination_reason = finish_reason
+                
+                # トークン数を記録
+                if hasattr(last_message, 'usage_metadata'):
+                    input_tokens = last_message.usage_metadata.get('input_tokens', 0)
+                    self.base_service.logger.info(f"[AGENT] Token usage: input={input_tokens}, messages={len(result['messages'])}")
+                
+                # 部分的な成功を確認（保存された機能の数）
+                from database import get_db_session
+                with get_db_session() as db:
+                    saved_count = db.query(StructuredFunction).filter(
+                        StructuredFunction.project_id == project_id
+                    ).count()
+                
+                if is_abnormal_termination:
+                    self.base_service.logger.warning(
+                        f"[AGENT] Agent terminated abnormally ({termination_reason}) at {len(result['messages'])} messages, {input_tokens} tokens"
+                    )
+                    self.base_service.logger.warning(
+                        f"[AGENT] Partial success: {saved_count} functions were saved before termination"
+                    )
+                    return {
+                        "success": False,
+                        "partial_success": True,
+                        "saved_functions_count": saved_count,
+                        "error": f"Agent terminated abnormally: {termination_reason}. Token limit may have been reached.",
+                        "result": output,
+                        "project_id": project_id,
+                        "debug_info": {
+                            "messages_count": len(result['messages']),
+                            "input_tokens": input_tokens,
+                            "termination_reason": termination_reason
+                        }
+                    }
+                
             else:
                 self.base_service.logger.warning(f"[AGENT] No messages in result")
             
@@ -1555,6 +1604,194 @@ class FunctionStructuringAgent:
                 "error": str(e),
                 "project_id": project_id
             }
+    
+    def _execute_agent_with_compression(self, messages: List[Dict], config: Dict) -> Dict:
+        """
+        会話履歴の自動圧縮機能付きでエージェントを実行
+        
+        トークン上限に達する前に会話履歴を圧縮して継続実行する
+        MALFORMED_FUNCTION_CALL発生時も自動リカバリーを試みる
+        """
+        MAX_MESSAGES_BEFORE_COMPRESSION = 20  # 20メッセージごとに圧縮（Rate Limit対策で積極的に）
+        MAX_RETRY_ON_ERROR = 2  # エラー時の最大リトライ回数
+        
+        retry_count = 0
+        current_messages = messages
+        
+        while retry_count <= MAX_RETRY_ON_ERROR:
+            try:
+                result = self.agent_executor.invoke(
+                    {"messages": current_messages},
+                    config=config
+                )
+                
+                if not result.get("messages"):
+                    return result
+                
+                last_message = result["messages"][-1]
+                finish_reason = None
+                
+                # 終了理由をチェック
+                if hasattr(last_message, 'response_metadata'):
+                    finish_reason = last_message.response_metadata.get('finish_reason', 'unknown')
+                
+                # MALFORMED_FUNCTION_CALL または STOP で終了した場合
+                if finish_reason in ['MALFORMED_FUNCTION_CALL', 'STOP']:
+                    message_count = len(result["messages"])
+                    input_tokens = 0
+                    
+                    if hasattr(last_message, 'usage_metadata'):
+                        input_tokens = last_message.usage_metadata.get('input_tokens', 0)
+                    
+                    self.base_service.logger.warning(
+                        f"[AGENT] Agent stopped with {finish_reason} at {message_count} messages, {input_tokens} tokens (retry {retry_count}/{MAX_RETRY_ON_ERROR})"
+                    )
+                    
+                    # リトライ可能な場合は圧縮して再実行
+                    if retry_count < MAX_RETRY_ON_ERROR and message_count > 10:
+                        self.base_service.logger.info(
+                            f"[AGENT] Attempting recovery: compressing history and retrying..."
+                        )
+                        
+                        # 会話履歴を圧縮（より積極的に）
+                        compressed_messages = self._compress_message_history(result["messages"])
+                        
+                        # さらに最終チェックフェーズに移行するようプロンプトを追加
+                        recovery_prompt = """
+                        
+                        【緊急リカバリー指示】
+                        前回の実行でエラーが発生しました。以下の手順で最終チェックを実行してください：
+                        
+                        1. get_existing_functions でDB保存済み機能を確認
+                        2. analyze_coverage で網羅性を評価
+                        3. 網羅性が低い場合（<70%）は追加抽出を1回のみ試行
+                        4. 結果を報告して終了
+                        
+                        ※トークン制限を避けるため、シンプルな操作のみ実行してください
+                        """
+                        
+                        compressed_messages.append(HumanMessage(content=recovery_prompt))
+                        
+                        self.base_service.logger.info(
+                            f"[AGENT] Compressed from {message_count} to {len(compressed_messages)} messages, retrying..."
+                        )
+                        
+                        current_messages = compressed_messages
+                        retry_count += 1
+                        continue  # リトライ
+                    else:
+                        # リトライ回数超過または圧縮不可
+                        self.base_service.logger.warning(
+                            f"[AGENT] Cannot retry (retry_count={retry_count}, messages={message_count})"
+                        )
+                        return result
+                
+                # 通常の圧縮チェック（メッセージ数が閾値を超えた場合）
+                if len(result["messages"]) > MAX_MESSAGES_BEFORE_COMPRESSION:
+                    self.base_service.logger.info(
+                        f"[AGENT] Message count ({len(result['messages'])}) exceeded limit. Compressing for next iteration..."
+                    )
+                    
+                    compressed_messages = self._compress_message_history(result["messages"])
+                    
+                    self.base_service.logger.info(
+                        f"[AGENT] Compressed from {len(result['messages'])} to {len(compressed_messages)} messages"
+                    )
+                    
+                    # 注: ここでは再実行せず、次のイテレーションで使用される
+                
+                return result
+                
+            except Exception as e:
+                self.base_service.logger.error(f"[AGENT] Error during agent execution: {str(e)}")
+                retry_count += 1
+                if retry_count > MAX_RETRY_ON_ERROR:
+                    raise
+                
+                # エラー時も履歴があれば圧縮してリトライ
+                if isinstance(current_messages, list) and len(current_messages) > 10:
+                    self.base_service.logger.info(f"[AGENT] Exception occurred, compressing and retrying...")
+                    current_messages = self._compress_message_history(current_messages)
+                else:
+                    raise
+        
+        # 最終的にリトライ回数超過
+        self.base_service.logger.error(f"[AGENT] Max retries ({MAX_RETRY_ON_ERROR}) exceeded")
+        return {"messages": current_messages} if isinstance(current_messages, list) else {}
+    
+    def _compress_message_history(self, messages: List) -> List:
+        """
+        会話履歴を圧縮
+        
+        戦略:
+        1. 最初の5メッセージを保持（初期コンテキスト）
+        2. 最新の10メッセージを保持（現在の作業状況）
+        3. 中間のメッセージをサマリー化
+        """
+        if len(messages) <= 15:
+            return messages
+        
+        # 最初の5メッセージ（初期化フェーズ）
+        initial_messages = messages[:5]
+        
+        # 最新の10メッセージ（現在の作業）
+        recent_messages = messages[-10:]
+        
+        # 中間メッセージの要約
+        middle_messages = messages[5:-10]
+        
+        # 中間の重要な情報を抽出
+        summary_data = {
+            "extracted_functions": [],
+            "saved_functions": 0,
+            "errors": [],
+            "iterations": 0
+        }
+        
+        for msg in middle_messages:
+            if hasattr(msg, 'content') and isinstance(msg.content, str):
+                content = msg.content
+                
+                # 機能抽出の記録
+                if "抽出完了" in content:
+                    match = re.search(r"(\d+)個の新機能", content)
+                    if match:
+                        count = int(match.group(1))
+                        summary_data["extracted_functions"].append(count)
+                
+                # 保存の記録
+                if "増分追加完了" in content:
+                    match = re.search(r"追加: (\d+)", content)
+                    if match:
+                        summary_data["saved_functions"] += int(match.group(1))
+                
+                # エラーの記録
+                if "エラー" in content:
+                    summary_data["errors"].append(content[:100])
+                
+                # イテレーションカウント
+                if "反復フェーズ" in content or "analyze_coverage" in str(msg):
+                    summary_data["iterations"] += 1
+        
+        # サマリーメッセージを作成
+        summary_content = f"""
+[会話履歴サマリー - {len(middle_messages)}メッセージを圧縮]
+- 機能抽出回数: {len(summary_data['extracted_functions'])}回 (合計: {sum(summary_data['extracted_functions'])}個)
+- DB保存済み機能: {summary_data['saved_functions']}個
+- イテレーション数: {summary_data['iterations']}回
+- エラー発生: {len(summary_data['errors'])}件
+"""
+        
+        if summary_data['errors']:
+            summary_content += "\n主なエラー:\n" + "\n".join(summary_data['errors'][:3])
+        
+        # HumanMessageとしてサマリーを挿入
+        summary_message = HumanMessage(content=summary_content)
+        
+        # 圧縮された履歴を構築
+        compressed = initial_messages + [summary_message] + recent_messages
+        
+        return compressed
     
     @staticmethod
     def _normalize_uuid(value: uuid.UUID | str) -> uuid.UUID:
