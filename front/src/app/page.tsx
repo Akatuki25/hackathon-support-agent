@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import CyberHeader from "@/components/Session/Header";
+import { signIn } from "next-auth/react";
 
 export default function HackathonSupportAgentLandingPage() {
   const { darkMode } = useDarkMode();
@@ -127,14 +128,16 @@ export default function HackathonSupportAgentLandingPage() {
 
   return (
     <div
-      className={`min-h-screen transition-all duration-300 ${
+      className={`min-h-screen transition-colors duration-300 ${
         darkMode
-          ? "bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900"
-          : "bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50"
+          ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+          : "bg-gradient-to-br from-gray-50 via-white to-gray-50"
       }`}
     >
       {/* CyberHeader */}
-      <CyberHeader />
+      <div className="relative z-50">
+        <CyberHeader />
+      </div>
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-12">
@@ -180,6 +183,7 @@ export default function HackathonSupportAgentLandingPage() {
 
           {/* CTA Button */}
           <button
+            onClick={() => signIn("github", { callbackUrl: "/hackSetUp" })}
             className={`group relative px-8 py-4 rounded-lg font-mono font-bold text-lg tracking-wider transition-all duration-300 overflow-hidden ${
               darkMode
                 ? "bg-gray-900/50 hover:bg-gray-800/70 text-cyan-400 border border-cyan-500/50 hover:border-cyan-400"
@@ -601,7 +605,7 @@ export default function HackathonSupportAgentLandingPage() {
                   ? "bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white"
                   : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white"
               } shadow-lg hover:shadow-xl transform hover:scale-105`}
-              onClick={() => alert("Command Executed!")}
+              onClick={() => signIn("github", { callbackUrl: "/hackSetUp" })}
             >
               <span className="relative">EXECUTE_COMMAND</span>
               {/* Cyber scan line */}

@@ -29,6 +29,7 @@ export interface QAForRequirement {
   project_id: string;
   question: string;
   answer: string | null;
+  answer_example?: string;  // 回答例（AI生成時に提供される）
   is_ai: boolean;
   importance: number;
   requirement_id?: string;
