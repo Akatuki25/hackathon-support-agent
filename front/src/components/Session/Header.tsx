@@ -9,6 +9,9 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  X,
+  UserPlus,
+  Edit,
 } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -17,9 +20,14 @@ export default function CyberHeader() {
   const { darkMode } = useDarkMode();
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsMode, setSettingsMode] = useState<"profile" | "member">("profile");
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // URLからprojectIDを取得
+  const projectId = pathname.split("/")[2] || null;
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,9 +59,94 @@ export default function CyberHeader() {
     signOut({ callbackUrl: "/" });
   };
 
-  const handleSettings = () => {
+  const handleSettings = (mode: "profile" | "member") => {
     setIsMenuOpen(false);
-    router.push("/settings");
+    setSettingsMode(mode);
+    setIsSettingsOpen(true);
+  };
+
+  // Settingsモーダルコンポーネント
+  const SettingsModal = () => {
+    if (!isSettingsOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div
+          className={`relative w-full max-w-2xl mx-4 rounded-lg border shadow-2xl ${
+            darkMode
+              ? "bg-gray-900/95 border-cyan-500/30"
+              : "bg-white/95 border-purple-300/30"
+          }`}
+        >
+          {/* Header */}
+          <div
+            className={`px-6 py-4 border-b flex items-center justify-between ${
+              darkMode ? "border-cyan-500/20" : "border-purple-300/20"
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Settings className={darkMode ? "text-cyan-400" : "text-purple-600"} size={24} />
+              <h2 className={`text-xl font-bold ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>
+                {settingsMode === "member" ? "プロジェクトメンバー追加" : "プロフィール編集"}
+              </h2>
+            </div>
+            <button
+              onClick={() => setIsSettingsOpen(false)}
+              className={`p-2 rounded-lg transition ${
+                darkMode
+                  ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
+                  : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
+              }`}
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Tab Navigation - Only show when projectId exists */}
+          {projectId && (
+            <div className={`px-6 pt-4 flex space-x-2 border-b ${darkMode ? "border-cyan-500/20" : "border-purple-300/20"}`}>
+              <button
+                onClick={() => setSettingsMode("profile")}
+                className={`px-4 py-2 font-mono font-bold text-sm rounded-t-lg transition ${
+                  settingsMode === "profile"
+                    ? darkMode
+                      ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                      : "bg-purple-500/20 text-purple-600 border-b-2 border-purple-600"
+                    : darkMode
+                    ? "text-gray-400 hover:text-cyan-400"
+                    : "text-gray-500 hover:text-purple-600"
+                }`}
+              >
+                プロフィール編集
+              </button>
+              <button
+                onClick={() => setSettingsMode("member")}
+                className={`px-4 py-2 font-mono font-bold text-sm rounded-t-lg transition ${
+                  settingsMode === "member"
+                    ? darkMode
+                      ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                      : "bg-purple-500/20 text-purple-600 border-b-2 border-purple-600"
+                    : darkMode
+                    ? "text-gray-400 hover:text-cyan-400"
+                    : "text-gray-500 hover:text-purple-600"
+                }`}
+              >
+                メンバー追加
+              </button>
+            </div>
+          )}
+
+          {/* Body */}
+          <div className="px-6 py-6">
+            {settingsMode === "member" && projectId ? (
+              <ProjectMemberForm projectId={projectId} darkMode={darkMode} onClose={() => setIsSettingsOpen(false)} />
+            ) : (
+              <MemberEditForm darkMode={darkMode} onClose={() => setIsSettingsOpen(false)} session={session} />
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -335,7 +428,7 @@ export default function CyberHeader() {
                       {/* Menu Items */}
                       <div className="py-2">
                         <button
-                          onClick={handleSettings}
+                          onClick={() => handleSettings("profile")}
                           className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
                             darkMode
                               ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
@@ -343,7 +436,7 @@ export default function CyberHeader() {
                           }`}
                         >
                           <div className="relative">
-                            <Settings className="w-5 h-5" />
+                            <Edit className="w-5 h-5" />
                             {/* Cyber brackets */}
                             <div
                               className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
@@ -362,17 +455,59 @@ export default function CyberHeader() {
                           </div>
                           <div>
                             <span className="font-mono font-bold text-sm tracking-wider">
-                              SETTINGS
+                              PROFILE
                             </span>
                             <p
                               className={`text-xs font-mono ${
                                 darkMode ? "text-gray-500" : "text-gray-400"
                               }`}
                             >
-                              {"// Configure system"}
+                              {"// Edit profile"}
                             </p>
                           </div>
                         </button>
+
+                        {projectId && (
+                          <button
+                            onClick={() => handleSettings("member")}
+                            className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
+                              darkMode
+                                ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
+                                : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
+                            }`}
+                          >
+                            <div className="relative">
+                              <UserPlus className="w-5 h-5" />
+                              {/* Cyber brackets */}
+                              <div
+                                className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
+                                  darkMode
+                                    ? "border-cyan-400/50"
+                                    : "border-purple-400/50"
+                                }`}
+                              ></div>
+                              <div
+                                className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
+                                  darkMode
+                                    ? "border-cyan-400/50"
+                                    : "border-purple-400/50"
+                                }`}
+                              ></div>
+                            </div>
+                            <div>
+                              <span className="font-mono font-bold text-sm tracking-wider">
+                                ADD_MEMBER
+                              </span>
+                              <p
+                                className={`text-xs font-mono ${
+                                  darkMode ? "text-gray-500" : "text-gray-400"
+                                }`}
+                              >
+                                {"// Add project member"}
+                              </p>
+                            </div>
+                          </button>
+                        )}
 
                         <div
                           className={`mx-4 my-2 h-px ${
@@ -445,6 +580,576 @@ export default function CyberHeader() {
           </div>
         </div>
       </header>
+
+      {/* Settings Modal */}
+      <SettingsModal />
     </>
   );
 }
+
+// ProjectMemberForm コンポーネント
+const ProjectMemberForm = ({
+  projectId,
+  darkMode,
+  onClose,
+}: {
+  projectId: string;
+  darkMode: boolean;
+  onClose: () => void;
+}) => {
+  const [githubNames, setGithubNames] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [allMembers, setAllMembers] = useState<string[]>([]);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [existingMembers, setExistingMembers] = useState<Array<{ project_member_id: string; member_name: string; github_name: string }>>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(true);
+
+  // 全メンバーとプロジェクトメンバーを取得
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const { listMembers } = await import("@/libs/modelAPI/member");
+        const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
+
+        const members = await listMembers();
+        setAllMembers(members.map(m => m.github_name));
+
+        // プロジェクトメンバーを取得
+        try {
+          const projectMembers = await getProjectMembersByProjectId(projectId);
+          // member_idからgithub_nameを取得
+          const membersWithGithub = await Promise.all(
+            projectMembers.map(async (pm) => {
+              const member = members.find(m => m.member_id === pm.member_id);
+              return {
+                project_member_id: pm.project_member_id || "",
+                member_name: pm.member_name,
+                github_name: member?.github_name || pm.member_name,
+              };
+            })
+          );
+          setExistingMembers(membersWithGithub);
+        } catch (error) {
+          const axios = (await import("axios")).default;
+          // 404エラーの場合は空配列（メンバーがいない）
+          if (axios.isAxiosError(error) && error.response?.status === 404) {
+            setExistingMembers([]);
+          } else {
+            console.error("プロジェクトメンバー取得エラー:", error);
+            setExistingMembers([]);
+          }
+        }
+      } catch (error) {
+        console.error("メンバー取得エラー:", error);
+      } finally {
+        setIsLoadingMembers(false);
+      }
+    };
+    void fetchMembers();
+  }, [projectId]);
+
+  // 既存メンバーを削除
+  const removeExistingMember = async (projectMemberId: string, githubName: string) => {
+    try {
+      const { deleteProjectMember } = await import("@/libs/modelAPI/project_member");
+      await deleteProjectMember(projectMemberId);
+      setExistingMembers(existingMembers.filter(m => m.project_member_id !== projectMemberId));
+    } catch (error) {
+      console.error("メンバー削除エラー:", error);
+      alert("メンバーの削除に失敗しました");
+    }
+  };
+
+  // サジェスト機能（既存メンバーを除外）
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+
+    if (value.trim()) {
+      const existingGithubNames = existingMembers.map(m => m.github_name);
+      const filtered = allMembers.filter(
+        name =>
+          name.toLowerCase().includes(value.toLowerCase()) &&
+          !githubNames.includes(name) &&
+          !existingGithubNames.includes(name)
+      );
+      setSuggestions(filtered.slice(0, 5)); // 最大5件
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  // チップを追加
+  const addGithubName = (name: string) => {
+    if (name.trim() && !githubNames.includes(name.trim())) {
+      setGithubNames([...githubNames, name.trim()]);
+      setInputValue("");
+      setSuggestions([]);
+    }
+  };
+
+  // Enterキーで追加
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && inputValue.trim()) {
+      e.preventDefault();
+      addGithubName(inputValue);
+    }
+  };
+
+  // チップを削除
+  const removeGithubName = (nameToRemove: string) => {
+    setGithubNames(githubNames.filter(name => name !== nameToRemove));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (githubNames.length === 0) return;
+
+    setLoading(true);
+
+    try {
+      const { postProjectMember } = await import("@/libs/modelAPI/project_member");
+      const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
+      const axios = (await import("axios")).default;
+
+      const failedMembers: string[] = [];
+      const successMembers: string[] = [];
+
+      // 各GitHubネームごとにメンバーを追加
+      for (const githubName of githubNames) {
+        try {
+          let member;
+
+          // 既存メンバーを検索
+          try {
+            member = await getMemberByGithubName(githubName);
+          } catch (error) {
+            // 404エラーの場合は、そのユーザーにGitHubログインを促す必要がある
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+              failedMembers.push(`${githubName} (未登録ユーザー - GitHubログインが必要)`);
+              continue;
+            } else {
+              throw error;
+            }
+          }
+
+          // プロジェクトメンバーに追加
+          await postProjectMember({
+            project_id: projectId,
+            member_id: member.member_id,
+            member_name: member.member_name,
+          });
+          successMembers.push(githubName);
+        } catch (error) {
+          console.error(`メンバー ${githubName} の追加エラー:`, error);
+          failedMembers.push(`${githubName} (追加失敗)`);
+        }
+      }
+
+      // 結果を表示
+      if (failedMembers.length > 0) {
+        alert(
+          `以下のメンバーの追加に失敗しました:\n${failedMembers.join("\n")}\n\n成功: ${successMembers.length}件`
+        );
+      }
+
+      if (successMembers.length > 0) {
+        // 既存メンバーリストを更新
+        const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
+        const { listMembers } = await import("@/libs/modelAPI/member");
+
+        try {
+          const projectMembers = await getProjectMembersByProjectId(projectId);
+          const members = await listMembers();
+          const membersWithGithub = await Promise.all(
+            projectMembers.map(async (pm) => {
+              const member = members.find(m => m.member_id === pm.member_id);
+              return {
+                project_member_id: pm.project_member_id || "",
+                member_name: pm.member_name,
+                github_name: member?.github_name || pm.member_name,
+              };
+            })
+          );
+          setExistingMembers(membersWithGithub);
+        } catch (error) {
+          console.error("プロジェクトメンバー再取得エラー:", error);
+        }
+
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setGithubNames([]);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("プロジェクトメンバー追加エラー:", error);
+      alert("プロジェクトメンバーの追加に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* 既存メンバー表示 */}
+        {isLoadingMembers ? (
+          <div className={`text-center py-4 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>
+            読み込み中...
+          </div>
+        ) : existingMembers.length > 0 ? (
+          <div>
+            <label
+              className={`block text-sm font-mono font-bold mb-2 ${
+                darkMode ? "text-cyan-400" : "text-purple-600"
+              }`}
+            >
+              現在のメンバー
+            </label>
+            <div className={`min-h-[50px] p-2 rounded-lg border mb-4 flex flex-wrap gap-2 ${
+              darkMode
+                ? "bg-gray-800/50 border-cyan-500/20"
+                : "bg-white/50 border-purple-300/20"
+            }`}>
+              {existingMembers.map((member) => (
+                <div
+                  key={member.project_member_id}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-mono ${
+                    darkMode
+                      ? "bg-green-500/20 text-green-300 border border-green-500/50"
+                      : "bg-green-500/20 text-green-700 border border-green-400/50"
+                  }`}
+                >
+                  <span>{member.github_name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeExistingMember(member.project_member_id, member.github_name)}
+                    className={`ml-2 hover:opacity-70 ${
+                      darkMode ? "text-green-400" : "text-green-600"
+                    }`}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="relative">
+          <label
+            className={`block text-sm font-mono font-bold mb-2 ${
+              darkMode ? "text-cyan-400" : "text-purple-600"
+            }`}
+          >
+            メンバーを追加
+          </label>
+
+          {/* 追加予定のチップ表示エリア */}
+          <div className={`min-h-[50px] p-2 rounded-lg border mb-2 flex flex-wrap gap-2 ${
+            darkMode
+              ? "bg-gray-800 border-cyan-500/30"
+              : "bg-white border-purple-300/30"
+          }`}>
+            {githubNames.map((name, index) => (
+              <div
+                key={index}
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-mono ${
+                  darkMode
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50"
+                    : "bg-purple-500/20 text-purple-700 border border-purple-400/50"
+                }`}
+              >
+                <span>{name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeGithubName(name)}
+                  className={`ml-2 hover:opacity-70 ${
+                    darkMode ? "text-cyan-400" : "text-purple-600"
+                  }`}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* 入力フィールド */}
+          <input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="GitHubユーザー名を入力してEnter"
+            className={`w-full px-4 py-2 rounded-lg border ${
+              darkMode
+                ? "bg-gray-800 border-cyan-500/30 text-gray-300 focus:border-cyan-400 placeholder-gray-500"
+                : "bg-white border-purple-300/30 text-gray-600 focus:border-purple-400 placeholder-gray-400"
+            } focus:outline-none focus:ring-2 ${
+              darkMode ? "focus:ring-cyan-400/50" : "focus:ring-purple-400/50"
+            }`}
+          />
+
+          {/* サジェスト */}
+          {suggestions.length > 0 && (
+            <div className={`absolute z-10 w-full mt-1 rounded-lg border shadow-lg ${
+              darkMode
+                ? "bg-gray-800 border-cyan-500/30"
+                : "bg-white border-purple-300/30"
+            }`}>
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => addGithubName(suggestion)}
+                  className={`w-full px-4 py-2 text-left font-mono text-sm transition ${
+                    darkMode
+                      ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
+                      : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
+                  } ${index === 0 ? "rounded-t-lg" : ""} ${
+                    index === suggestions.length - 1 ? "rounded-b-lg" : ""
+                  }`}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className={`px-6 py-2 rounded-lg font-mono font-bold transition ${
+              darkMode
+                ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-600"
+            }`}
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            disabled={loading || githubNames.length === 0}
+            className={`px-6 py-2 rounded-lg font-mono font-bold flex items-center space-x-2 transition ${
+              loading || githubNames.length === 0
+                ? "opacity-50 cursor-not-allowed"
+                : darkMode
+                ? "bg-cyan-600 hover:bg-cyan-700 text-white"
+                : "bg-purple-600 hover:bg-purple-700 text-white"
+            }`}
+          >
+            <UserPlus size={16} />
+            <span>{loading ? "追加中..." : `追加 (${githubNames.length})`}</span>
+          </button>
+        </div>
+      </form>
+
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div
+          className={`fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] ${
+            darkMode
+              ? "bg-green-900/90 border-green-500/50 text-green-300"
+              : "bg-green-100/90 border-green-400/50 text-green-800"
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                darkMode ? "bg-green-500/20" : "bg-green-500/20"
+              }`}
+            >
+              <span className="text-xl">✓</span>
+            </div>
+            <span className="font-mono font-bold">メンバーを追加しました</span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+// MemberEditForm コンポーネント
+const MemberEditForm = ({
+  darkMode,
+  onClose,
+  session,
+}: {
+  darkMode: boolean;
+  onClose: () => void;
+  session: any;
+}) => {
+  const [memberName, setMemberName] = useState("");
+  const [memberSkill, setMemberSkill] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [memberId, setMemberId] = useState("");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  useEffect(() => {
+    const loadMemberData = async () => {
+      if (!session?.user?.name) return;
+
+      try {
+        const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
+        const member = await getMemberByGithubName(session.user.name);
+        setMemberName(member.member_name);
+        setMemberSkill(member.member_skill);
+        setMemberId(member.member_id);
+      } catch (error) {
+        console.error("メンバー情報取得エラー:", error);
+        const axios = (await import("axios")).default;
+
+        // 404エラーの場合は再ログインを促す
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          alert("メンバー情報が見つかりません。再度ログインしてください。");
+          signOut({ callbackUrl: "/" });
+        } else {
+          // その他のエラーの場合はデフォルト値を設定
+          setMemberName(session.user?.name || "");
+          setMemberSkill("");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadMemberData();
+  }, [session]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { patchMemberById } = await import("@/libs/modelAPI/member");
+
+      await patchMemberById(memberId, {
+        member_name: memberName,
+        member_skill: memberSkill,
+      });
+
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error("プロフィール更新エラー:", error);
+      alert("プロフィールの更新に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className={darkMode ? "text-cyan-400" : "text-purple-600"}>読み込み中...</div>;
+  }
+
+  return (
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            className={`block text-sm font-mono font-bold mb-2 ${
+              darkMode ? "text-cyan-400" : "text-purple-600"
+            }`}
+          >
+            名前
+          </label>
+          <input
+            type="text"
+            value={memberName}
+            onChange={(e) => setMemberName(e.target.value)}
+            required
+            className={`w-full px-4 py-2 rounded-lg border ${
+              darkMode
+                ? "bg-gray-800 border-cyan-500/30 text-gray-300 focus:border-cyan-400"
+                : "bg-white border-purple-300/30 text-gray-600 focus:border-purple-400"
+            } focus:outline-none focus:ring-2 ${
+              darkMode ? "focus:ring-cyan-400/50" : "focus:ring-purple-400/50"
+            }`}
+          />
+        </div>
+
+        <div>
+          <label
+            className={`block text-sm font-mono font-bold mb-2 ${
+              darkMode ? "text-cyan-400" : "text-purple-600"
+            }`}
+          >
+            スキル
+          </label>
+          <textarea
+            value={memberSkill}
+            onChange={(e) => setMemberSkill(e.target.value)}
+            required
+            rows={4}
+            className={`w-full px-4 py-2 rounded-lg border ${
+              darkMode
+                ? "bg-gray-800 border-cyan-500/30 text-gray-300 focus:border-cyan-400"
+                : "bg-white border-purple-300/30 text-gray-600 focus:border-purple-400"
+            } focus:outline-none focus:ring-2 ${
+              darkMode ? "focus:ring-cyan-400/50" : "focus:ring-purple-400/50"
+            }`}
+          />
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className={`px-6 py-2 rounded-lg font-mono font-bold transition ${
+              darkMode
+                ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-600"
+            }`}
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`px-6 py-2 rounded-lg font-mono font-bold flex items-center space-x-2 transition ${
+              loading
+                ? "opacity-50 cursor-not-allowed"
+                : darkMode
+                ? "bg-cyan-600 hover:bg-cyan-700 text-white"
+                : "bg-purple-600 hover:bg-purple-700 text-white"
+            }`}
+          >
+            <Edit size={16} />
+            <span>{loading ? "更新中..." : "更新"}</span>
+          </button>
+        </div>
+      </form>
+
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div
+          className={`fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] ${
+            darkMode
+              ? "bg-green-900/90 border-green-500/50 text-green-300"
+              : "bg-green-100/90 border-green-400/50 text-green-800"
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                darkMode ? "bg-green-500/20" : "bg-green-500/20"
+              }`}
+            >
+              <span className="text-xl">✓</span>
+            </div>
+            <span className="font-mono font-bold">プロフィールを更新しました</span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
