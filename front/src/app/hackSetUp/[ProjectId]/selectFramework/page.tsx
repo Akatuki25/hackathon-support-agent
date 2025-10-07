@@ -443,13 +443,13 @@ export default function SelectFramework() {
       );
 
       setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/technologyDoucment`);
+        router.push(`/hackSetUp/${projectId}/functionStructuring`);
       }, 1000);
     } catch (error) {
       console.error("フレームワーク選択の保存に失敗:", error);
       // エラーでも次のページに進む
       setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/technologyDoucment`);
+        router.push(`/hackSetUp/${projectId}/functionStructuring`);
       }, 1000);
     }
   };
