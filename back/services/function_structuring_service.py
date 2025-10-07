@@ -1013,21 +1013,21 @@ class FunctionStructuringAgent:
                 
                 # トークン数削減のため、コンテキストデータの出力を最小限にする（実験）
                 summary = f"""
-コンテキスト情報収集完了:
-- プロジェクトID: {context.get("project_id")}
-- 機能要件書の長さ: {function_doc_length}文字
-- 要件定義書の長さ: {specification_length}文字
-- 関連QA数: {len(context.get("relevant_qas", []))}件
-- 技術スタック: フロント={context.get("technology", {}).get("front_end", "")}, バック={context.get("technology", {}).get("back_end", "")}
+                コンテキスト情報収集完了:
+                - プロジェクトID: {context.get("project_id")}
+                - 機能要件書の長さ: {function_doc_length}文字
+                - 要件定義書の長さ: {specification_length}文字
+                - 関連QA数: {len(context.get("relevant_qas", []))}件
+                - 技術スタック: フロント={context.get("technology", {}).get("front_end", "")}, バック={context.get("technology", {}).get("back_end", "")}
 
-【重要】次のステップで extract_function_batch を呼び出す際は、以下のfunction_docを使用してください:
+                【重要】次のステップで extract_function_batch を呼び出す際は、以下のfunction_docを使用してください:
 
-<FUNCTION_DOC>
-{context.get("function_doc", "")}
-</FUNCTION_DOC>
+                <FUNCTION_DOC>
+                {context.get("function_doc", "")}
+                </FUNCTION_DOC>
 
-※完全なコンテキストデータは省略（トークン数削減のため）
-"""
+                ※完全なコンテキストデータは省略（トークン数削減のため）
+                """
                 return summary
             except Exception as e:
                 self.base_service.logger.error(f"[AGENT] Context gathering failed: {str(e)}")

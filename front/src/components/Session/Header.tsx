@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  FolderOpen,
 } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -334,6 +335,49 @@ export default function CyberHeader() {
 
                       {/* Menu Items */}
                       <div className="py-2">
+                        <button
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            router.push("/dashbord/allProject");
+                          }}
+                          className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
+                            darkMode
+                              ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
+                              : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
+                          }`}
+                        >
+                          <div className="relative">
+                            <FolderOpen className="w-5 h-5" />
+                            {/* Cyber brackets */}
+                            <div
+                              className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
+                                darkMode
+                                  ? "border-cyan-400/50"
+                                  : "border-purple-400/50"
+                              }`}
+                            ></div>
+                            <div
+                              className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
+                                darkMode
+                                  ? "border-cyan-400/50"
+                                  : "border-purple-400/50"
+                              }`}
+                            ></div>
+                          </div>
+                          <div>
+                            <span className="font-mono font-bold text-sm tracking-wider">
+                              ALL_PROJECTS
+                            </span>
+                            <p
+                              className={`text-xs font-mono ${
+                                darkMode ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              {"// View all projects"}
+                            </p>
+                          </div>
+                        </button>
+
                         <button
                           onClick={handleSettings}
                           className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
