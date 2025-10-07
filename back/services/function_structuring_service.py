@@ -1,6 +1,7 @@
 import json
 import re
 import uuid
+import time
 from typing import List, Dict, Any, Optional
 from langchain.tools import StructuredTool
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -10,6 +11,7 @@ from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from json_repair import repair_json
+from google.api_core.exceptions import ResourceExhausted
 
 from .base_service import BaseService
 from models.project_base import (
@@ -1739,96 +1741,121 @@ class FunctionStructuringAgent:
                     {"messages": current_messages},
                     config=config
                 )
-                
+
                 if not result.get("messages"):
                     return result
-                
+
                 last_message = result["messages"][-1]
                 finish_reason = None
-                
+
                 # 終了理由をチェック
                 if hasattr(last_message, 'response_metadata'):
                     finish_reason = last_message.response_metadata.get('finish_reason', 'unknown')
-                
-                # MALFORMED_FUNCTION_CALL または STOP で終了した場合
-                if finish_reason in ['MALFORMED_FUNCTION_CALL', 'STOP']:
-                    message_count = len(result["messages"])
-                    input_tokens = 0
-                    
-                    if hasattr(last_message, 'usage_metadata'):
-                        input_tokens = last_message.usage_metadata.get('input_tokens', 0)
-                    
-                    self.base_service.logger.warning(
-                        f"[AGENT] Agent stopped with {finish_reason} at {message_count} messages, {input_tokens} tokens (retry {retry_count}/{MAX_RETRY_ON_ERROR})"
-                    )
-                    
-                    # リトライ可能な場合は圧縮して再実行
-                    if retry_count < MAX_RETRY_ON_ERROR and message_count > 10:
-                        self.base_service.logger.info(
-                            f"[AGENT] Attempting recovery: compressing history and retrying..."
-                        )
-                        
-                        # 会話履歴を圧縮（より積極的に）
-                        compressed_messages = self._compress_message_history(result["messages"])
-                        
-                        # さらに最終チェックフェーズに移行するようプロンプトを追加
-                        recovery_prompt = """
-                        
-                        【緊急リカバリー指示】
-                        前回の実行でエラーが発生しました。以下の手順で最終チェックを実行してください：
-                        
-                        1. get_existing_functions でDB保存済み機能を確認
-                        2. analyze_coverage で網羅性を評価
-                        3. 網羅性が低い場合（<70%）は追加抽出を1回のみ試行
-                        4. 結果を報告して終了
-                        
-                        ※トークン制限を避けるため、シンプルな操作のみ実行してください
-                        """
-                        
-                        compressed_messages.append(HumanMessage(content=recovery_prompt))
-                        
-                        self.base_service.logger.info(
-                            f"[AGENT] Compressed from {message_count} to {len(compressed_messages)} messages, retrying..."
-                        )
-                        
-                        current_messages = compressed_messages
-                        retry_count += 1
-                        continue  # リトライ
-                    else:
-                        # リトライ回数超過または圧縮不可
-                        self.base_service.logger.warning(
-                            f"[AGENT] Cannot retry (retry_count={retry_count}, messages={message_count})"
-                        )
-                        return result
-                
-                # 通常の圧縮チェック（メッセージ数が閾値を超えた場合）
-                if len(result["messages"]) > MAX_MESSAGES_BEFORE_COMPRESSION:
-                    self.base_service.logger.info(
-                        f"[AGENT] Message count ({len(result['messages'])}) exceeded limit. Compressing for next iteration..."
-                    )
-                    
-                    compressed_messages = self._compress_message_history(result["messages"])
-                    
-                    self.base_service.logger.info(
-                        f"[AGENT] Compressed from {len(result['messages'])} to {len(compressed_messages)} messages"
-                    )
-                    
-                    # 注: ここでは再実行せず、次のイテレーションで使用される
-                
-                return result
-                
+
+            except ResourceExhausted as e:
+                # Google Gemini APIのレート制限エラーを処理
+                error_msg = str(e)
+                self.base_service.logger.warning(f"[AGENT] Rate limit exceeded: {error_msg}")
+
+                # エラーメッセージから待機時間を抽出（デフォルト60秒）
+                wait_time = 60
+                if "retry in" in error_msg.lower():
+                    # "Please retry in 58.512190946s" のような形式から秒数を抽出
+                    import re
+                    match = re.search(r'retry in (\d+\.?\d*)s', error_msg, re.IGNORECASE)
+                    if match:
+                        wait_time = int(float(match.group(1))) + 5  # 余裕を持たせて5秒追加
+
+                if retry_count < MAX_RETRY_ON_ERROR:
+                    self.base_service.logger.info(f"[AGENT] Waiting {wait_time} seconds before retry (attempt {retry_count + 1}/{MAX_RETRY_ON_ERROR})...")
+                    time.sleep(wait_time)
+                    retry_count += 1
+                    continue
+                else:
+                    self.base_service.logger.error(f"[AGENT] Max retries exceeded for rate limit error")
+                    raise ValueError(
+                        f"Google Gemini APIのレート制限に達しました。しばらく待ってから再度お試しください。"
+                        f"無料プランでは1分間に10リクエストまでです。"
+                    ) from e
+
             except Exception as e:
-                self.base_service.logger.error(f"[AGENT] Error during agent execution: {str(e)}")
-                retry_count += 1
-                if retry_count > MAX_RETRY_ON_ERROR:
-                    raise
-                
-                # エラー時も履歴があれば圧縮してリトライ
-                if isinstance(current_messages, list) and len(current_messages) > 10:
-                    self.base_service.logger.info(f"[AGENT] Exception occurred, compressing and retrying...")
-                    current_messages = self._compress_message_history(current_messages)
+                self.base_service.logger.error(f"[AGENT] Agent execution failed: {str(e)}")
+                import traceback
+                self.base_service.logger.error(f"[AGENT] Traceback: {traceback.format_exc()}")
+
+                if retry_count < MAX_RETRY_ON_ERROR:
+                    retry_count += 1
+                    self.base_service.logger.info(f"[AGENT] Retrying... (attempt {retry_count}/{MAX_RETRY_ON_ERROR})")
+                    continue
                 else:
                     raise
+
+            # MALFORMED_FUNCTION_CALL または STOP で終了した場合
+            if finish_reason in ['MALFORMED_FUNCTION_CALL', 'STOP']:
+                message_count = len(result["messages"])
+                input_tokens = 0
+
+                if hasattr(last_message, 'usage_metadata'):
+                    input_tokens = last_message.usage_metadata.get('input_tokens', 0)
+
+                self.base_service.logger.warning(
+                    f"[AGENT] Agent stopped with {finish_reason} at {message_count} messages, {input_tokens} tokens (retry {retry_count}/{MAX_RETRY_ON_ERROR})"
+                )
+
+                # リトライ可能な場合は圧縮して再実行
+                if retry_count < MAX_RETRY_ON_ERROR and message_count > 10:
+                    self.base_service.logger.info(
+                        f"[AGENT] Attempting recovery: compressing history and retrying..."
+                    )
+
+                    # 会話履歴を圧縮（より積極的に）
+                    compressed_messages = self._compress_message_history(result["messages"])
+
+                    # さらに最終チェックフェーズに移行するようプロンプトを追加
+                    recovery_prompt = """
+
+                    【緊急リカバリー指示】
+                    前回の実行でエラーが発生しました。以下の手順で最終チェックを実行してください：
+
+                    1. get_existing_functions でDB保存済み機能を確認
+                    2. analyze_coverage で網羅性を評価
+                    3. 網羅性が低い場合（<70%）は追加抽出を1回のみ試行
+                    4. 結果を報告して終了
+
+                    ※トークン制限を避けるため、シンプルな操作のみ実行してください
+                    """
+
+                    compressed_messages.append(HumanMessage(content=recovery_prompt))
+
+                    self.base_service.logger.info(
+                        f"[AGENT] Compressed from {message_count} to {len(compressed_messages)} messages, retrying..."
+                    )
+
+                    current_messages = compressed_messages
+                    retry_count += 1
+                    continue  # リトライ
+                else:
+                    # リトライ回数超過または圧縮不可
+                    self.base_service.logger.warning(
+                        f"[AGENT] Cannot retry (retry_count={retry_count}, messages={message_count})"
+                    )
+                    return result
+
+            # 通常の圧縮チェック（メッセージ数が閾値を超えた場合）
+            if len(result["messages"]) > MAX_MESSAGES_BEFORE_COMPRESSION:
+                self.base_service.logger.info(
+                    f"[AGENT] Message count ({len(result['messages'])}) exceeded limit. Compressing for next iteration..."
+                )
+
+                compressed_messages = self._compress_message_history(result["messages"])
+
+                self.base_service.logger.info(
+                    f"[AGENT] Compressed from {len(result['messages'])} to {len(compressed_messages)} messages"
+                )
+
+                # 注: ここでは再実行せず、次のイテレーションで使用される
+
+            return result
         
         # 最終的にリトライ回数超過
         self.base_service.logger.error(f"[AGENT] Max retries ({MAX_RETRY_ON_ERROR}) exceeded")
