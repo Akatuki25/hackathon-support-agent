@@ -1000,10 +1000,8 @@ class FunctionStructuringAgent:
                 
                 self.base_service.logger.info(f"[AGENT] Starting context gathering for project: {project_id}")
                 
-                # 独立したDBセッションを使用（並列実行対応）
-                with get_db_session() as db:
-                    retriever = ContextualInformationRetrieval(db)
-                    context = retriever.gather_context(project_id)
+                # 既存のDBセッションを使用（トランザクション整合性のため）
+                context = self.context_retriever.gather_context(project_id)
                 
                 self.base_service.logger.info(f"[AGENT] Context gathered successfully. Keys: {list(context.keys()) if isinstance(context, dict) else 'Not a dict'}")
                 
