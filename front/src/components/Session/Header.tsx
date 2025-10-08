@@ -12,6 +12,7 @@ import {
   X,
   UserPlus,
   Edit,
+  FolderOpen,
 } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -26,8 +27,30 @@ export default function CyberHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // URLからprojectIDを取得
-  const projectId = pathname.split("/")[2] || null;
+  // URLからprojectIDを取得（プロジェクト関連のパスからのみ取得）
+  const getProjectIdFromPath = (path: string): string | null => {
+    const segments = path.split("/").filter(Boolean);
+
+    // プロジェクト関連のパスかチェック
+    // 例: /hackSetUp/[ProjectId]/*, /projects/[ProjectId]/* など
+    const projectPaths = ["hackSetUp", "projects", "project"];
+
+    if (segments.length >= 2 && projectPaths.includes(segments[0])) {
+      const potentialId = segments[1];
+      // UUIDまたは数字のみのIDかチェック（必要に応じて調整）
+      // UUIDパターン: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const numberPattern = /^\d+$/;
+
+      if (uuidPattern.test(potentialId) || numberPattern.test(potentialId)) {
+        return potentialId;
+      }
+    }
+
+    return null;
+  };
+
+  const projectId = getProjectIdFromPath(pathname);
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -158,7 +181,10 @@ export default function CyberHeader() {
         <div className="container mx-auto px-6 py-6 relative">
           <div className="flex items-center justify-between">
             {/* Cyber Logo */}
-            <div className="flex items-center space-x-4 group">
+            <button
+              onClick={() => router.push("/")}
+              className="flex items-center space-x-4 group cursor-pointer"
+            >
               <div
                 className={`relative w-12 h-12 rounded-lg ${
                   darkMode
@@ -228,7 +254,7 @@ export default function CyberHeader() {
                   {"// SYSTEM_ONLINE"}
                 </span>
               </div>
-            </div>
+            </button>
 
             {/* Cyber Authentication Section */}
             <div className="flex items-center space-x-4">
@@ -427,6 +453,49 @@ export default function CyberHeader() {
 
                       {/* Menu Items */}
                       <div className="py-2">
+                        <button
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            router.push("/dashbord/allProject");
+                          }}
+                          className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
+                            darkMode
+                              ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
+                              : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
+                          }`}
+                        >
+                          <div className="relative">
+                            <FolderOpen className="w-5 h-5" />
+                            {/* Cyber brackets */}
+                            <div
+                              className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
+                                darkMode
+                                  ? "border-cyan-400/50"
+                                  : "border-purple-400/50"
+                              }`}
+                            ></div>
+                            <div
+                              className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
+                                darkMode
+                                  ? "border-cyan-400/50"
+                                  : "border-purple-400/50"
+                              }`}
+                            ></div>
+                          </div>
+                          <div>
+                            <span className="font-mono font-bold text-sm tracking-wider">
+                              ALL_PROJECTS
+                            </span>
+                            <p
+                              className={`text-xs font-mono ${
+                                darkMode ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              {"// View all projects"}
+                            </p>
+                          </div>
+                        </button>
+
                         <button
                           onClick={() => handleSettings("profile")}
                           className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
