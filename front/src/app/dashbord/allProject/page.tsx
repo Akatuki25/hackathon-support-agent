@@ -6,9 +6,11 @@ import {
   Lightbulb,
   Clock,
   Search,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { ProjectType } from "@/types/modelTypes";
-import { getAllProjects } from "@/libs/modelAPI/project";
+import { getAllProjects, deleteProject } from "@/libs/modelAPI/project";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 
@@ -19,6 +21,9 @@ export default function AllProjectPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProjects, setFilteredProjects] = useState<ProjectType[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [confirmationText, setConfirmationText] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -98,6 +103,38 @@ export default function AllProjectPage() {
           ? "text-gray-400 border-gray-400/50"
           : "text-gray-600 border-gray-500/50";
     }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, projectId: string, projectTitle: string) => {
+    e.stopPropagation();
+    setProjectToDelete({ id: projectId, title: projectTitle });
+    setDeleteModalOpen(true);
+    setConfirmationText("");
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete || confirmationText !== projectToDelete.title) {
+      return;
+    }
+
+    try {
+      await deleteProject(projectToDelete.id);
+      // プロジェクト一覧を再取得
+      const updatedProjects = await getAllProjects();
+      setAllProjects(updatedProjects);
+      setFilteredProjects(updatedProjects);
+      setDeleteModalOpen(false);
+      setProjectToDelete(null);
+      setConfirmationText("");
+    } catch (error) {
+      console.error("プロジェクトの削除エラー:", error);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setProjectToDelete(null);
+    setConfirmationText("");
   };
 
   if (loading) {
@@ -299,6 +336,64 @@ export default function AllProjectPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {/* Create New Project Card */}
+              <div
+                onClick={() => router.push("/hackSetUp")}
+                className={`relative p-6 rounded-lg backdrop-blur-xl border transition-all duration-300 hover:scale-105 group overflow-hidden cursor-pointer ${
+                  darkMode
+                    ? "bg-gray-800/30 border-cyan-500/30 hover:border-cyan-400/50 shadow-lg shadow-cyan-500/20"
+                    : "bg-white/60 border-purple-300/30 hover:border-purple-400/50"
+                } shadow-lg hover:shadow-2xl flex items-center justify-center min-h-[320px]`}
+              >
+                {/* Cyber scan line */}
+                <div
+                  className={`absolute top-0 left-0 right-0 h-px ${
+                    darkMode
+                      ? "bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"
+                      : "bg-gradient-to-r from-transparent via-purple-400/50 to-transparent"
+                  } translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000`}
+                ></div>
+
+                {/* Cyber corners */}
+                <div
+                  className={`absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 ${
+                    darkMode ? "border-cyan-400/50" : "border-purple-400/50"
+                  } opacity-0 group-hover:opacity-100 transition-opacity`}
+                ></div>
+                <div
+                  className={`absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 ${
+                    darkMode ? "border-pink-400/50" : "border-blue-400/50"
+                  } opacity-0 group-hover:opacity-100 transition-opacity`}
+                ></div>
+
+                <div className="text-center">
+                  <div
+                    className={`w-20 h-20 mx-auto mb-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                      darkMode
+                        ? "border-cyan-500/50 text-cyan-400 group-hover:border-cyan-400 group-hover:text-cyan-300"
+                        : "border-purple-500/50 text-purple-600 group-hover:border-purple-600 group-hover:text-purple-700"
+                    }`}
+                  >
+                    <Plus className="w-10 h-10" />
+                  </div>
+                  <h3
+                    className={`text-xl font-mono font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    新規プロジェクト作成
+                  </h3>
+                  <p
+                    className={`mt-2 text-sm font-mono ${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    // CREATE_NEW_PROJECT
+                  </p>
+                </div>
+              </div>
+
+              {/* Existing Projects */}
               {filteredProjects.map((project, index) => {
                 const status = getProjectStatus(
                   project.start_date,
@@ -322,7 +417,7 @@ export default function AllProjectPage() {
                         ? "bg-gray-800/30 border-cyan-500/30 hover:border-cyan-400/50 shadow-lg shadow-cyan-500/20"
                         : "bg-white/60 border-purple-300/30 hover:border-purple-400/50"
                     } shadow-lg hover:shadow-2xl cursor-pointer`}
-                    onClick={() => router.push(`/projects/${index}`)}
+                    onClick={() => router.push(`/projects/${project.project_id}`)}
                   >
                     {/* Cyber scan line */}
                     <div
@@ -483,6 +578,20 @@ export default function AllProjectPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => handleDeleteClick(e, String(project.project_id), project.title)}
+                        className={`mt-3 w-full py-2 px-3 rounded border backdrop-blur-md transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2 ${
+                          darkMode
+                            ? "bg-red-500/10 border-red-500/50 text-red-400 hover:bg-red-500/20 hover:border-red-400"
+                            : "bg-red-50 border-red-500/50 text-red-600 hover:bg-red-100 hover:border-red-600"
+                        }`}
+                        title="プロジェクトを削除"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="text-xs font-mono">削除</span>
+                      </button>
                     </div>
                   </div>
                 );
@@ -491,6 +600,123 @@ export default function AllProjectPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && projectToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div
+            className={`relative max-w-md w-full rounded-lg backdrop-blur-xl border shadow-2xl p-6 ${
+              darkMode
+                ? "bg-gray-800/90 border-red-500/50 shadow-red-500/30"
+                : "bg-white/90 border-red-500/50 shadow-red-300/30"
+            }`}
+          >
+            {/* Cyber corners */}
+            <div
+              className={`absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 ${
+                darkMode ? "border-red-400/50" : "border-red-500/50"
+              }`}
+            ></div>
+            <div
+              className={`absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 ${
+                darkMode ? "border-red-400/50" : "border-red-500/50"
+              }`}
+            ></div>
+
+            {/* Warning Icon */}
+            <div className="flex items-center justify-center mb-4">
+              <div
+                className={`w-16 h-16 rounded-full border-2 flex items-center justify-center ${
+                  darkMode
+                    ? "border-red-500/50 text-red-400 bg-red-500/10"
+                    : "border-red-500/50 text-red-600 bg-red-50"
+                }`}
+              >
+                <Trash2 className="w-8 h-8" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2
+              className={`text-xl font-bold font-mono text-center mb-2 ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              PROJECT_DELETE_CONFIRMATION
+            </h2>
+
+            {/* Warning Message */}
+            <p
+              className={`text-center mb-4 ${
+                darkMode ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
+              本当にプロジェクト「
+              <span className={`font-bold ${darkMode ? "text-red-400" : "text-red-600"}`}>
+                {projectToDelete.title}
+              </span>
+              」を削除しますか？
+            </p>
+
+            <p
+              className={`text-sm text-center mb-6 ${
+                darkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              この操作は取り消せません。削除するには、プロジェクト名を入力してください。
+            </p>
+
+            {/* Confirmation Input */}
+            <div className="mb-6">
+              <label
+                className={`block text-sm font-mono mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                プロジェクト名を入力:
+              </label>
+              <input
+                type="text"
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value)}
+                placeholder={projectToDelete.title}
+                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
+                  darkMode
+                    ? "bg-gray-700 text-gray-100 border-red-500 focus:ring-1 focus:ring-red-400 placeholder-gray-500"
+                    : "bg-white text-gray-800 border-red-500 focus:ring-1 focus:ring-red-400 placeholder-gray-400"
+                }`}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <button
+                onClick={handleDeleteCancel}
+                className={`flex-1 py-3 px-4 rounded font-bold transition-all ${
+                  darkMode
+                    ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                }`}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={confirmationText !== projectToDelete.title}
+                className={`flex-1 py-3 px-4 rounded font-bold transition-all ${
+                  confirmationText === projectToDelete.title
+                    ? darkMode
+                      ? "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-gray-400 text-gray-600 cursor-not-allowed"
+                }`}
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

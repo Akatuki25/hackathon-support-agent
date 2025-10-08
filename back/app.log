@@ -146,3 +146,61 @@
 2025-10-07 15:24:52,052 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
 2025-10-07 15:24:52,054 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
 2025-10-07 15:24:52,058 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-10-08 02:34:05,044 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-08 02:34:06,184 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-08 02:35:11,304 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-08 02:35:12,829 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-08 02:35:15,507 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-10-08 02:35:15,508 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-08 02:35:15,508 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.0-flash-exp, temp=0.50)
+2025-10-08 02:35:15,528 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.0-flash-exp, key_present=True)
+2025-10-08 02:35:15,528 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:35:15,529 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:35:15,529 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:35:15,529 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:35:15,530 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:35:15,530 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:35:15,530 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-10-08 02:35:15,530 | DEBUG | hackthon_support_agent.QuestionService | Generating questions for project_id: 9b731e80-a247-4b0f-b9e2-0ff431da65f9 with idea_prompt: プロジェクトタイトル: AIXプロジェクト
+プロジェクトアイディア: AIを活用したプロダクト
+期間: 2025-10-08 〜 2025-10-25 11:34
+2025-10-08 02:35:15,530 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-10-08 02:35:21,327 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-10-08 02:35:21,329 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-08 02:35:21,329 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.0-flash-exp, temp=0.50)
+2025-10-08 02:35:21,331 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.0-flash-exp, key_present=True)
+2025-10-08 02:35:21,331 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:35:21,332 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:35:21,332 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:35:21,333 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:35:21,333 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:35:21,334 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:35:21,334 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-10-08 02:50:07,654 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-10-08 02:50:07,658 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-08 02:50:07,658 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.0-flash-exp, temp=0.50)
+2025-10-08 02:50:07,671 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.0-flash-exp, key_present=True)
+2025-10-08 02:50:07,671 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:50:07,673 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:50:07,673 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:50:07,674 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:50:07,675 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:50:07,676 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:50:07,676 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-10-08 02:50:07,676 | DEBUG | hackthon_support_agent.QuestionService | Generating questions for project_id: da261947-75be-4d8b-9253-16643bbd4c48 with idea_prompt: プロジェクトタイトル: AIXプロジェクト
+プロジェクトアイディア: アイディア
+
+期間: 2025-10-08 〜 2025-10-08 11:49
+2025-10-08 02:50:07,676 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-10-08 02:50:13,809 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-10-08 02:50:13,810 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-08 02:50:13,810 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.0-flash-exp, temp=0.50)
+2025-10-08 02:50:13,812 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.0-flash-exp, key_present=True)
+2025-10-08 02:50:13,812 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:50:13,813 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:50:13,813 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:50:13,814 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:50:13,814 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-08 02:50:13,815 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-08 02:50:13,815 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-10-08 02:55:49,966 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
