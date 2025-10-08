@@ -2,38 +2,145 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Lightbulb,
   Clock,
   Search,
   Plus,
   Trash2,
+  Users,
 } from "lucide-react";
-import { ProjectType } from "@/types/modelTypes";
+import { ProjectType, ProjectMemberType } from "@/types/modelTypes";
 import { getAllProjects, deleteProject } from "@/libs/modelAPI/project";
+import { getMemberByGithubName, listMembers } from "@/libs/modelAPI/member";
+import { getProjectMembersByProjectId } from "@/libs/modelAPI/project_member";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 
+type ProjectWithMembers = ProjectType & {
+  members: Array<{ member_name: string; github_name: string }>;
+};
+
 export default function AllProjectPage() {
+  console.log('🚀 AllProjectPage コンポーネント実行');
+
   const router = useRouter();
   const { darkMode } = useDarkMode();
-  const [allprojects, setAllProjects] = useState<ProjectType[]>([]);
+  const { data: session, status } = useSession();
+
+  console.log('📊 初期状態 - session:', session, 'status:', status);
+
+  const [allprojects, setAllProjects] = useState<ProjectWithMembers[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProjects, setFilteredProjects] = useState<ProjectType[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<ProjectWithMembers[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
   const [confirmationText, setConfirmationText] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    console.log('useEffect実行 - status:', status, 'session:', session);
+
+    if (typeof window !== "undefined" && status !== "loading") {
+      console.log('条件クリア - データ取得開始');
+
       // プロジェクト一覧を取得するAPIを呼び出す
       const fetchProjects = async () => {
         try {
           setLoading(true);
+          console.log('Loading開始');
+
+          // ログインしていない場合は空配列
+          if (!session?.user?.name) {
+            console.log('セッションなし - 終了');
+            setAllProjects([]);
+            setFilteredProjects([]);
+            return;
+          }
+
+          console.log('ログインユーザー:', session.user.name);
+
+          // 現在のユーザーのmember_idを取得
+          let currentMemberId: string;
+          try {
+            console.log('メンバー情報取得中...');
+            const member = await getMemberByGithubName(session.user.name);
+            currentMemberId = member.member_id;
+            console.log('メンバーID取得成功:', currentMemberId);
+          } catch (error) {
+            console.error("ユーザー情報の取得エラー:", error);
+            setAllProjects([]);
+            setFilteredProjects([]);
+            return;
+          }
+
+          // すべてのプロジェクトを取得
           const allProjects = await getAllProjects();
-          setAllProjects(allProjects);
-          setFilteredProjects(allProjects);
+
+          // 全メンバー情報を取得（GitHub名とのマッピング用）
+          const allMembers = await listMembers();
+
+          // 各プロジェクトについて、ユーザーがメンバーに含まれているかチェック
+          const userProjects: ProjectWithMembers[] = [];
+
+          console.log('=== プロジェクト取得開始 ===');
+          console.log('全プロジェクト数:', allProjects.length);
+          console.log('現在のユーザーID:', currentMemberId);
+          console.log('全メンバー数:', allMembers.length);
+
+          for (const project of allProjects) {
+            if (!project.project_id) continue;
+
+            try {
+              const projectMembers = await getProjectMembersByProjectId(project.project_id);
+              console.log(`\n[${project.title}]`);
+              console.log('  プロジェクトメンバー数:', projectMembers.length);
+              console.log('  プロジェクトメンバー:', projectMembers);
+
+              // メンバーがいない場合はスキップ
+              if (projectMembers.length === 0) {
+                console.log('  メンバーが登録されていないためスキップ');
+                continue;
+              }
+
+              // 現在のユーザーがメンバーに含まれているか確認
+              const isMember = projectMembers.some(pm => pm.member_id === currentMemberId);
+              console.log('  現在のユーザーはメンバー?:', isMember);
+
+              if (isMember) {
+                // プロジェクトメンバーにGitHub名を追加
+                const membersWithGithub = projectMembers.map(pm => {
+                  const memberInfo = allMembers.find(m => m.member_id === pm.member_id);
+                  console.log(`    メンバーID ${pm.member_id} -> GitHub名: ${memberInfo?.github_name || 'なし'}`);
+                  return {
+                    member_name: pm.member_name,
+                    github_name: memberInfo?.github_name || pm.member_name,
+                  };
+                });
+
+                console.log('  メンバー情報(GitHub名付き):', membersWithGithub);
+
+                const projectWithMembers = {
+                  ...project,
+                  members: membersWithGithub,
+                };
+
+                console.log('  最終的なプロジェクトオブジェクト:', projectWithMembers);
+                userProjects.push(projectWithMembers);
+              }
+            } catch (error) {
+              // APIエラーが発生した場合はスキップ
+              console.warn(`プロジェクト ${project.project_id} のメンバー取得エラー - スキップします:`, error);
+            }
+          }
+
+          console.log('\n=== 最終結果 ===');
+          console.log('表示するプロジェクト数:', userProjects.length);
+          console.log('プロジェクト一覧:', userProjects);
+
+          setAllProjects(userProjects);
+          setFilteredProjects(userProjects);
         } catch (error) {
           console.error("プロジェクトの取得エラー:", error);
         } finally {
@@ -42,7 +149,7 @@ export default function AllProjectPage() {
       };
       fetchProjects();
     }
-  }, []);
+  }, [session, status]);
 
   // 検索フィルタリング
   useEffect(() => {
@@ -535,7 +642,89 @@ export default function AllProjectPage() {
                             }
                           </span>
                         </div>
+
+                        {/* Team Members */}
+                        <div
+                          className={`p-3 rounded border backdrop-blur-md ${
+                            darkMode
+                              ? "bg-gray-800/40 border-gray-600/50"
+                              : "bg-gray-50/50 border-gray-300/50"
+                          }`}
+                        >
+                          <div className="flex items-center mb-1">
+                            <Users
+                              className={`w-3 h-3 mr-1 ${
+                                darkMode ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            />
+                            <span
+                              className={`text-xs font-mono ${
+                                darkMode ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            >
+                              メンバー
+                            </span>
+                          </div>
+                          <span
+                            className={`text-sm font-mono font-bold ${
+                              darkMode ? "text-white" : "text-gray-900"
+                            }`}
+                          >
+                            {project.members?.length || 0}人
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Team Members List */}
+                      {project.members && project.members.length > 0 && (
+                        <div
+                          className={`mt-4 p-3 rounded border backdrop-blur-md ${
+                            darkMode
+                              ? "bg-gray-800/30 border-gray-600/30"
+                              : "bg-gray-50/30 border-gray-300/30"
+                          }`}
+                        >
+                          <div className="flex items-center mb-2">
+                            <Users
+                              className={`w-4 h-4 mr-2 ${
+                                darkMode ? "text-cyan-400" : "text-purple-600"
+                              }`}
+                            />
+                            <span
+                              className={`text-xs font-mono font-bold ${
+                                darkMode ? "text-cyan-400" : "text-purple-600"
+                              }`}
+                            >
+                              // TEAM_MEMBERS
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {project.members.slice(0, 3).map((member, idx) => (
+                              <div
+                                key={idx}
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-mono ${
+                                  darkMode
+                                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50"
+                                    : "bg-purple-500/20 text-purple-700 border border-purple-400/50"
+                                }`}
+                              >
+                                {member.github_name}
+                              </div>
+                            ))}
+                            {project.members.length > 3 && (
+                              <div
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-mono ${
+                                  darkMode
+                                    ? "bg-gray-500/20 text-gray-300 border border-gray-500/50"
+                                    : "bg-gray-500/20 text-gray-700 border border-gray-400/50"
+                                }`}
+                              >
+                                +{project.members.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Dates */}
                       <div

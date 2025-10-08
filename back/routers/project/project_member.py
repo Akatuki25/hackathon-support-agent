@@ -101,6 +101,5 @@ async def patch_project_member(project_member_id: uuid.UUID, project_member: Pro
 @router.get("/project_member/project/{project_id}", summary="プロジェクトIDからプロジェクトメンバー取得")
 async def get_project_members_by_project_id(project_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project_members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
-    if not db_project_members:
-        raise HTTPException(status_code=404, detail="Project members not found")
+    # メンバーがいない場合は空配列を返す（404ではなく）
     return db_project_members
