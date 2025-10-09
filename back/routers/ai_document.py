@@ -67,8 +67,14 @@ async def generate_ai_document(
         )
 
     except ValueError as e:
+        import traceback
+        print(f"ValueError in AI document generation: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import traceback
+        print(f"Exception in AI document generation: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(
             status_code=500,
             detail=f"Internal server error during AI document generation: {str(e)}"
