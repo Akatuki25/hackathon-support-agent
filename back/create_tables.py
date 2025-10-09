@@ -13,6 +13,9 @@ from models.project_base import (
     StructuredFunction,
     FunctionDependency,
     FunctionToTaskMapping,
+    # Phase 3: タスクハンズオン生成
+    TaskHandsOn,
+    HandsOnGenerationJob,
 )
 
 def reset_db():
