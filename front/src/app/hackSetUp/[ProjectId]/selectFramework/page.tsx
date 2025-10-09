@@ -8,7 +8,9 @@ import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
 import { getProjectDocument } from "@/libs/modelAPI/frameworkService";
-import { getFrameworkRecommendations,  } from "@/libs/service/frameworkService";
+import { getFrameworkRecommendations } from "@/libs/service/frameworkService";
+import { patchProjectDocument } from "@/libs/modelAPI/document";
+import { generateAIDocument } from "@/libs/service/aiDocumentService";
 
 export interface TechnologyOption {
   name: string;
@@ -337,15 +339,17 @@ export default function SelectFramework() {
   const [processingNext, setProcessingNext] = useState(false);
   const [useAIRecommendations, setUseAIRecommendations] = useState(false);
 
-  // 
-  const saveFrameworkSelection = (projectId:string,reason:string) => {
-    // session Strageに追加する
-
-    sessionStorage.setItem(
-      projectId,
-      reason
-    )
-
+  // フレームワーク選択を保存
+  const saveFrameworkSelection = async (projectId: string, reason: string) => {
+    try {
+      // frame_work_docをpatchで更新
+      await patchProjectDocument(projectId, {
+        frame_work_doc: reason
+      });
+    } catch (error) {
+      console.error("フレームワーク選択の保存に失敗:", error);
+      throw error;
+    }
   }
 
   // 初期処理：プロジェクト仕様書を取得
@@ -437,10 +441,11 @@ export default function SelectFramework() {
         ? `選択理由: AI推薦により${Array.from(selectedTechnologies).join(", ")}を使用`
         : `選択理由: ${selectedPlatform}プラットフォームで${Array.from(selectedTechnologies).join(", ")}を使用`;
 
-      saveFrameworkSelection(
-        projectId,
-        reason
-      );
+      // frame_work_docを保存
+      await saveFrameworkSelection(projectId, reason);
+
+      // AIドキュメント生成を呼び出し
+      await generateAIDocument(projectId);
 
       setTimeout(() => {
         router.push(`/hackSetUp/${projectId}/functionStructuring`);
@@ -451,6 +456,8 @@ export default function SelectFramework() {
       setTimeout(() => {
         router.push(`/hackSetUp/${projectId}/functionStructuring`);
       }, 1000);
+    } finally {
+      setProcessingNext(false);
     }
   };
 
