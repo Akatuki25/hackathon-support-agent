@@ -120,12 +120,62 @@ export default function FunctionStructuring() {
         setStructuringResult(structuredData);
         setProcessingState('completed');
         setAgentProgress("機能構造化が完了しました！");
+      } else if ((result as any).partial_success) {
+        // 部分的に成功した場合
+        console.warn('部分的な成功:', result);
+        const partialResult = result as any;
+        setAgentProgress(`部分的に機能を構造化しました (${partialResult.saved_functions_count}個の機能を保存)`);
+
+        // 保存された機能を取得
+        try {
+          const structuredData = await getStructuredFunctions(projectId);
+          if (structuredData.total_functions > 0) {
+            setStructuringResult(structuredData);
+            setProcessingState('completed');
+            setError(
+              `AIエージェントが途中で停止しましたが、${partialResult.saved_functions_count}個の機能を正常に保存しました。\n\n` +
+              `原因: ${partialResult.error}\n\n` +
+              `保存された機能を確認して、必要に応じて手動で追加することができます。`
+            );
+          } else {
+            throw new Error('保存された機能が見つかりませんでした');
+          }
+        } catch (fetchError) {
+          throw new Error(`部分的に成功しましたが、データの取得に失敗しました: ${fetchError}`);
+        }
       } else {
         throw new Error(result.error || '機能構造化に失敗しました');
       }
     } catch (error) {
       console.error('機能構造化エラー:', error);
-      setError(error instanceof Error ? error.message : '機能構造化に失敗しました');
+      const errorMessage = error instanceof Error ? error.message : '機能構造化に失敗しました';
+
+      // ユーザーフレンドリーなエラーメッセージに変換
+      let friendlyMessage = errorMessage;
+      if (errorMessage.includes('MALFORMED_FUNCTION_CALL')) {
+        friendlyMessage =
+          'AIエージェントの関数呼び出しで問題が発生しました。\n\n' +
+          '考えられる原因:\n' +
+          '• Google Gemini APIのレート制限に達した可能性があります\n' +
+          '• トークン制限に達した可能性があります\n\n' +
+          '対処方法:\n' +
+          '• しばらく待ってから「再実行」ボタンをクリックしてください\n' +
+          '• Gemini APIの無料プランでは1分間に10リクエストまでです';
+      } else if (errorMessage.includes('Token limit') || errorMessage.includes('token')) {
+        friendlyMessage =
+          'AIモデルのトークン制限に達しました。\n\n' +
+          '対処方法:\n' +
+          '• 少し待ってから再実行してください\n' +
+          '• 機能要件書が長すぎる場合は、分割して処理することを検討してください';
+      } else if (errorMessage.includes('Rate limit') || errorMessage.includes('retry')) {
+        friendlyMessage =
+          'Google Gemini APIのレート制限に達しました。\n\n' +
+          '対処方法:\n' +
+          '• 1分ほど待ってから「再実行」ボタンをクリックしてください\n' +
+          '• 無料プランでは1分間に10リクエストまでです';
+      }
+
+      setError(friendlyMessage);
       setProcessingState('error');
     }
   };
@@ -338,9 +388,9 @@ export default function FunctionStructuring() {
                 <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-red-400" : "text-red-700"}`}>
                   機能構造化エラー
                 </h2>
-                <p className={`mb-4 ${darkMode ? "text-red-300" : "text-red-600"}`}>
+                <div className={`mb-4 text-left max-w-2xl mx-auto whitespace-pre-line ${darkMode ? "text-red-300" : "text-red-600"}`}>
                   {error}
-                </p>
+                </div>
                 <button
                   onClick={handleStructureFunctions}
                   className={`px-6 py-2 rounded-full transition-colors ${
@@ -358,6 +408,27 @@ export default function FunctionStructuring() {
           {/* 完了結果の表示 */}
           {processingState === 'completed' && structuringResult && (
             <>
+              {/* 部分的成功の警告 */}
+              {error && (
+                <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
+                  darkMode
+                    ? "bg-yellow-900/20 border-yellow-500/40 shadow-yellow-500/30"
+                    : "bg-yellow-50/80 border-yellow-300 shadow-yellow-200"
+                }`}>
+                  <div className="flex items-start">
+                    <AlertCircle size={24} className={`mr-3 mt-1 flex-shrink-0 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`} />
+                    <div className="flex-1">
+                      <h3 className={`text-lg font-bold mb-2 ${darkMode ? "text-yellow-400" : "text-yellow-700"}`}>
+                        部分的な成功
+                      </h3>
+                      <div className={`text-sm whitespace-pre-line ${darkMode ? "text-yellow-300" : "text-yellow-700"}`}>
+                        {error}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
                 darkMode
                   ? "bg-gray-800/30 border-cyan-500/40 shadow-cyan-500/30"

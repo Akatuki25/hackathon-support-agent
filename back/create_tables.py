@@ -6,6 +6,7 @@ from models.project_base import (
     ProjectMember,
     Task,
     TaskAssignment,
+    TaskDependency,
     QA,
     AIDocument,
     Env,
