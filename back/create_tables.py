@@ -2,17 +2,9 @@ from database import engine, Base
 from models.project_base import (
     MemberBase,
     ProjectBase,
-    ProjectDocument,
     ProjectMember,
     Task,
     TaskAssignment,
-    TaskDependency,
-    QA,
-    AIDocument,
-    Env,
-    StructuredFunction,
-    FunctionDependency,
-    FunctionToTaskMapping,
 )
 
 def reset_db():

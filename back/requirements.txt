@@ -16,4 +16,3 @@ pydantic
 langchain_anthropic
 json-repair
 markdown-it-py
-langgraph
