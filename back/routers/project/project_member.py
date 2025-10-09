@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from datetime import date
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -24,8 +23,21 @@ class ProjectMemberPatch(BaseModel):
 
 
         
-@router.post("/project_member", summary="プロジェクトメンバー作成")
+@router.post("/project_member/member/", summary="プロジェクトメンバー作成")
 async def create_project_member(project_member: ProjectMemberType, db: Session = Depends(get_db)):
+    # 既に同じプロジェクトに同じメンバーが登録されているかチェック
+    existing_member = db.query(ProjectMember).filter(
+        ProjectMember.project_id == project_member.project_id,
+        ProjectMember.member_id == project_member.member_id
+    ).first()
+
+    if existing_member:
+        # 既に存在する場合は既存のIDを返す
+        return {
+            "project_member_id": existing_member.project_member_id,
+            "message": "プロジェクトメンバーは既に登録されています"
+        }
+
     project_member_id = str(uuid.uuid4())
     db_project_member = ProjectMember(
         project_member_id=project_member_id,
@@ -38,22 +50,16 @@ async def create_project_member(project_member: ProjectMemberType, db: Session =
     db.refresh(db_project_member)
     return {"project_member_id": project_member_id, "message": "プロジェクトメンバーが作成されました"}
 
-@router.get("/project_member/{project_member_id}", summary="プロジェクトメンバー取得")
+@router.get("/project_member/member/{project_member_id}", summary="プロジェクトメンバー取得")
 async def get_project_member(project_member_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
         raise HTTPException(status_code=404, detail="Project member not found")
     return db_project_member
 
-# プロジェクトIDからプロジェクトメンバーを取得する
-@router.get("/project_member/project/{project_id}", summary="プロジェクトIDからプロジェクトメンバー取得")
-async def get_project_members_by_project_id(project_id: uuid.UUID, db: Session = Depends(get_db)):
-    db_project_members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
-    if not db_project_members:
-        raise HTTPException(status_code=404, detail="Project members not found")
-    return db_project_members
 
-@router.put("/project_member/{project_member_id}", summary="プロジェクトメンバー更新")
+
+@router.put("/project_member/member/{project_member_id}", summary="プロジェクトメンバー更新")
 async def update_project_member(project_member_id: uuid.UUID, project_member: ProjectMemberType, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
@@ -65,7 +71,7 @@ async def update_project_member(project_member_id: uuid.UUID, project_member: Pr
     db.refresh(db_project_member)
     return {"message": "プロジェクトメンバーが更新されました"}
 
-@router.delete("/project_member/{project_member_id}", summary="プロジェクトメンバー削除")
+@router.delete("/project_member/member/{project_member_id}", summary="プロジェクトメンバー削除")
 async def delete_project_member(project_member_id: uuid.UUID, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
@@ -76,7 +82,7 @@ async def delete_project_member(project_member_id: uuid.UUID, db: Session = Depe
     
     return {"message": "プロジェクトメンバーが削除されました"}
 
-@router.patch("/project_member/{project_member_id}", summary="プロジェクトメンバー部分更新")
+@router.patch("/project_member/member/{project_member_id}", summary="プロジェクトメンバー部分更新")
 async def patch_project_member(project_member_id: uuid.UUID, project_member: ProjectMemberPatch, db: Session = Depends(get_db)):
     db_project_member = db.query(ProjectMember).filter(ProjectMember.project_member_id == project_member_id).first()
     if db_project_member is None:
@@ -89,3 +95,12 @@ async def patch_project_member(project_member_id: uuid.UUID, project_member: Pro
     db.commit()
     db.refresh(db_project_member)
     return {"message": "Project member partially updated successfully"}
+
+
+# プロジェクトIDからプロジェクトメンバーを取得する
+@router.get("/project_member/project/{project_id}", summary="プロジェクトIDからプロジェクトメンバー取得")
+async def get_project_members_by_project_id(project_id: uuid.UUID, db: Session = Depends(get_db)):
+    db_project_members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
+    if not db_project_members:
+        raise HTTPException(status_code=404, detail="Project members not found")
+    return db_project_members

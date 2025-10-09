@@ -41,14 +41,14 @@ async def create_member(member: MemberType, db: Session = Depends(get_db)):
     return {"member_id": member_id, "message": "メンバーが作成されました"}
 
 # usernameからメンバーを取得
-@router.get("/member/{github_name}", summary="メンバー取得")
+@router.get("/member/github/{github_name}", summary="メンバー取得")
 async def get_member(github_name: str, db: Session = Depends(get_db)):
     db_member = db.query(MemberBase).filter(MemberBase.github_name == github_name).first()
     if db_member is None:
         raise HTTPException(status_code=404, detail="Member not found")
     return db_member
 
-@router.put("/member/{github_name}", summary="メンバー更新")
+@router.put("/member/github/{github_name}", summary="メンバー更新")
 async def update_member(github_name: str, member: MemberType, db: Session = Depends(get_db)):
     db_member = db.query(MemberBase).filter(MemberBase.github_name == github_name).first()
     if db_member is None:
@@ -63,7 +63,7 @@ async def update_member(github_name: str, member: MemberType, db: Session = Depe
     return {"message": "Member updated successfully"}
 
 
-@router.delete("/member/{github_name}", summary="メンバー削除")
+@router.delete("/member/github/{github_name}", summary="メンバー削除")
 async def delete_member(github_name: str, db: Session = Depends(get_db)):
     db_member = db.query(MemberBase).filter(MemberBase.github_name == github_name).first()
     if db_member is None:

@@ -4,6 +4,7 @@ venv/
 
 # env
 .env.local
+.env
 
 # uvicorn
 __pycache__/

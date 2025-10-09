@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from database import get_db
 from services.function_service import FunctionService
+from services.function_structuring_service import FunctionStructuringAgent
 from typing import Union, List, Dict, Any, Optional
 import uuid
 
