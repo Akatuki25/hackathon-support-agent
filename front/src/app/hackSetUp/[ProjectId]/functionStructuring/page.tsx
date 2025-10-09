@@ -33,39 +33,39 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string; glow: string }> = {
   auth: {
     bg: 'bg-red-500/10 dark:bg-red-500/5',
-    border: 'border-red-500/30 dark:border-red-400/40',
+    border: 'border-red-500/30 dark:border-red-400/50',
     text: 'text-red-600 dark:text-red-400',
-    glow: 'shadow-red-500/20 dark:shadow-red-400/30'
+    glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(248,113,113,0.4)]'
   },
   data: {
     bg: 'bg-blue-500/10 dark:bg-blue-500/5',
-    border: 'border-blue-500/30 dark:border-blue-400/40',
+    border: 'border-blue-500/30 dark:border-blue-400/50',
     text: 'text-blue-600 dark:text-blue-400',
-    glow: 'shadow-blue-500/20 dark:shadow-blue-400/30'
+    glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(96,165,250,0.4)]'
   },
   logic: {
     bg: 'bg-green-500/10 dark:bg-green-500/5',
-    border: 'border-green-500/30 dark:border-green-400/40',
+    border: 'border-green-500/30 dark:border-green-400/50',
     text: 'text-green-600 dark:text-green-400',
-    glow: 'shadow-green-500/20 dark:shadow-green-400/30'
+    glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(74,222,128,0.4)]'
   },
   ui: {
     bg: 'bg-purple-500/10 dark:bg-purple-500/5',
-    border: 'border-purple-500/30 dark:border-purple-400/40',
+    border: 'border-purple-500/30 dark:border-purple-400/50',
     text: 'text-purple-600 dark:text-purple-400',
-    glow: 'shadow-purple-500/20 dark:shadow-purple-400/30'
+    glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(192,132,252,0.4)]'
   },
   api: {
     bg: 'bg-orange-500/10 dark:bg-orange-500/5',
-    border: 'border-orange-500/30 dark:border-orange-400/40',
+    border: 'border-orange-500/30 dark:border-orange-400/50',
     text: 'text-orange-600 dark:text-orange-400',
-    glow: 'shadow-orange-500/20 dark:shadow-orange-400/30'
+    glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(251,146,60,0.4)]'
   },
   deployment: {
     bg: 'bg-gray-500/10 dark:bg-gray-500/5',
-    border: 'border-gray-500/30 dark:border-gray-400/40',
+    border: 'border-gray-500/30 dark:border-gray-400/50',
     text: 'text-gray-600 dark:text-gray-400',
-    glow: 'shadow-gray-500/20 dark:shadow-gray-400/30'
+    glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(156,163,175,0.4)]'
   }
 };
 
@@ -276,9 +276,14 @@ export default function FunctionStructuring() {
     }
   };
 
-  // 次のページへ進む
+  // タスク可視化ページへ進む
   const handleNext = () => {
-    router.push(`/hackSetUp/${projectId}/technologyDoucment`);
+    console.log("handleNext called");
+    // セッション情報からgithubNameを取得
+    const githubName = session?.user?.name || 'unknown';
+    console.log("githubName:", githubName);
+    console.log("projectId:", projectId);
+    router.push(`/${githubName}/${projectId}`);
   };
 
   // 認証とデータ初期化
@@ -320,15 +325,23 @@ export default function FunctionStructuring() {
 
   return (
     <>
-      <div className="w-full top-0 left-0 right-0 z-99 absolute">
+      <div className="w-full top-0 left-0 right-0 z-0 absolute">
         <Header />
       </div>
 
       <main className={`relative z-10 min-h-screen ${
         darkMode
-          ? "bg-gradient-to-br from-gray-900 via-black to-gray-900"
+          ? "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
           : "bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200"
       }`}>
+        {/* サイバーグリッド背景 */}
+        {darkMode && (
+          <>
+            <div className="-z-10 absolute inset-0 bg-[linear-gradient(to_right,#4f46e520_1px,transparent_1px),linear-gradient(to_bottom,#4f46e520_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+            <div className="-z-10 absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+            <div className="-z-10 absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '1s'}} />
+          </>
+        )}
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4 mt-5">
@@ -355,7 +368,7 @@ export default function FunctionStructuring() {
           {processingState === 'structuring' && (
             <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
               darkMode
-                ? "bg-gray-800/30 border-cyan-500/40 shadow-cyan-500/30"
+                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
                 : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
             }`}>
               <div className="text-center">
@@ -380,7 +393,7 @@ export default function FunctionStructuring() {
           {processingState === 'error' && (
             <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
               darkMode
-                ? "bg-red-900/20 border-red-500/40 shadow-red-500/30"
+                ? "bg-red-900/10 border-red-400/50 shadow-[0_0_50px_rgba(248,113,113,0.3)]"
                 : "bg-red-50/80 border-red-300 shadow-red-200"
             }`}>
               <div className="text-center">
@@ -412,7 +425,7 @@ export default function FunctionStructuring() {
               {error && (
                 <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
                   darkMode
-                    ? "bg-yellow-900/20 border-yellow-500/40 shadow-yellow-500/30"
+                    ? "bg-yellow-900/10 border-yellow-400/50 shadow-[0_0_50px_rgba(251,191,36,0.3)]"
                     : "bg-yellow-50/80 border-yellow-300 shadow-yellow-200"
                 }`}>
                   <div className="flex items-start">
@@ -431,7 +444,7 @@ export default function FunctionStructuring() {
 
               <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
                 darkMode
-                  ? "bg-gray-800/30 border-cyan-500/40 shadow-cyan-500/30"
+                  ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
                   : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
               }`}>
                 <div className="text-center mb-6">
@@ -451,7 +464,7 @@ export default function FunctionStructuring() {
                     onClick={handleOpenAddFunction}
                     className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
                       darkMode
-                        ? "bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-400 shadow-lg shadow-cyan-500/20"
+                        ? "bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/50 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]"
                         : "bg-purple-100 hover:bg-purple-200 border border-purple-300 text-purple-700"
                     }`}
                   >
@@ -472,7 +485,7 @@ export default function FunctionStructuring() {
                     return (
                       <div
                         key={category}
-                        className={`rounded-xl p-4 border-2 backdrop-blur-md ${colors.bg} ${colors.border} shadow-lg ${colors.glow}`}
+                        className={`rounded-xl p-4 border backdrop-blur-md ${colors.bg} ${colors.border} shadow-lg ${colors.glow}`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h3 className={`text-lg font-bold ${colors.text}`}>
@@ -492,9 +505,9 @@ export default function FunctionStructuring() {
                               return (
                                 <div
                                   key={func.function_id}
-                                  className={`p-3 rounded-lg border backdrop-blur-sm ${
+                                  className={`p-3 rounded-lg border backdrop-blur-sm transition-all ${
                                     darkMode
-                                      ? "bg-gray-800/40 border-gray-600/50"
+                                      ? "bg-slate-800/40 border-slate-600/50 hover:bg-slate-700/50"
                                       : "bg-white/70 border-gray-200"
                                   }`}
                                 >
@@ -700,7 +713,7 @@ export default function FunctionStructuring() {
                   {structuringResult.implementation_order && structuringResult.implementation_order.length > 0 && (
                     <div className={`p-4 rounded-lg border backdrop-blur-md ${
                       darkMode
-                        ? "bg-gray-800/40 border-gray-600/50"
+                        ? "bg-slate-800/30 border-slate-600/50"
                         : "bg-gray-50/80 border-gray-200"
                     }`}>
                       <h3 className={`text-lg font-bold mb-3 flex items-center ${
@@ -936,7 +949,7 @@ export default function FunctionStructuring() {
                 )}
               </div>
 
-              {/* 次へ進むボタン */}
+              {/* タスク可視化へ進むボタン */}
               <div className="text-center">
                 <button
                   onClick={handleNext}
@@ -946,7 +959,7 @@ export default function FunctionStructuring() {
                       : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
                   }`}
                 >
-                  <span>技術ドキュメント生成へ</span>
+                  <span>タスク可視化へ</span>
                   <ChevronRight size={18} className="ml-2" />
                 </button>
               </div>

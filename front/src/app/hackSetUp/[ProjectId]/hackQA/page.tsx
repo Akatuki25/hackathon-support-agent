@@ -67,7 +67,7 @@ export default function HackQA() {
       const axios = (await import("axios")).default;
 
       // プロジェクトメンバーを取得
-      let projectMembers;
+      let projectMembers: { member_id: string }[] = [];
       try {
         projectMembers = await getProjectMembersByProjectId(projectId);
       } catch (error) {
