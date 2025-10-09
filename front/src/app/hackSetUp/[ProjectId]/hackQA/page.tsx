@@ -11,12 +11,10 @@ import { getQAsByProjectId, patchQA, postQA,deleteQA} from "@/libs/modelAPI/qa";
 import { QAType } from "@/types/modelTypes";
 import Loading from "@/components/PageLoading";
 import {generateSummary , saveSummary} from "@/libs/service/summary";
-import { useSession } from "next-auth/react";
 
 export default function HackQA() {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session } = useSession();
   const [idea, setIdea] = useState<string>("");
   const [qas, setQas] = useState<QAType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,23 +29,18 @@ export default function HackQA() {
   useEffect(() => {
     const fetchData = async () => {
       if (!projectId) return;
-
+      
       try {
         setLoading(true);
-
+        
         // プロジェクトデータの取得
         const projectData = await getProject(projectId);
         setIdea(projectData.idea || "");
-
+        
         // Q&Aデータの取得
         const qaData = await getQAsByProjectId(projectId);
         console.log("Fetched QAs:", qaData);
         setQas(qaData || []);
-
-        // ログインユーザーをプロジェクトメンバーに自動追加
-        if (session?.user?.name) {
-          await ensureUserIsProjectMember(projectId, session.user.name);
-        }
       } catch (error) {
         console.error("データの取得に失敗:", error);
         setIdea("プロジェクトのアイデアが取得できませんでした");
@@ -57,50 +50,7 @@ export default function HackQA() {
     };
 
     fetchData();
-  }, [projectId, session]);
-
-  // ログインユーザーがプロジェクトメンバーに登録されているか確認し、未登録なら追加
-  const ensureUserIsProjectMember = async (projectId: string, githubName: string) => {
-    try {
-      const { getProjectMembersByProjectId, postProjectMember } = await import("@/libs/modelAPI/project_member");
-      const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
-      const axios = (await import("axios")).default;
-
-      // プロジェクトメンバーを取得
-      let projectMembers;
-      try {
-        projectMembers = await getProjectMembersByProjectId(projectId);
-      } catch (error) {
-        // 404エラーの場合は空配列（メンバーがいない）
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          projectMembers = [];
-        } else {
-          throw error;
-        }
-      }
-
-      // ログインユーザーのメンバー情報を取得
-      const currentMember = await getMemberByGithubName(githubName);
-
-      // 既にメンバーに含まれているかチェック
-      const isAlreadyMember = projectMembers.some(
-        (pm) => pm.member_id === currentMember.member_id
-      );
-
-      if (!isAlreadyMember) {
-        // プロジェクトメンバーに追加
-        await postProjectMember({
-          project_id: projectId,
-          member_id: currentMember.member_id,
-          member_name: currentMember.member_name,
-        });
-        console.log(`ユーザー ${githubName} をプロジェクトメンバーに追加しました`);
-      }
-    } catch (error) {
-      console.error("プロジェクトメンバー追加エラー:", error);
-      // エラーが発生しても処理は継続
-    }
-  };
+  }, [projectId]);
 
   // 編集開始
   const handleStartEdit = (qaId: string, field: 'question' | 'answer', currentValue: string) => {

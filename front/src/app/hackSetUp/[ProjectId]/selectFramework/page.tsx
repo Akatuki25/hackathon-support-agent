@@ -8,9 +8,7 @@ import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
 import { getProjectDocument } from "@/libs/modelAPI/frameworkService";
-import { getFrameworkRecommendations } from "@/libs/service/frameworkService";
-import { patchProjectDocument } from "@/libs/modelAPI/document";
-import { generateAIDocument } from "@/libs/service/aiDocumentService";
+import { getFrameworkRecommendations,  } from "@/libs/service/frameworkService";
 
 export interface TechnologyOption {
   name: string;
@@ -339,17 +337,15 @@ export default function SelectFramework() {
   const [processingNext, setProcessingNext] = useState(false);
   const [useAIRecommendations, setUseAIRecommendations] = useState(false);
 
-  // フレームワーク選択を保存
-  const saveFrameworkSelection = async (projectId: string, reason: string) => {
-    try {
-      // frame_work_docをpatchで更新
-      await patchProjectDocument(projectId, {
-        frame_work_doc: reason
-      });
-    } catch (error) {
-      console.error("フレームワーク選択の保存に失敗:", error);
-      throw error;
-    }
+  // 
+  const saveFrameworkSelection = (projectId:string,reason:string) => {
+    // session Strageに追加する
+
+    sessionStorage.setItem(
+      projectId,
+      reason
+    )
+
   }
 
   // 初期処理：プロジェクト仕様書を取得
@@ -441,23 +437,20 @@ export default function SelectFramework() {
         ? `選択理由: AI推薦により${Array.from(selectedTechnologies).join(", ")}を使用`
         : `選択理由: ${selectedPlatform}プラットフォームで${Array.from(selectedTechnologies).join(", ")}を使用`;
 
-      // frame_work_docを保存
-      await saveFrameworkSelection(projectId, reason);
-
-      // AIドキュメント生成を呼び出し
-      await generateAIDocument(projectId);
+      saveFrameworkSelection(
+        projectId,
+        reason
+      );
 
       setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/functionStructuring`);
+        router.push(`/hackSetUp/${projectId}/technologyDoucment`);
       }, 1000);
     } catch (error) {
       console.error("フレームワーク選択の保存に失敗:", error);
       // エラーでも次のページに進む
       setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/functionStructuring`);
+        router.push(`/hackSetUp/${projectId}/technologyDoucment`);
       }, 1000);
-    } finally {
-      setProcessingNext(false);
     }
   };
 

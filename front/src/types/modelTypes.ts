@@ -3,7 +3,6 @@
 
 // --- Member Types ---
 export type MemberType = {
-  member_id: string; // UUID from FastAPI is string
   member_name: string;
   member_skill: string;
   github_name: string;

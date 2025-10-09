@@ -17,7 +17,7 @@ export const getMemberById = async (memberId: string): Promise<MemberType> => {
 
 // --- GET Member by GitHub Name ---
 export const getMemberByGithubName = async (githubName: string): Promise<MemberType> => {
-  const response = await axios.get<MemberType>(`${API_URL}/member/github/${githubName}`);
+  const response = await axios.get<MemberType>(`${API_URL}/member/${githubName}`);
   return response.data;
 };
 
@@ -35,7 +35,7 @@ export const putMemberById = async (memberId: string, member: MemberType): Promi
 
 // --- PUT Member by GitHub Name ---
 export const putMemberByGithubName = async (githubName: string, member: MemberType): Promise<string> => {
-  const response = await axios.put<MemberResponseType>(`${API_URL}/member/github/${githubName}`, member);
+  const response = await axios.put<MemberResponseType>(`${API_URL}/member/${githubName}`, member);
   return response.data.message;
 };
 
@@ -53,6 +53,6 @@ export const deleteMemberById = async (memberId: string): Promise<{ message: str
 
 // --- DELETE Member by GitHub Name ---
 export const deleteMemberByGithubName = async (githubName: string): Promise<{ message: string }> => {
-  const response = await axios.delete(`${API_URL}/member/github/${githubName}`);
+  const response = await axios.delete(`${API_URL}/member/${githubName}`);
   return response.data;
 };

@@ -160,7 +160,7 @@ class FunctionService(BaseService):
                 type="array(objects)",
                 description=(
                     "明確化質問のリスト。各要素は以下のフィールドを持つ: "
-                    "question (string), answer_example (string), requirement_id (string), importance (integer 1-5)"
+                    "question (string), requirement_id (string), importance (integer 1-5)"
                 )
             )
         ]
@@ -197,14 +197,11 @@ class FunctionService(BaseService):
                 qa["importance"] = 3  # デフォルト値
 
             # SQLのための追加フィールド
-            # answer_exampleが提供されていればそれを使用、なければNone
-            answer_value = qa.get("answer_example", None)
-
             qa_item = {
                 "qa_id": uuid.uuid4(),  # UUID型で作成
                 "project_id": project_id,
                 "question": qa["question"],
-                "answer": answer_value,  # answer_exampleを使用（回答例として）
+                "answer": None,  # 未回答
                 "is_ai": True,
                 "source_doc_id": None,
                 "follows_qa_id": None,
@@ -259,8 +256,7 @@ class FunctionService(BaseService):
 
     def _format_requirements_as_markdown(self, requirements: List[Dict]) -> str:
         """
-        機能要件リストを文章形式のMarkdownにフォーマット
-        人間が編集しやすいように、機能の説明と関係性を文章で表現する
+        機能要件リストをMarkdown形式にフォーマット
         """
         md_content = "# 機能要件書\n\n"
 
@@ -272,72 +268,24 @@ class FunctionService(BaseService):
                 categories[category] = []
             categories[category].append(req)
 
-        # 全体概要を生成
-        md_content += "## 概要\n\n"
-        md_content += "このドキュメントでは、プロジェクトの機能要件を説明します。"
-        md_content += f"全体として{len(categories)}つの主要カテゴリに分類され、{len(requirements)}個の機能要件が定義されています。\n\n"
-
-        # 各カテゴリの説明を文章形式で記述
         for category, reqs in categories.items():
             md_content += f"## {category}\n\n"
 
-            # カテゴリの導入文
-            must_reqs = [r for r in reqs if r.get('priority') == 'Must']
-            should_reqs = [r for r in reqs if r.get('priority') == 'Should']
-            could_reqs = [r for r in reqs if r.get('priority') == 'Could']
+            for req in reqs:
+                md_content += f"### {req.get('title', 'タイトル未設定')}\n\n"
+                md_content += f"**要件ID:** {req.get('requirement_id', 'N/A')}\n\n"
+                md_content += f"**優先度:** {req.get('priority', 'Should')}\n\n"
+                md_content += f"**確信度:** {req.get('confidence_level', 0.8):.2f}\n\n"
+                md_content += f"**説明:**\n{req.get('description', '説明未設定')}\n\n"
 
-            intro = f"この{category}カテゴリには{len(reqs)}個の機能要件が含まれます。"
-            if must_reqs:
-                intro += f"そのうち{len(must_reqs)}個は必須機能(Must)であり、"
-            if should_reqs:
-                intro += f"{len(should_reqs)}個は推奨機能(Should)、"
-            if could_reqs:
-                intro += f"{len(could_reqs)}個はオプション機能(Could)です。"
-
-            md_content += intro + "\n\n"
-
-            # 各要件を文章形式で説明
-            for idx, req in enumerate(reqs, 1):
-                title = req.get('title', 'タイトル未設定')
-                description = req.get('description', '説明未設定')
-                priority = req.get('priority', 'Should')
-                confidence = req.get('confidence_level', 0.8)
-
-                # 優先度の日本語表現
-                priority_text = {
-                    'Must': '必須機能',
-                    'Should': '推奨機能',
-                    'Could': 'オプション機能'
-                }.get(priority, '機能')
-
-                md_content += f"### {idx}. {title}\n\n"
-
-                # 文章形式での説明
-                md_content += f"この機能は{priority_text}として分類されています。{description}\n\n"
-
-                # 受入基準がある場合は文章で説明
                 if req.get('acceptance_criteria'):
-                    criteria_list = req['acceptance_criteria']
-                    if len(criteria_list) == 1:
-                        md_content += f"この機能の受入基準は「{criteria_list[0]}」です。\n\n"
-                    else:
-                        md_content += "この機能が完成したと判断するための受入基準は以下の通りです：\n"
-                        for criteria in criteria_list:
-                            md_content += f"- {criteria}\n"
-                        md_content += "\n"
+                    md_content += "**受入基準:**\n"
+                    for criteria in req['acceptance_criteria']:
+                        md_content += f"- {criteria}\n"
+                    md_content += "\n"
 
-                # 依存関係を文章で説明
                 if req.get('dependencies'):
-                    deps = req['dependencies']
-                    if len(deps) == 1:
-                        md_content += f"なお、この機能は「{deps[0]}」の完成に依存しています。\n\n"
-                    else:
-                        dep_list = '」「'.join(deps)
-                        md_content += f"なお、この機能は以下の要件の完成に依存しています：「{dep_list}」\n\n"
-
-                # 確信度が低い場合は注意を促す
-                if confidence < 0.7:
-                    md_content += f"⚠️ **注意**: この要件の確信度は{confidence:.0%}と低めです。実装前に詳細な確認が必要です。\n\n"
+                    md_content += f"**依存関係:** {', '.join(req['dependencies'])}\n\n"
 
                 md_content += "---\n\n"
 
