@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 # APIルーターのインポート
-from routers.project import member , project , project_document, env, task_assignment,project_qa,project_member, ai_document as project_ai_document, task
-from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_dependency
+from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
+from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency
 
 app = FastAPI(
     title="LangChain Server",
@@ -60,7 +60,8 @@ app.include_router(complete_task_generation.router, prefix="/api/complete_task_g
 app.include_router(task_dependency.router, prefix="/api/task_dependencies", tags=["TaskDependency"])
 app.include_router(ai_document.router, prefix="/api/ai_document", tags=["AIDocument"])
 
-
+# Phase 3: Task Hands-On Generation
+app.include_router(task_hands_on.router)
 
 # 適宜追加
 

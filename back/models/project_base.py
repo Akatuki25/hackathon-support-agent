@@ -231,8 +231,16 @@ class Task(Base):
     )
     dependencies_to = relationship(
         "TaskDependency",
-        foreign_keys="TaskDependency.target_task_id", 
+        foreign_keys="TaskDependency.target_task_id",
         back_populates="target_task",
+        cascade="all, delete-orphan"
+    )
+
+    # Phase 3: ハンズオン（1:1）
+    hands_on = relationship(
+        "TaskHandsOn",
+        back_populates="task",
+        uselist=False,
         cascade="all, delete-orphan"
     )
 
@@ -415,3 +423,269 @@ class TaskDependency(Base):
     
     def __repr__(self):
         return f"<TaskDependency(edge_id={self.edge_id}, source={self.source_node_id}, target={self.target_node_id})>"
+
+
+# =========================
+# Phase 3: Task Hands-On Generation
+# =========================
+
+class TaskHandsOn(Base):
+    """タスク詳細ハンズオンテーブル（Phase 3）"""
+    __tablename__ = "task_hands_on"
+
+    # Primary Key
+    hands_on_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    # Foreign Key (1:1 unique)
+    task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("task.task_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+    # ========================================
+    # ハンズオンセクション（すべてオプショナル）
+    # 細粒度タスクに特化した最小限の構成
+    # ========================================
+
+    # 1. 概要（タスクの目的と達成目標）
+    overview = Column(Text, nullable=True, comment="このタスクで何を実装するか、なぜ必要か")
+
+    # 2. 前提条件（このタスクを始める前に必要なもの）
+    prerequisites = Column(Text, nullable=True, comment="必要なパッケージ、事前に完了すべき依存タスク、環境設定")
+
+    # 3. 実装対象ファイル
+    target_files = Column(JSON, nullable=True, comment="作成・修正するファイルのリスト [{path, action, description}]")
+
+    # 4. 実装手順（メインコンテンツ）
+    implementation_steps = Column(Text, nullable=True, comment="ステップバイステップの実装手順（Markdown形式）")
+
+    # 5. コード例
+    code_examples = Column(JSON, nullable=True, comment="実際に動作するコード例 [{file, language, code, explanation}]")
+
+    # 6. 動作確認
+    verification = Column(Text, nullable=True, comment="実装後の動作確認方法・期待される結果")
+
+    # 7. よくあるエラー
+    common_errors = Column(JSON, nullable=True, comment="典型的なエラーと解決方法 [{error, cause, solution}]")
+
+    # 8. 参考資料
+    references = Column(JSON, nullable=True, comment="公式ドキュメント、記事などのURL [{title, url, type, relevance}]")
+
+    # ========================================
+    # 教育コンテンツ（実装に関連する周辺知識）
+    # ========================================
+
+    # 9. 技術的背景
+    technical_context = Column(Text, nullable=True, comment="このタスクで使う技術・概念の簡潔な説明")
+
+    # 10. 実装のポイント
+    implementation_tips = Column(JSON, nullable=True, comment="ベストプラクティス、アンチパターン [{tip, reason, type}]")
+
+    # ========================================
+    # メタデータ・品質管理
+    # ========================================
+
+    generated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # 生成バージョン
+    generation_version = Column(String(20), default="1.0", nullable=False)
+
+    # 生成に使用したモデル
+    generation_model = Column(String(50), nullable=True, comment="使用AIモデル")
+
+    # ユーザー編集フラグ
+    is_user_edited = Column(Boolean, default=False, nullable=False)
+
+    # 品質スコア（WebSearch検証後）
+    quality_score = Column(Float, nullable=True, comment="0.0-1.0の品質スコア")
+
+    # 情報鮮度（検索時の最新ドキュメント日付）
+    information_freshness = Column(Date, nullable=True, comment="参照した情報の最新日付")
+
+    # ========================================
+    # Web検索メタデータ
+    # ========================================
+
+    # 検索クエリ履歴
+    search_queries = Column(JSON, nullable=True, comment="実行した検索クエリのリスト")
+
+    # 参照したURL
+    referenced_urls = Column(JSON, nullable=True, comment="参照した公式ドキュメント・記事のURL")
+
+    # 齟齬検証結果
+    verification_result = Column(JSON, nullable=True, comment="情報齟齬検証の詳細結果")
+
+    # ========================================
+    # リレーション
+    # ========================================
+
+    task = relationship("Task", back_populates="hands_on", uselist=False)
+
+    # ========================================
+    # インデックス
+    # ========================================
+
+    __table_args__ = (
+        Index("ix_hands_on_task_id", "task_id"),
+        Index("ix_hands_on_generated_at", "generated_at"),
+        Index("ix_hands_on_quality_score", "quality_score"),
+    )
+
+    def __repr__(self):
+        return f"<TaskHandsOn(task_id={self.task_id}, quality={self.quality_score})>"
+
+    def to_markdown(self) -> str:
+        """セクションを結合してMarkdown全文を生成"""
+        sections = []
+
+        if self.overview:
+            sections.append(f"# 概要\n\n{self.overview}")
+
+        if self.prerequisites:
+            sections.append(f"## 前提条件\n\n{self.prerequisites}")
+
+        if self.target_files:
+            sections.append(f"## 実装対象ファイル\n\n{self._format_target_files()}")
+
+        if self.implementation_steps:
+            sections.append(f"## 実装手順\n\n{self.implementation_steps}")
+
+        if self.code_examples:
+            sections.append(f"## コード例\n\n{self._format_code_examples()}")
+
+        if self.verification:
+            sections.append(f"## 動作確認\n\n{self.verification}")
+
+        if self.common_errors:
+            sections.append(f"## よくあるエラー\n\n{self._format_common_errors()}")
+
+        if self.technical_context:
+            sections.append(f"## 技術的背景\n\n{self.technical_context}")
+
+        if self.implementation_tips:
+            sections.append(f"## 実装のポイント\n\n{self._format_implementation_tips()}")
+
+        if self.references:
+            sections.append(f"## 参考資料\n\n{self._format_references()}")
+
+        return "\n\n---\n\n".join(sections)
+
+    def _format_target_files(self) -> str:
+        """実装対象ファイルをMarkdown形式で整形"""
+        if not self.target_files:
+            return ""
+
+        lines = []
+        for file_info in self.target_files:
+            action_emoji = "📝" if file_info["action"] == "modify" else "✨"
+            lines.append(f"- {action_emoji} `{file_info['path']}` ({file_info['action']})")
+            if file_info.get('description'):
+                lines.append(f"  - {file_info['description']}")
+
+        return "\n".join(lines)
+
+    def _format_code_examples(self) -> str:
+        """コード例をMarkdown形式で整形"""
+        if not self.code_examples:
+            return ""
+
+        lines = []
+        for example in self.code_examples:
+            lines.append(f"### {example.get('file', 'コード例')}\n")
+            if example.get('explanation'):
+                lines.append(f"{example['explanation']}\n")
+            lines.append(f"```{example.get('language', 'python')}")
+            lines.append(example['code'])
+            lines.append("```\n")
+
+        return "\n".join(lines)
+
+    def _format_common_errors(self) -> str:
+        """よくあるエラーをMarkdown形式で整形"""
+        if not self.common_errors:
+            return ""
+
+        lines = []
+        for i, error_info in enumerate(self.common_errors, 1):
+            lines.append(f"### エラー {i}: {error_info['error']}\n")
+            lines.append(f"**原因**: {error_info['cause']}\n")
+            lines.append(f"**解決方法**:\n{error_info['solution']}\n")
+
+        return "\n".join(lines)
+
+    def _format_implementation_tips(self) -> str:
+        """実装のポイントをMarkdown形式で整形"""
+        if not self.implementation_tips:
+            return ""
+
+        lines = []
+        for tip_info in self.implementation_tips:
+            tip_type = tip_info.get('type', 'best_practice')
+            emoji = "✅" if tip_type == "best_practice" else "⚠️"
+            lines.append(f"{emoji} **{tip_info['tip']}**")
+            lines.append(f"  - {tip_info['reason']}\n")
+
+        return "\n".join(lines)
+
+    def _format_references(self) -> str:
+        """参考資料をMarkdown形式で整形"""
+        if not self.references:
+            return ""
+
+        lines = []
+        for ref in self.references:
+            ref_type = ref.get('type', 'docs')
+            type_emoji = "📚" if ref_type == "docs" else "📝"
+            lines.append(f"- {type_emoji} [{ref['title']}]({ref['url']})")
+            if ref.get('relevance'):
+                lines.append(f"  - {ref['relevance']}")
+
+        return "\n".join(lines)
+
+
+class HandsOnGenerationJob(Base):
+    """ハンズオン生成ジョブ管理テーブル"""
+    __tablename__ = "hands_on_generation_job"
+
+    job_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id"), nullable=False)
+
+    # ジョブステータス
+    status = Column(
+        Enum("queued", "processing", "completed", "failed", "cancelled", name="job_status_enum"),
+        default="queued",
+        nullable=False
+    )
+
+    # 進捗情報
+    total_tasks = Column(Integer, nullable=False, default=0)
+    completed_tasks = Column(Integer, default=0, nullable=False)
+    failed_tasks = Column(Integer, default=0, nullable=False)
+
+    # 現在処理中のタスク
+    current_processing = Column(JSON, nullable=True, comment="現在処理中のタスクIDリスト")
+
+    # タイムスタンプ
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    # エラー情報
+    error_message = Column(Text, nullable=True)
+    error_details = Column(JSON, nullable=True)
+
+    # 設定
+    config = Column(JSON, nullable=True, comment="生成設定（並列数、モデル等）")
+
+    __table_args__ = (
+        Index("ix_hands_on_job_project_id", "project_id"),
+        Index("ix_hands_on_job_status", "status"),
+        Index("ix_hands_on_job_created_at", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<HandsOnGenerationJob(job_id={self.job_id}, status={self.status}, progress={self.completed_tasks}/{self.total_tasks})>"

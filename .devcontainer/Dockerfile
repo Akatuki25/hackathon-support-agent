@@ -53,5 +53,9 @@ RUN python --version && pip --version && node -v && npm -v && pnpm -v
 # バージョン確認（デバッグ用・任意）
 RUN python --version && pip --version && node -v && npm -v
 
+# Phase 3: Python依存パッケージのインストール（Celery含む）
+COPY back/requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt --break-system-packages && rm /tmp/requirements.txt
+
 # 開発用コンテナとして止まらないように
 CMD ["tail", "-f", "/dev/null"]

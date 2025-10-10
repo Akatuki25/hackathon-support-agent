@@ -114,7 +114,7 @@ export default function TaskVisualizationPage() {
 
       // Fetch dependencies
       const dependenciesResponse = await axios.get<BackendTaskDependency[]>(
-        `${API_URL}/task_dependencies/project/${projectId}`
+        `${API_URL}/api/task_dependencies/project/${projectId}`
       );
 
       const tasks = tasksResponse.data;

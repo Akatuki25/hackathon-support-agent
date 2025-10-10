@@ -162,8 +162,9 @@ class TaskDependencyService(BaseService):
     
     async def _analyze_inter_function_dependencies(self, tasks_by_function: Dict[str, List[Dict[str, Any]]], functions: List[Dict[str, Any]]) -> None:
         """Phase 2: 機能間の依存関係をLLMで分析"""
-        
+
         if len(functions) <= 1:
+            print("機能間依存関係スキップ: 機能が1つ以下")
             return
         
         # 機能情報を整形
@@ -225,22 +226,29 @@ class TaskDependencyService(BaseService):
                     dependent_func_id = func_dep["function_id"]
                     depends_on_func_ids = func_dep["depends_on_functions"]
                     dependency_type = func_dep.get("dependency_type", "必須")
-                    
+
+                    print(f"機能間依存: {dependent_func_id} -> {depends_on_func_ids} (タイプ: {dependency_type})")
+
                     # 「必須」の依存関係のみを適用
                     if dependency_type == "必須" and dependent_func_id in tasks_by_function:
                         dependent_tasks = tasks_by_function[dependent_func_id]
-                        
+
                         for dep_func_id in depends_on_func_ids:
                             if dep_func_id in tasks_by_function:
                                 prerequisite_tasks = tasks_by_function[dep_func_id]
-                                
+
                                 if dependent_tasks and prerequisite_tasks:
-                                    # 依存元機能の最初のタスクが、依存先機能の最後のタスクに依存
+                                    # テスト用: 元のロジックに戻す
                                     first_dependent = min(dependent_tasks, key=lambda t: len(t.get("depends_on", [])))
                                     last_prerequisite = max(prerequisite_tasks, key=lambda t: len(t.get("depends_on", [])))
-                                    
+
+                                    print(f"  タスク依存追加: {first_dependent['node_id']} (依存数: {len(first_dependent.get('depends_on', []))}) <- {last_prerequisite['node_id']} (依存数: {len(last_prerequisite.get('depends_on', []))})")
+
                                     if last_prerequisite["node_id"] not in first_dependent["depends_on"]:
                                         first_dependent["depends_on"].append(last_prerequisite["node_id"])
+                                        print(f"  ✓ 追加成功 (新しい依存数: {len(first_dependent['depends_on'])})")
+                                    else:
+                                        print(f"  - 既に存在（スキップ）")
                 
                 print("機能間依存関係分析完了")
         
@@ -292,21 +300,28 @@ class TaskDependencyService(BaseService):
     
     def _remove_circular_dependencies(self, tasks: List[Dict[str, Any]]) -> None:
         """networkxを使用した循環依存の検出・削除"""
+        print("循環依存チェック開始")
         # グラフ構築
         G = nx.DiGraph()
-        
+
         # ノードとエッジを追加
+        edge_count = 0
         for task in tasks:
             node_id = task["node_id"]
             G.add_node(node_id)
             for dep_id in task.get("depends_on", []):
                 G.add_edge(dep_id, node_id)  # 依存先 -> 依存元
-        
+                edge_count += 1
+
+        print(f"グラフ構築完了: {len(G.nodes)}ノード, {edge_count}エッジ")
+
         # 循環依存検出と削除
         try:
             cycles = list(nx.simple_cycles(G))
             if cycles:
-                print(f"循環依存を検出: {len(cycles)}個のサイクル")
+                print(f"⚠️ 循環依存を検出: {len(cycles)}個のサイクル")
+                for i, cycle in enumerate(cycles[:5]):  # 最初の5つを表示
+                    print(f"  サイクル {i+1}: {' -> '.join(cycle)} -> {cycle[0]}")
                 
                 # 各サイクルの最小重要度のエッジを削除
                 for cycle in cycles:
@@ -321,16 +336,21 @@ class TaskDependencyService(BaseService):
                         # 最初のエッジを削除（簡単な解決策）
                         if edges_to_remove:
                             from_node, to_node = edges_to_remove[0]
-                            print(f"循環依存を解決: {from_node} -> {to_node} を削除")
-                            
+                            print(f"  循環解決: {from_node} -> {to_node} を削除")
+
                             # タスクの依存関係から削除
                             for task in tasks:
                                 if task["node_id"] == to_node:
                                     if from_node in task.get("depends_on", []):
                                         task["depends_on"].remove(from_node)
+                                        print(f"  ✓ 削除成功")
                                     break
+
+                print(f"循環依存除去完了: {len(cycles)}個のサイクルを解決")
+            else:
+                print("✓ 循環依存なし")
         except Exception as e:
-            print(f"循環依存検出エラー: {e}")
+            print(f"❌ 循環依存検出エラー: {e}")
     
     def _remove_transitive_dependencies(self, tasks: List[Dict[str, Any]]) -> None:
         """networkxを使用した推移的依存関係の削除"""
