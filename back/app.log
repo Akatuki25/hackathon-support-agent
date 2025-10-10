@@ -1422,3 +1422,636 @@ JSONデータ:
 2025-10-10 11:47:00,827 | INFO | hackthon_support_agent.BaseService | [AGENT] Token usage: input=26707, messages=16
 2025-10-10 12:00:30,797 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
 2025-10-10 12:00:32,521 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:16:44,253 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:16:51,614 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:17:05,588 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:17:34,147 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:17:38,067 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:20,842 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:34,379 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:37,378 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:40,130 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:43,333 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:46,020 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:18:59,747 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:21:05,598 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:25:54,223 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:25:55,748 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
+2025-10-10 14:28:43,900 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-10-10 14:28:43,902 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:28:43,902 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:28:43,930 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:28:43,930 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:28:43,932 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:28:43,932 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:28:43,933 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:28:43,933 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:28:43,934 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:28:43,934 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-10-10 14:28:43,934 | DEBUG | hackthon_support_agent.QuestionService | Generating questions for project_id: c085626d-30ce-47a3-ae38-662947eaabbc with idea_prompt: プロジェクトタイトル: ハッカソン支援エージェント
+プロジェクトアイディア: ハッカソン支援エージェントを作成したい
+期間: 2025-10-10 〜 2025-10-12 13:00
+2025-10-10 14:28:43,934 | DEBUG | hackthon_support_agent.QuestionService | Fetching prompt 'question_service.generate_question'
+2025-10-10 14:29:27,464 | DEBUG | hackthon_support_agent.QuestionService | Initializing BaseService (provider=google)
+2025-10-10 14:29:27,465 | INFO | hackthon_support_agent.QuestionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:29:27,465 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:29:27,466 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:29:27,467 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:29:27,467 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:29:27,468 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:29:27,469 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:29:27,469 | DEBUG | hackthon_support_agent.QuestionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:29:27,470 | INFO | hackthon_support_agent.QuestionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:29:27,470 | DEBUG | hackthon_support_agent.QuestionService | LLMs initialized
+2025-10-10 14:30:29,350 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-10-10 14:30:29,352 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:30:29,352 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:29,355 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:29,355 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:29,357 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:29,357 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:29,359 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:29,359 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:30:29,361 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:30:29,361 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-10-10 14:30:29,362 | DEBUG | hackthon_support_agent.SummaryService | Fetching prompt 'summary_service.generate_summary_document'
+2025-10-10 14:30:52,203 | DEBUG | hackthon_support_agent.SummaryService | Initializing BaseService (provider=google)
+2025-10-10 14:30:52,205 | INFO | hackthon_support_agent.SummaryService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:30:52,205 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:52,206 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:52,206 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:52,207 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:52,207 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:52,208 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:52,208 | DEBUG | hackthon_support_agent.SummaryService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:30:52,209 | INFO | hackthon_support_agent.SummaryService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:30:52,209 | DEBUG | hackthon_support_agent.SummaryService | LLMs initialized
+2025-10-10 14:30:57,521 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-10-10 14:30:57,523 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:30:57,524 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:57,527 | DEBUG | hackthon_support_agent.MVPJudgeService | Initializing BaseService (provider=google)
+2025-10-10 14:30:57,528 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:57,530 | INFO | hackthon_support_agent.MVPJudgeService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:30:57,530 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:57,530 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:57,532 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:57,532 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:57,535 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:57,536 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:57,536 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:57,536 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:30:57,538 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:57,539 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:30:57,539 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:30:57,539 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-10-10 14:30:57,545 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-10-10 14:30:57,549 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:30:57,549 | DEBUG | hackthon_support_agent.MVPJudgeService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:30:57,551 | INFO | hackthon_support_agent.MVPJudgeService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:30:57,551 | DEBUG | hackthon_support_agent.MVPJudgeService | LLMs initialized
+2025-10-10 14:30:57,555 | DEBUG | hackthon_support_agent.MVPJudgeService | Fetching prompt 'mvp_service.judge_mvp'
+2025-10-10 14:31:56,370 | DEBUG | hackthon_support_agent.FunctionService | Initializing BaseService (provider=google)
+2025-10-10 14:31:56,371 | INFO | hackthon_support_agent.FunctionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:31:56,371 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:31:56,373 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:31:56,373 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:31:56,374 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:31:56,374 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:31:56,376 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:31:56,376 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:31:56,377 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:31:56,377 | DEBUG | hackthon_support_agent.FunctionService | LLMs initialized
+2025-10-10 14:31:56,377 | DEBUG | hackthon_support_agent.FunctionService | Generating functional requirements for project_id: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:31:56,380 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_functional_requirements'
+2025-10-10 14:31:56,763 | DEBUG | hackthon_support_agent.FunctionService | Initializing BaseService (provider=google)
+2025-10-10 14:31:56,764 | INFO | hackthon_support_agent.FunctionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:31:56,764 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:31:56,766 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:31:56,766 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:31:56,767 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:31:56,768 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:31:56,768 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:31:56,769 | DEBUG | hackthon_support_agent.FunctionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:31:56,770 | INFO | hackthon_support_agent.FunctionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:31:56,770 | DEBUG | hackthon_support_agent.FunctionService | LLMs initialized
+2025-10-10 14:31:56,770 | DEBUG | hackthon_support_agent.FunctionService | Generating functional requirements for project_id: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:31:56,772 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_functional_requirements'
+2025-10-10 14:32:49,086 | DEBUG | hackthon_support_agent.FunctionService | Generating clarification questions for 2 low-confidence requirements
+2025-10-10 14:32:49,086 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_clarification_questions'
+2025-10-10 14:33:22,877 | DEBUG | hackthon_support_agent.FunctionService | Saving functional requirements to project document: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:33:22,883 | DEBUG | hackthon_support_agent.FunctionService | Saving 6 clarification questions to database
+2025-10-10 14:33:26,082 | DEBUG | hackthon_support_agent.FunctionService | Generating clarification questions for 4 low-confidence requirements
+2025-10-10 14:33:26,083 | DEBUG | hackthon_support_agent.FunctionService | Fetching prompt 'function_service.generate_clarification_questions'
+2025-10-10 14:33:36,842 | DEBUG | hackthon_support_agent.FrameworkService | Initializing BaseService (provider=google)
+2025-10-10 14:33:36,843 | INFO | hackthon_support_agent.FrameworkService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:33:36,843 | DEBUG | hackthon_support_agent.FrameworkService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:33:36,845 | INFO | hackthon_support_agent.FrameworkService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:33:36,845 | DEBUG | hackthon_support_agent.FrameworkService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:33:36,846 | INFO | hackthon_support_agent.FrameworkService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:33:36,846 | DEBUG | hackthon_support_agent.FrameworkService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:33:36,847 | INFO | hackthon_support_agent.FrameworkService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:33:36,847 | DEBUG | hackthon_support_agent.FrameworkService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:33:36,848 | INFO | hackthon_support_agent.FrameworkService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:33:36,849 | DEBUG | hackthon_support_agent.FrameworkService | LLMs initialized
+2025-10-10 14:33:36,849 | DEBUG | hackthon_support_agent.FrameworkService | Fetching prompt 'framework_service.generate_simple_recommendations'
+2025-10-10 14:34:08,356 | DEBUG | hackthon_support_agent.FunctionService | Saving functional requirements to project document: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:34:08,362 | DEBUG | hackthon_support_agent.FunctionService | Saving 12 clarification questions to database
+2025-10-10 14:34:36,159 | DEBUG | hackthon_support_agent.AIDocumentService | Initializing BaseService (provider=google)
+2025-10-10 14:34:36,161 | INFO | hackthon_support_agent.AIDocumentService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:34:36,161 | DEBUG | hackthon_support_agent.AIDocumentService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:34:36,163 | INFO | hackthon_support_agent.AIDocumentService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:34:36,163 | DEBUG | hackthon_support_agent.AIDocumentService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:34:36,164 | INFO | hackthon_support_agent.AIDocumentService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:34:36,164 | DEBUG | hackthon_support_agent.AIDocumentService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:34:36,166 | INFO | hackthon_support_agent.AIDocumentService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:34:36,166 | DEBUG | hackthon_support_agent.AIDocumentService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:34:36,167 | INFO | hackthon_support_agent.AIDocumentService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:34:36,168 | DEBUG | hackthon_support_agent.AIDocumentService | LLMs initialized
+2025-10-10 14:37:03,484 | DEBUG | hackthon_support_agent.BaseService | Initializing BaseService (provider=google)
+2025-10-10 14:37:03,486 | INFO | hackthon_support_agent.BaseService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:37:03,486 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,488 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,488 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,490 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,490 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,491 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,491 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:37:03,492 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:37:03,492 | DEBUG | hackthon_support_agent.BaseService | LLMs initialized
+2025-10-10 14:37:03,492 | DEBUG | hackthon_support_agent.BaseService | Initializing BaseService (provider=google)
+2025-10-10 14:37:03,494 | INFO | hackthon_support_agent.BaseService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:37:03,494 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,495 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,495 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,496 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,496 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,497 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,497 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:37:03,499 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:37:03,499 | DEBUG | hackthon_support_agent.BaseService | LLMs initialized
+2025-10-10 14:37:03,518 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting ReAct agent execution for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:37:03,518 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Input message length: 2432 chars
+2025-10-10 14:37:03,518 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Number of tools: 7
+2025-10-10 14:37:03,519 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 0 (gather_project_context): schema size = 191 chars
+2025-10-10 14:37:03,519 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 1 (get_existing_functions): schema size = 191 chars
+2025-10-10 14:37:03,519 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 2 (extract_function_batch): schema size = 364 chars
+2025-10-10 14:37:03,520 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 3 (structure_functions): schema size = 247 chars
+2025-10-10 14:37:03,520 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 4 (add_structured_functions): schema size = 258 chars
+2025-10-10 14:37:03,520 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 5 (analyze_coverage): schema size = 235 chars
+2025-10-10 14:37:03,520 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 6 (delete_duplicate_function): schema size = 348 chars
+2025-10-10 14:37:03,895 | DEBUG | hackthon_support_agent.BaseService | Initializing BaseService (provider=google)
+2025-10-10 14:37:03,896 | INFO | hackthon_support_agent.BaseService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:37:03,896 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,897 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,898 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,898 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,899 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,899 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,900 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:37:03,900 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:37:03,901 | DEBUG | hackthon_support_agent.BaseService | LLMs initialized
+2025-10-10 14:37:03,901 | DEBUG | hackthon_support_agent.BaseService | Initializing BaseService (provider=google)
+2025-10-10 14:37:03,902 | INFO | hackthon_support_agent.BaseService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:37:03,902 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,903 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,903 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,904 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,904 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:37:03,905 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:37:03,905 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:37:03,906 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:37:03,906 | DEBUG | hackthon_support_agent.BaseService | LLMs initialized
+2025-10-10 14:37:03,922 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting ReAct agent execution for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:37:03,923 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Input message length: 2432 chars
+2025-10-10 14:37:03,923 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Number of tools: 7
+2025-10-10 14:37:03,923 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 0 (gather_project_context): schema size = 191 chars
+2025-10-10 14:37:03,923 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 1 (get_existing_functions): schema size = 191 chars
+2025-10-10 14:37:03,924 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 2 (extract_function_batch): schema size = 364 chars
+2025-10-10 14:37:03,924 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 3 (structure_functions): schema size = 247 chars
+2025-10-10 14:37:03,924 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 4 (add_structured_functions): schema size = 258 chars
+2025-10-10 14:37:03,925 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 5 (analyze_coverage): schema size = 235 chars
+2025-10-10 14:37:03,925 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Tool 6 (delete_duplicate_function): schema size = 348 chars
+2025-10-10 14:37:07,657 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting context gathering for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:37:07,669 | INFO | hackthon_support_agent.BaseService | [AGENT] Context gathered successfully. Keys: ['project_id', 'function_doc', 'specification', 'framework_doc', 'directory_info', 'relevant_qas', 'project', 'technology', 'contextual_specification']
+2025-10-10 14:37:08,839 | INFO | hackthon_support_agent.BaseService | [AGENT] Getting existing functions for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:37:08,841 | INFO | hackthon_support_agent.BaseService | [AGENT] Found 0 existing functions
+2025-10-10 14:37:09,182 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting context gathering for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:37:09,191 | INFO | hackthon_support_agent.BaseService | [AGENT] Context gathered successfully. Keys: ['project_id', 'function_doc', 'specification', 'framework_doc', 'directory_info', 'relevant_qas', 'project', 'technology', 'contextual_specification']
+2025-10-10 14:37:10,805 | INFO | hackthon_support_agent.BaseService | [AGENT] Getting existing functions for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:37:10,813 | INFO | hackthon_support_agent.BaseService | [AGENT] Found 0 existing functions
+2025-10-10 14:37:32,025 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting batch function extraction (spec length: 5545)
+2025-10-10 14:37:34,908 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting batch function extraction (spec length: 5547)
+2025-10-10 14:37:55,588 | INFO | hackthon_support_agent.BaseService | [AGENT] Batch extraction: 14 extracted, 14 new functions
+2025-10-10 14:38:08,157 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting function structuring for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:38:08,157 | INFO | hackthon_support_agent.BaseService | [AGENT] Structuring 14 functions
+2025-10-10 14:38:08,166 | DEBUG | hackthon_support_agent.BaseService | Initializing BaseService (provider=google)
+2025-10-10 14:38:08,168 | INFO | hackthon_support_agent.BaseService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:38:08,168 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:38:08,169 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:38:08,169 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:38:08,171 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:38:08,171 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:38:08,172 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:38:08,172 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:38:08,173 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:38:08,174 | DEBUG | hackthon_support_agent.BaseService | LLMs initialized
+2025-10-10 14:38:41,222 | INFO | hackthon_support_agent.BaseService | [AGENT] Batch extraction: 14 extracted, 14 new functions
+2025-10-10 14:38:51,810 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting function structuring for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:38:51,810 | INFO | hackthon_support_agent.BaseService | [AGENT] Structuring 14 functions
+2025-10-10 14:38:51,825 | DEBUG | hackthon_support_agent.BaseService | Initializing BaseService (provider=google)
+2025-10-10 14:38:51,826 | INFO | hackthon_support_agent.BaseService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:38:51,826 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:38:51,827 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:38:51,827 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:38:51,829 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:38:51,829 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:38:51,830 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:38:51,830 | DEBUG | hackthon_support_agent.BaseService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:38:51,831 | INFO | hackthon_support_agent.BaseService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:38:51,832 | DEBUG | hackthon_support_agent.BaseService | LLMs initialized
+2025-10-10 14:42:24,356 | INFO | hackthon_support_agent.BaseService | [AGENT] Structuring complete: 14 functions, 28 dependencies
+2025-10-10 14:42:31,545 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting incremental add for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:42:31,546 | INFO | hackthon_support_agent.BaseService | [AGENT] Adding 14 structured functions
+2025-10-10 14:42:31,570 | INFO | hackthon_support_agent.BaseService | [AGENT] Incremental add completed: 14 new, 0 skipped, 14 total
+2025-10-10 14:42:33,919 | INFO | hackthon_support_agent.BaseService | [AGENT] Getting existing functions for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:42:33,920 | INFO | hackthon_support_agent.BaseService | [AGENT] Found 14 existing functions
+2025-10-10 14:43:13,006 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting coverage analysis for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:43:21,863 | INFO | hackthon_support_agent.BaseService | [AGENT] Structuring complete: 14 functions, 29 dependencies
+2025-10-10 14:43:27,546 | INFO | hackthon_support_agent.BaseService | [AGENT] Coverage analysis: 100% coverage
+2025-10-10 14:43:32,583 | INFO | hackthon_support_agent.BaseService | [AGENT] Agent completed normally with STOP at 16 messages, 17724 tokens
+2025-10-10 14:43:32,583 | INFO | hackthon_support_agent.BaseService | [AGENT] ReAct agent execution completed
+2025-10-10 14:43:32,583 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Result keys: ['messages']
+2025-10-10 14:43:32,583 | INFO | hackthon_support_agent.BaseService | [AGENT] Processing 16 messages
+2025-10-10 14:43:32,583 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 0: type=HumanMessage, role=unknown, content_len=2432
+2025-10-10 14:43:32,583 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 0 content preview: 
+        プロジェクトID c085626d-30ce-47a3-ae38-662947eaabbc の機能構造化を実行してください。
+        
+        【重要な作業方針】
+        - 品質を重視し、バリデーションで不適切と判断された場合は再実行する
+        - 段階的に機能を抽出し、網羅性を確認しながら進める
+        - 既存機能との重複を避ける
+...
+2025-10-10 14:43:32,583 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 1: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [gather_project_context]
+2025-10-10 14:43:32,583 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 1 content preview: ...
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 2: type=ToolMessage, role=unknown, content_len=5814
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 2 content preview: 
+コンテキスト情報収集完了:
+- プロジェクトID: c085626d-30ce-47a3-ae38-662947eaabbc
+- 機能要件書の長さ: 5545文字
+- 要件定義書の長さ: 2511文字
+- 関連QA数: 1件
+- 技術スタック: フロント=, バック=
+
+【重要】次のステップで extract_function_batch を呼び出す際は、以下のfunction_docを使用して...
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 3: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [get_existing_functions]
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 3 content preview: ...
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 4: type=ToolMessage, role=unknown, content_len=123
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 4 content preview: 既存機能取得完了: 0個の機能が保存済み
+
+データ:
+{"existing_functions": [], "statistics": {"total_count": 0, "categories": [], "priorities": []}}...
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 5: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [extract_function_batch]
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 5 content preview: ...
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 6: type=ToolMessage, role=unknown, content_len=2576
+2025-10-10 14:43:32,584 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 6 content preview: 段階的機能抽出完了: 14個の新機能を抽出
+
+JSONデータ:
+[{"function_name": "プログラミング質問入力・送信", "description": "ユーザーがプログラミングに関する質問、アイデアの壁打ち、発表資料に関する相談などをテキスト形式で入力し、エージェントに送信できる機能を提供します。", "estimated_category": "user_interface",...
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 7: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [structure_functions]
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 7 content preview: ...
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 8: type=ToolMessage, role=unknown, content_len=6622
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 8 content preview: 
+機能構造化完了: 14個の機能を構造化しました
+
+【カテゴリ別集計】
+  unknown: 14個
+
+【優先度別集計】
+  Must: 8個
+  Should: 2個
+  Could: 2個
+  Wont: 2個
+
+【構造化された機能】
+[
+  {
+    "function_name": "プログラミング質問入力・送信",
+    "estimated_category": "ui",
+   ...
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 9: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [add_structured_functions]
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 9 content preview: ...
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 10: type=ToolMessage, role=unknown, content_len=99
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 10 content preview: 
+増分追加完了:
+- 新規保存: 14個
+- スキップ（重複）: 0個
+- 現在の合計: 14個
+
+【重要】次のステップで analyze_coverage を実行して、網羅性を確認してください。
+...
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 11: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [get_existing_functions]
+2025-10-10 14:43:32,585 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 11 content preview: ...
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 12: type=ToolMessage, role=unknown, content_len=2270
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 12 content preview: 既存機能取得完了: 14個の機能が保存済み
+
+データ:
+{"existing_functions": [{"function_id": "3e712682-21a5-436d-ae1e-ae407e8df956", "function_name": "プログラミング質問入力・送信", "description": "", "category": "ui", "priority": "Must"},...
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 13: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [analyze_coverage]
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 13 content preview: ...
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 14: type=ToolMessage, role=unknown, content_len=200
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 14 content preview: 網羅性分析完了
+
+分析結果:
+{"coverage_percentage": 100, "missing_areas": [], "duplicate_functions": [], "completion_status": "complete", "iteration_count": 1, "reason": "仕様書に記載されたすべての機能が網羅されており、機能リスト内に重複もありません。"}...
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 15: type=AIMessage, role=unknown, content_len=101
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 15 content preview: プロジェクトID c085626d-30ce-47a3-ae38-662947eaabbc の機能構造化が完了しました。
+
+網羅率が100%に達し、重複する機能もなかったため、これにて作業を終了します。...
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] LAST MESSAGE DUMP: content='プロジェクトID c085626d-30ce-47a3-ae38-662947eaabbc の機能構造化が完了しました。\n\n網羅率が100%に達し、重複する機能もなかったため、これにて作業を終了します。' additional_kwargs={} response_metadata={'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.5-flash', 'safety_ratings': []} id='run--21d900d7-4703-45ba-bced-e8d57ce1e13e-0' usage_metadata={'input_tokens': 17724, 'output_tokens': 290, 'total_tokens': 18014, 'input_token_details': {'cache_read': 4979}, 'output_token_details': {'reasoning': 222}}
+2025-10-10 14:43:32,586 | DEBUG | hackthon_support_agent.BaseService | [AGENT] LAST MESSAGE __dict__: {'content': 'プロジェクトID c085626d-30ce-47a3-ae38-662947eaabbc の機能構造化が完了しました。\n\n網羅率が100%に達し、重複する機能もなかったため、これにて作業を終了します。', 'additional_kwargs': {}, 'response_metadata': {'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.5-flash', 'safety_ratings': []}, 'type': 'ai', 'name': None, 'id': 'run--21d900d7-4703-45ba-bced-e8d57ce1e13e-0', 'example': False, 'tool_calls': [], 'invalid_tool_calls': [], 'usage_metadata': {'input_tokens': 17724, 'output_tokens': 290, 'total_tokens': 18014, 'input_token_details': {'cache_read': 4979}, 'output_token_details': {'reasoning': 222}}}
+2025-10-10 14:43:32,587 | INFO | hackthon_support_agent.BaseService | [AGENT] Final output length: 101 chars
+2025-10-10 14:43:32,587 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Final output: プロジェクトID c085626d-30ce-47a3-ae38-662947eaabbc の機能構造化が完了しました。
+
+網羅率が100%に達し、重複する機能もなかったため、これにて作業を終了します。...
+2025-10-10 14:43:32,587 | INFO | hackthon_support_agent.BaseService | [AGENT] Token usage: input=17724, messages=16
+2025-10-10 14:43:36,057 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting incremental add for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:43:36,057 | INFO | hackthon_support_agent.BaseService | [AGENT] Adding 14 structured functions
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: プログラミング質問入力・送信
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: エージェントの回答表示
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: チャット履歴の表示
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: コード例のコピー機能
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: プログラミング質問応答生成
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: アイデア壁打ち応答生成
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: 発表資料アドバイス生成
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: 応答速度の最適化
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: エラー解決ヒント生成
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: セッション内チャット履歴の保存・取得
+2025-10-10 14:43:36,059 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: ユーザー設定の保存
+2025-10-10 14:43:36,060 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: ユーザー認証機能
+2025-10-10 14:43:36,060 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: アクセス制御
+2025-10-10 14:43:36,060 | WARNING | hackthon_support_agent.BaseService | [AGENT] Skipping duplicate function: 大規模言語モデル (LLM) API連携
+2025-10-10 14:43:36,061 | INFO | hackthon_support_agent.BaseService | [AGENT] Incremental add completed: 0 new, 14 skipped, 14 total
+2025-10-10 14:43:40,377 | INFO | hackthon_support_agent.BaseService | [AGENT] Getting existing functions for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:43:40,379 | INFO | hackthon_support_agent.BaseService | [AGENT] Found 14 existing functions
+2025-10-10 14:43:46,834 | DEBUG | hackthon_support_agent.IntegratedTaskService | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,836 | INFO | hackthon_support_agent.IntegratedTaskService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,836 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,838 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,838 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,839 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,839 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,840 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,840 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,841 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,841 | DEBUG | hackthon_support_agent.IntegratedTaskService | LLMs initialized
+2025-10-10 14:43:46,841 | DEBUG | hackthon_support_agent.TaskGenerationService | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,842 | INFO | hackthon_support_agent.TaskGenerationService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,842 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,843 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,843 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,844 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,844 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,845 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,846 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,847 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,847 | DEBUG | hackthon_support_agent.TaskGenerationService | LLMs initialized
+2025-10-10 14:43:46,847 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,848 | INFO | hackthon_support_agent.TaskQualityEvaluationService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,848 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,849 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,849 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,850 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,850 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,851 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,852 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,853 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,853 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | LLMs initialized
+2025-10-10 14:43:46,853 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,854 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,854 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,856 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,856 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,857 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,857 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,860 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,860 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,861 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,861 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | LLMs initialized
+2025-10-10 14:43:46,862 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,863 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,863 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,864 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,864 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,865 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,865 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,866 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,866 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,867 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,867 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | LLMs initialized
+2025-10-10 14:43:46,867 | DEBUG | hackthon_support_agent.TaskDependencyService | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,868 | INFO | hackthon_support_agent.TaskDependencyService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,868 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,870 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,870 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,871 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,871 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,872 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,872 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,873 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,873 | DEBUG | hackthon_support_agent.TaskDependencyService | LLMs initialized
+2025-10-10 14:43:46,874 | DEBUG | hackthon_support_agent.TaskPositionService | Initializing BaseService (provider=google)
+2025-10-10 14:43:46,875 | INFO | hackthon_support_agent.TaskPositionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:46,875 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,876 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,876 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,877 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,877 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:46,878 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:46,878 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:46,879 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:46,879 | DEBUG | hackthon_support_agent.TaskPositionService | LLMs initialized
+2025-10-10 14:43:47,222 | DEBUG | hackthon_support_agent.IntegratedTaskService | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,223 | INFO | hackthon_support_agent.IntegratedTaskService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,223 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,225 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,225 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,226 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,227 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,228 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,228 | DEBUG | hackthon_support_agent.IntegratedTaskService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,230 | INFO | hackthon_support_agent.IntegratedTaskService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,230 | DEBUG | hackthon_support_agent.IntegratedTaskService | LLMs initialized
+2025-10-10 14:43:47,230 | DEBUG | hackthon_support_agent.TaskGenerationService | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,231 | INFO | hackthon_support_agent.TaskGenerationService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,231 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,232 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,233 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,234 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,234 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,236 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,236 | DEBUG | hackthon_support_agent.TaskGenerationService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,238 | INFO | hackthon_support_agent.TaskGenerationService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,238 | DEBUG | hackthon_support_agent.TaskGenerationService | LLMs initialized
+2025-10-10 14:43:47,238 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,239 | INFO | hackthon_support_agent.TaskQualityEvaluationService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,239 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,241 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,241 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,242 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,243 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,244 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,244 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,245 | INFO | hackthon_support_agent.TaskQualityEvaluationService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,245 | DEBUG | hackthon_support_agent.TaskQualityEvaluationService | LLMs initialized
+2025-10-10 14:43:47,246 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,247 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,247 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,248 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,248 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,249 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,249 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,252 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,252 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,253 | INFO | hackthon_support_agent.LayerConsistencyEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,253 | DEBUG | hackthon_support_agent.LayerConsistencyEvaluator | LLMs initialized
+2025-10-10 14:43:47,253 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,255 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,255 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,256 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,256 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,258 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,258 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,259 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,259 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,261 | INFO | hackthon_support_agent.DomainCompletenessEvaluator | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,261 | DEBUG | hackthon_support_agent.DomainCompletenessEvaluator | LLMs initialized
+2025-10-10 14:43:47,261 | DEBUG | hackthon_support_agent.TaskDependencyService | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,262 | INFO | hackthon_support_agent.TaskDependencyService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,262 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,263 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,263 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,264 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,265 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,266 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,266 | DEBUG | hackthon_support_agent.TaskDependencyService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,267 | INFO | hackthon_support_agent.TaskDependencyService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,267 | DEBUG | hackthon_support_agent.TaskDependencyService | LLMs initialized
+2025-10-10 14:43:47,267 | DEBUG | hackthon_support_agent.TaskPositionService | Initializing BaseService (provider=google)
+2025-10-10 14:43:47,268 | INFO | hackthon_support_agent.TaskPositionService | Prompts loaded from /workspaces/hackathon_support_agent/back/services/prompts.toml
+2025-10-10 14:43:47,269 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,271 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,271 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,273 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,273 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash, temp=0.50)
+2025-10-10 14:43:47,274 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash, key_present=True)
+2025-10-10 14:43:47,274 | DEBUG | hackthon_support_agent.TaskPositionService | Loading LLM (provider=google, model=gemini-2.5-flash-lite, temp=0.50)
+2025-10-10 14:43:47,276 | INFO | hackthon_support_agent.TaskPositionService | LLM loaded (provider=google, model=gemini-2.5-flash-lite, key_present=True)
+2025-10-10 14:43:47,276 | DEBUG | hackthon_support_agent.TaskPositionService | LLMs initialized
+2025-10-10 14:44:07,478 | INFO | hackthon_support_agent.BaseService | [AGENT] Starting coverage analysis for project: c085626d-30ce-47a3-ae38-662947eaabbc
+2025-10-10 14:44:21,758 | INFO | hackthon_support_agent.BaseService | [AGENT] Coverage analysis: 100% coverage
+2025-10-10 14:44:30,135 | INFO | hackthon_support_agent.BaseService | [AGENT] Agent completed normally with STOP at 16 messages, 18791 tokens
+2025-10-10 14:44:30,135 | INFO | hackthon_support_agent.BaseService | [AGENT] ReAct agent execution completed
+2025-10-10 14:44:30,135 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Result keys: ['messages']
+2025-10-10 14:44:30,135 | INFO | hackthon_support_agent.BaseService | [AGENT] Processing 16 messages
+2025-10-10 14:44:30,135 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 0: type=HumanMessage, role=unknown, content_len=2432
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 0 content preview: 
+        プロジェクトID c085626d-30ce-47a3-ae38-662947eaabbc の機能構造化を実行してください。
+        
+        【重要な作業方針】
+        - 品質を重視し、バリデーションで不適切と判断された場合は再実行する
+        - 段階的に機能を抽出し、網羅性を確認しながら進める
+        - 既存機能との重複を避ける
+...
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 1: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [gather_project_context]
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 1 content preview: ...
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 2: type=ToolMessage, role=unknown, content_len=5814
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 2 content preview: 
+コンテキスト情報収集完了:
+- プロジェクトID: c085626d-30ce-47a3-ae38-662947eaabbc
+- 機能要件書の長さ: 5545文字
+- 要件定義書の長さ: 2511文字
+- 関連QA数: 1件
+- 技術スタック: フロント=, バック=
+
+【重要】次のステップで extract_function_batch を呼び出す際は、以下のfunction_docを使用して...
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 3: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [get_existing_functions]
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 3 content preview: ...
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 4: type=ToolMessage, role=unknown, content_len=123
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 4 content preview: 既存機能取得完了: 0個の機能が保存済み
+
+データ:
+{"existing_functions": [], "statistics": {"total_count": 0, "categories": [], "priorities": []}}...
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 5: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [extract_function_batch]
+2025-10-10 14:44:30,136 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 5 content preview: ...
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 6: type=ToolMessage, role=unknown, content_len=2564
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 6 content preview: 段階的機能抽出完了: 14個の新機能を抽出
+
+JSONデータ:
+[{"function_name": "プログラミング質問入力・送信", "description": "ユーザーがプログラミングに関する質問、アイデアの壁打ち、発表資料に関する相談などをテキスト形式で入力し、エージェントに送信できる機能を提供します。", "estimated_category": "user_interface",...
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 7: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [structure_functions]
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 7 content preview: ...
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 8: type=ToolMessage, role=unknown, content_len=7849
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 8 content preview: 
+機能構造化完了: 14個の機能を構造化しました
+
+【カテゴリ別集計】
+  unknown: 14個
+
+【優先度別集計】
+  Must: 9個
+  Should: 1個
+  Could: 2個
+  Wont: 2個
+
+【構造化された機能】
+[
+  {
+    "function_name": "プログラミング質問入力・送信",
+    "description": "ユーザーがプログラミングに関す...
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 9: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [add_structured_functions]
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 9 content preview: ...
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 10: type=ToolMessage, role=unknown, content_len=99
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 10 content preview: 
+増分追加完了:
+- 新規保存: 0個
+- スキップ（重複）: 14個
+- 現在の合計: 14個
+
+【重要】次のステップで analyze_coverage を実行して、網羅性を確認してください。
+...
+2025-10-10 14:44:30,137 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 11: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [get_existing_functions]
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 11 content preview: ...
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 12: type=ToolMessage, role=unknown, content_len=2270
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 12 content preview: 既存機能取得完了: 14個の機能が保存済み
+
+データ:
+{"existing_functions": [{"function_id": "3e712682-21a5-436d-ae1e-ae407e8df956", "function_name": "プログラミング質問入力・送信", "description": "", "category": "ui", "priority": "Must"},...
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 13: type=AIMessage, role=unknown, content_len=0, tool_calls=1 [analyze_coverage]
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 13 content preview: ...
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 14: type=ToolMessage, role=unknown, content_len=193
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 14 content preview: 網羅性分析完了
+
+分析結果:
+{"coverage_percentage": 100, "missing_areas": [], "duplicate_functions": [], "completion_status": "complete", "iteration_count": 1, "reason": "すべての仕様書要件が機能リストに網羅されており、重複もありません。"}...
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 15: type=AIMessage, role=unknown, content_len=681
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Message 15 content preview: プロジェクトID `c085626d-30ce-47a3-ae38-662947eaabbc` の機能構造化が完了しました。
+
+**完了までの流れ:**
+
+1.  `gather_project_context` によりプロジェクトのコンテキスト情報を収集し、機能要件書を抽出しました。
+2.  `get_existing_functions` で既存機能を確認したところ、初回は0個でした。
+3. ...
+2025-10-10 14:44:30,138 | DEBUG | hackthon_support_agent.BaseService | [AGENT] LAST MESSAGE DUMP: content='プロジェクトID `c085626d-30ce-47a3-ae38-662947eaabbc` の機能構造化が完了しました。\n\n**完了までの流れ:**\n\n1.  `gather_project_context` によりプロジェクトのコンテキスト情報を収集し、機能要件書を抽出しました。\n2.  `get_existing_functions` で既存機能を確認したところ、初回は0個でした。\n3.  `extract_function_batch` を使用して、機能要件書から14個の機能要件を抽出しました。\n4.  抽出された14個の機能要件に対し、`structure_functions` でカテゴリ分け、優先度付け、依存関係分析を行いました。\n5.  `add_structured_functions` を実行し、構造化された機能をデータベースに追加しました。この際、14個の機能が重複としてスキップされましたが、最終的にデータベースには14個の機能が保存されていることが確認されました。\n6.  `get_existing_functions` で再度既存機能リストを取得し、14個の機能が保存されていることを確認しました。\n7.  `analyze_coverage` により網羅性分析を行った結果、網羅率は100%であり、不足している領域や重複機能がないことが確認されました。`completion_status` が "complete" となったため、作業を終了します。\n\nすべての仕様書要件が機能リストに網羅されており、重複もありません。' additional_kwargs={} response_metadata={'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.5-flash', 'safety_ratings': []} id='run--4d9cd10e-6c7d-4bff-8fd1-6358836282bd-0' usage_metadata={'input_tokens': 18791, 'output_tokens': 725, 'total_tokens': 19516, 'input_token_details': {'cache_read': 14962}, 'output_token_details': {'reasoning': 400}}
+2025-10-10 14:44:30,139 | DEBUG | hackthon_support_agent.BaseService | [AGENT] LAST MESSAGE __dict__: {'content': 'プロジェクトID `c085626d-30ce-47a3-ae38-662947eaabbc` の機能構造化が完了しました。\n\n**完了までの流れ:**\n\n1.  `gather_project_context` によりプロジェクトのコンテキスト情報を収集し、機能要件書を抽出しました。\n2.  `get_existing_functions` で既存機能を確認したところ、初回は0個でした。\n3.  `extract_function_batch` を使用して、機能要件書から14個の機能要件を抽出しました。\n4.  抽出された14個の機能要件に対し、`structure_functions` でカテゴリ分け、優先度付け、依存関係分析を行いました。\n5.  `add_structured_functions` を実行し、構造化された機能をデータベースに追加しました。この際、14個の機能が重複としてスキップされましたが、最終的にデータベースには14個の機能が保存されていることが確認されました。\n6.  `get_existing_functions` で再度既存機能リストを取得し、14個の機能が保存されていることを確認しました。\n7.  `analyze_coverage` により網羅性分析を行った結果、網羅率は100%であり、不足している領域や重複機能がないことが確認されました。`completion_status` が "complete" となったため、作業を終了します。\n\nすべての仕様書要件が機能リストに網羅されており、重複もありません。', 'additional_kwargs': {}, 'response_metadata': {'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.5-flash', 'safety_ratings': []}, 'type': 'ai', 'name': None, 'id': 'run--4d9cd10e-6c7d-4bff-8fd1-6358836282bd-0', 'example': False, 'tool_calls': [], 'invalid_tool_calls': [], 'usage_metadata': {'input_tokens': 18791, 'output_tokens': 725, 'total_tokens': 19516, 'input_token_details': {'cache_read': 14962}, 'output_token_details': {'reasoning': 400}}}
+2025-10-10 14:44:30,139 | INFO | hackthon_support_agent.BaseService | [AGENT] Final output length: 681 chars
+2025-10-10 14:44:30,139 | DEBUG | hackthon_support_agent.BaseService | [AGENT] Final output: プロジェクトID `c085626d-30ce-47a3-ae38-662947eaabbc` の機能構造化が完了しました。
+
+**完了までの流れ:**
+
+1.  `gather_project_context` によりプロジェクトのコンテキスト情報を収集し、機能要件書を抽出しました。
+2.  `get_existing_functions` で既存機能を確認したところ、初回は0個でした。
+3.  `extract_function_batch` を使用して、機能要件書から14個の機能要件を抽出しました。
+4.  抽出された14個の機能要件に対し、`structure_functions` でカテゴリ分け、優先度付け、依存関係分析を行いました。
+5.  `add_structured_functions` を実行し、構造化された機能をデータベースに追加しました。この際、14個の機能が重複としてスキップされましたが、最終的にデータベースには14個の機能が保存されていることが確認されました。
+6.  `get_existing_functions` で再度既存機能リストを取得し、14個の機...
+2025-10-10 14:44:30,139 | INFO | hackthon_support_agent.BaseService | [AGENT] Token usage: input=18791, messages=16

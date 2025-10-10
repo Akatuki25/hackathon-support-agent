@@ -1,11 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type KeyboardEventHandler,
+  type ReactNode,
+} from 'react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useTasksByProjectId, patchTask } from '@/libs/modelAPI/task';
 import { TaskType, TaskStatusEnum } from '@/types/modelTypes';
+import { startHandsOnGeneration } from '@/libs/service/taskHandsOnService';
+
+const triggeredHandsOnProjects = new Set<string>();
 
 type BoardState = Record<TaskStatusEnum, TaskType[]>;
 
@@ -290,14 +302,31 @@ type TaskCardProps = {
   styles: ComputedStatusStyle;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
+  onSelect: (taskId?: string) => void;
 };
 
-function TaskCard({ task, styles, onDragStart, onDragEnd }: TaskCardProps) {
+function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardProps) {
   const canDrag = Boolean(task.task_id);
 
   const handleDragStart = () => {
     if (canDrag) {
       onDragStart(task.task_id);
+    }
+  };
+
+  const handleClick = () => {
+    if (canDrag) {
+      onSelect(task.task_id);
+    }
+  };
+
+  const handleKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
+    if (!canDrag) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelect(task.task_id);
     }
   };
 
@@ -307,6 +336,10 @@ function TaskCard({ task, styles, onDragStart, onDragEnd }: TaskCardProps) {
       draggable={canDrag}
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={canDrag ? 0 : -1}
     >
       <h3 className={`font-semibold ${styles.title}`}>{task.title}</h3>
       {task.description && (
@@ -330,9 +363,10 @@ type TaskColumnProps = {
   onDrop: (event: DragEvent<HTMLDivElement>) => void;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
+  onSelect: (taskId?: string) => void;
 };
 
-function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragEnd }: TaskColumnProps) {
+function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragEnd, onSelect }: TaskColumnProps) {
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
@@ -360,6 +394,7 @@ function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragE
               styles={styles}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
+              onSelect={onSelect}
             />
           ))
         )}
@@ -370,7 +405,9 @@ function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragE
 
 export default function KanbanBoardPage() {
   const params = useParams();
+  const router = useRouter();
   const projectId = params?.projectId as string | undefined;
+  const userName = params?.userName as string | undefined;
   const { darkMode } = useDarkMode();
 
   const { tasks, isLoading, isError } = useTasksByProjectId(projectId);
@@ -399,6 +436,16 @@ export default function KanbanBoardPage() {
   useEffect(() => {
     setBoard(buildBoardFromTasks(tasks));
   }, [tasks]);
+
+  useEffect(() => {
+    if (!projectId || triggeredHandsOnProjects.has(projectId)) {
+      return;
+    }
+    triggeredHandsOnProjects.add(projectId);
+    startHandsOnGeneration({ project_id: projectId }).catch((error) => {
+      console.error('Failed to start hands-on generation job:', error);
+    });
+  }, [projectId]);
 
   const handleCardDragStart = useCallback((taskId?: string) => {
     if (taskId) {
@@ -445,6 +492,19 @@ export default function KanbanBoardPage() {
       }
     },
     [board],
+  );
+
+  const handleTaskSelect = useCallback(
+    (taskId?: string) => {
+      if (!taskId || !userName || !projectId) {
+        return;
+      }
+      if (draggingTaskIdRef.current) {
+        return;
+      }
+      router.push(`/${userName}/${projectId}/${taskId}`);
+    },
+    [router, userName, projectId],
   );
 
   const loadingContainerClass = darkMode
@@ -521,6 +581,7 @@ export default function KanbanBoardPage() {
               onDrop={handleColumnDrop(key)}
               onDragStart={handleCardDragStart}
               onDragEnd={handleCardDragEnd}
+              onSelect={handleTaskSelect}
             />
           ))}
         </div>

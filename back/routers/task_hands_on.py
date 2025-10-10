@@ -76,6 +76,7 @@ class TaskHandsOnResponse(BaseModel):
     has_hands_on: bool
     hands_on: Optional[Dict]
     metadata: Optional[Dict]
+    message: Optional[str] = None
 
 
 class DeleteHandsOnResponse(BaseModel):
