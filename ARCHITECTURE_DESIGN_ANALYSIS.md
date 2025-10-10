@@ -21,7 +21,7 @@
 5. 機能構造化 (/api/function_structuring) ← **ReActエージェント**
    ↓ [StructuredFunction + FunctionDependency テーブルに保存]
    ↓
-6. ✨ 完全タスク生成 (/api/complete_task_generation) ← **現在実装中、FE未接続**
+6. ✨ 完全タスク生成 (/api/complete_task_generation)
    │  ├─ タスク生成 (task_generation_service)
    │  ├─ 品質評価 (task_quality_evaluation_service)
    │  ├─ 品質改善 (LangGraphワークフロー)

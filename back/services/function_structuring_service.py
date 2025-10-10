@@ -369,12 +369,14 @@ class FunctionStructuringPipeline:
         プロジェクト制約:
         {constraints}
         
-        優先度定義:
+        優先度定義（必ずこの4つのいずれかを使用）:
         - Must: MVP必須機能（最小限のユーザー価値を提供）
         - Should: 価値は高いが必須ではない
         - Could: あれば良い機能
-        - Wont: 今回は実装しない
-        
+        - Wont: 今回は実装しない（アポストロフィなし、"Won't"ではなく"Wont"）
+
+        重要: priorityフィールドには必ず "Must", "Should", "Could", "Wont" のいずれかを正確に設定してください。
+
         判定基準:
         1. 期間内に実装可能か
         2. チーム規模に適しているか
@@ -679,27 +681,33 @@ class FunctionStructuringPipeline:
             self.base_service.logger.error(f"Extraction revision failed: {str(e)}")
             return functions
     
-    def _revise_categorization(self, functions: List[Dict], suggestions: List[str]) -> List[Dict]:
+    def _revise_categorization(self, functions: List[Dict], suggestions: List) -> List[Dict]:
         """カテゴリ分類の修正"""
         if not suggestions:
             return functions
-        
+
+        # suggestionsが文字列リストかdictリストか判定して適切に処理
+        if suggestions and isinstance(suggestions[0], dict):
+            suggestions_text = json.dumps(suggestions, ensure_ascii=False, indent=2)
+        else:
+            suggestions_text = "\n".join(suggestions)
+
         prompt = ChatPromptTemplate.from_template("""
         以下の修正提案に基づいてカテゴリ分類を修正してください。
-        
+
         現在の機能リスト:
         {functions}
-        
+
         修正提案:
         {suggestions}
-        
+
         修正した機能リストをJSON配列で出力してください。
         """)
-        
+
         chain = prompt | self.llm_pro | StrOutputParser()
         result = chain.invoke({
             "functions": json.dumps(functions, ensure_ascii=False),
-            "suggestions": "\n".join(suggestions)
+            "suggestions": suggestions_text
         })
         
         try:
@@ -709,27 +717,33 @@ class FunctionStructuringPipeline:
             self.base_service.logger.error(f"Categorization revision failed: {str(e)}")
             return functions
     
-    def _revise_priorities(self, functions: List[Dict], suggestions: List[str]) -> List[Dict]:
+    def _revise_priorities(self, functions: List[Dict], suggestions: List) -> List[Dict]:
         """優先度の修正"""
         if not suggestions:
             return functions
-        
+
+        # suggestionsが文字列リストかdictリストか判定して適切に処理
+        if suggestions and isinstance(suggestions[0], dict):
+            suggestions_text = json.dumps(suggestions, ensure_ascii=False, indent=2)
+        else:
+            suggestions_text = "\n".join(suggestions)
+
         prompt = ChatPromptTemplate.from_template("""
         以下の修正提案に基づいて優先度を修正してください。
-        
+
         現在の機能リスト:
         {functions}
-        
+
         修正提案:
         {suggestions}
-        
+
         修正した機能リストをJSON配列で出力してください。
         """)
-        
+
         chain = prompt | self.llm_pro | StrOutputParser()
         result = chain.invoke({
             "functions": json.dumps(functions, ensure_ascii=False),
-            "suggestions": "\n".join(suggestions)
+            "suggestions": suggestions_text
         })
         
         try:
@@ -739,27 +753,33 @@ class FunctionStructuringPipeline:
             self.base_service.logger.error(f"Priority revision failed: {str(e)}")
             return functions
     
-    def _revise_dependencies(self, dependencies: List[Dict], suggestions: List[str]) -> List[Dict]:
+    def _revise_dependencies(self, dependencies: List[Dict], suggestions: List) -> List[Dict]:
         """依存関係の修正"""
         if not suggestions:
             return dependencies
-        
+
+        # suggestionsが文字列リストかdictリストか判定して適切に処理
+        if suggestions and isinstance(suggestions[0], dict):
+            suggestions_text = json.dumps(suggestions, ensure_ascii=False, indent=2)
+        else:
+            suggestions_text = "\n".join(suggestions)
+
         prompt = ChatPromptTemplate.from_template("""
         以下の修正提案に基づいて依存関係を修正してください。
-        
+
         現在の依存関係:
         {dependencies}
-        
+
         修正提案:
         {suggestions}
-        
+
         修正した依存関係をJSON配列で出力してください。
         """)
-        
+
         chain = prompt | self.llm_pro | StrOutputParser()
         result = chain.invoke({
             "dependencies": json.dumps(dependencies, ensure_ascii=False),
-            "suggestions": "\n".join(suggestions)
+            "suggestions": suggestions_text
         })
         
         try:
@@ -803,7 +823,7 @@ class FunctionStructuringPipeline:
                     function_name=func_data.get("function_name", ""),
                     description=func_data.get("description", ""),
                     category=self._normalize_category(raw_category),
-                    priority=func_data.get("priority", "Should"),
+                    priority=self._normalize_priority(func_data.get("priority", "Should")),
                     extraction_confidence=0.8,
                     order_index=i + 1
                 )
@@ -907,11 +927,10 @@ class FunctionStructuringAgent:
             self._create_context_gathering_tool(),              # 1. コンテキスト情報収集
             self._create_get_existing_functions_tool(),         # 2. 既存機能取得（重複回避・反復ごとに再実行）
             self._create_function_extraction_tool(),            # 3. 機能抽出 (extract_function_batch)
-            self._create_function_structuring_tool(),           # 4. 機能構造化 (structure_functions)
-            self._create_validation_tool(),                     # 5. 品質バリデーション (validate_structured_functions)
-            self._create_save_tool(),                           # 6. 増分DB追加 (add_structured_functions) ★複数回呼び出す★
-            self._create_coverage_analysis_tool(),              # 7. 網羅性分析・完了判定 (analyze_coverage)
-            self._create_delete_duplicate_tool()                # 8. 重複機能削除 (delete_duplicate_function)
+            self._create_function_structuring_tool(),           # 4. 機能構造化 (structure_functions) - バリデーション自動実行
+            self._create_save_tool(),                           # 5. 増分DB追加 (add_structured_functions) ★複数回呼び出す★
+            self._create_coverage_analysis_tool(),              # 6. 網羅性分析・完了判定 (analyze_coverage)
+            self._create_delete_duplicate_tool()                # 7. 重複機能削除 (delete_duplicate_function)
         ]
         
         # Create LangGraph ReAct agent
@@ -1119,22 +1138,54 @@ class FunctionStructuringAgent:
                     # コンテキスト情報を再取得（カテゴリ分類・優先度設定に必要）
                     retriever = ContextualInformationRetrieval(db)
                     context = retriever.gather_context(project_id)
-                    
+
                     # パイプライン処理も同じセッションで
                     pipeline = FunctionStructuringPipeline(db)
-                    
+
                     # カテゴリ分け
-                    categorized = pipeline.categorize_functions(functions, context)
-                    
+                    categorized = pipeline._categorize_functions(functions, context)
+
                     # 優先度付け
-                    prioritized = pipeline.prioritize_functions(
-                        categorized, 
-                        context.get("project", {})
-                    )
-                    
+                    prioritized = pipeline._assign_priorities(categorized, context)
+
                     # 依存関係分析
-                    dependencies = pipeline.analyze_dependencies(prioritized, context)
-                    
+                    dependencies = pipeline._analyze_dependencies(prioritized, context)
+
+                    # 自動バリデーション（品質保証）
+                    # カテゴリ分類の妥当性チェック
+                    categorization_validation = pipeline._validate_categorization(prioritized)
+                    if categorization_validation.get("needs_revision", False):
+                        self.base_service.logger.warning(
+                            f"[AGENT] Categorization validation failed: {categorization_validation.get('suggestions', [])}"
+                        )
+                        # 自動修正を試みる
+                        prioritized = pipeline._revise_categorization(
+                            prioritized,
+                            categorization_validation.get("suggestions", [])
+                        )
+
+                    # 優先度設定の妥当性チェック
+                    priority_validation = pipeline._validate_priorities(prioritized, context.get("project", {}))
+                    if priority_validation.get("needs_revision", False):
+                        self.base_service.logger.warning(
+                            f"[AGENT] Priority validation failed: {priority_validation.get('suggestions', [])}"
+                        )
+                        prioritized = pipeline._revise_priorities(
+                            prioritized,
+                            priority_validation.get("suggestions", [])
+                        )
+
+                    # 依存関係の論理性チェック
+                    dependency_validation = pipeline._validate_dependencies(prioritized, dependencies)
+                    if dependency_validation.get("needs_revision", False):
+                        self.base_service.logger.warning(
+                            f"[AGENT] Dependency validation failed: {dependency_validation.get('suggestions', [])}"
+                        )
+                        dependencies = pipeline._revise_dependencies(
+                            dependencies,
+                            dependency_validation.get("suggestions", [])
+                        )
+
                     self.base_service.logger.info(f"[AGENT] Structuring complete: {len(prioritized)} functions, {len(dependencies)} dependencies")
                     
                     # 後続ツールが使用できるようにJSONデータも含める
@@ -1182,42 +1233,7 @@ class FunctionStructuringAgent:
             priorities[pri] = priorities.get(pri, 0) + 1
         return "\n".join([f"  {pri}: {count}個" for pri, count in priorities.items()])
     
-    def _create_validation_tool(self):
-        """バリデーションツール"""
-        
-        def validate_structured_functions(functions_json: str) -> str:
-            """構造化された機能の品質をバリデーション"""
-            try:
-                from database import get_db_session
-                
-                functions = json.loads(functions_json)
-                
-                # 独立したDBセッションを使用（並列実行対応）
-                with get_db_session() as db:
-                    pipeline = FunctionStructuringPipeline(db)
-                    
-                    # 各種バリデーション実行
-                    extraction_validation = pipeline._validate_extraction(functions)
-                    categorization_validation = pipeline._validate_categorization(functions)
-                
-                needs_revision = (
-                    extraction_validation.get("needs_revision", False) or
-                    categorization_validation.get("needs_revision", False)
-                )
-                
-                if needs_revision:
-                    return "バリデーション結果: 修正が必要です。再処理を推奨します。"
-                else:
-                    return "バリデーション結果: 品質基準を満たしています。"
-                
-            except Exception as e:
-                return f"バリデーションエラー: {str(e)}"
-        
-        return StructuredTool.from_function(
-            func=validate_structured_functions,
-            name="validate_functions",
-            description="構造化された機能の品質をLLM as a Judgeでバリデーションします"
-        )
+    # validate_functionsツールは削除 - structure_functions内で自動的にバリデーション実行
     
     def _create_save_tool(self):
         """構造化機能の増分追加ツール"""
@@ -1272,7 +1288,8 @@ class FunctionStructuringAgent:
                         description = func_data.get("description", "")
                         raw_category = func_data.get("category", func_data.get("estimated_category", "logic"))
                         category = self._normalize_category(raw_category)
-                        priority = func_data.get("priority", "Should")
+                        raw_priority = func_data.get("priority", "Should")
+                        priority = self._normalize_priority(raw_priority)
                         confidence = func_data.get("extraction_confidence", 0.8)
                         
                         # 関数コード生成
@@ -1321,11 +1338,11 @@ class FunctionStructuringAgent:
                 return result
                 
             except Exception as e:
-                self.db.rollback()
                 self.base_service.logger.error(f"[AGENT] Incremental add failed: {str(e)}")
                 import traceback
                 self.base_service.logger.error(traceback.format_exc())
-                return f"増分追加エラー: {str(e)}\n\n詳細: {traceback.format_exc()}"
+                # DBセッションはwith文で自動的にrollbackされる
+                return f"増分追加エラー: {str(e)}\n\nエラー詳細を確認してください。"
         
         return StructuredTool.from_function(
             func=add_structured_functions,
@@ -1539,36 +1556,37 @@ class FunctionStructuringAgent:
         
         ★反復フェーズ（複数回実行）★
         以下を網羅性80%以上になるまで繰り返す：
-        
+
         3. extract_function_batch(specification, existing_functions_json, focus_area):
            - specification: <FUNCTION_DOC>内の機能要件書
            - existing_functions_json: get_existing_functionsの結果をJSON文字列で
            - focus_area: 初回は"", 2回目以降はanalyze_coverageが提案する領域
            ↓
-        4. structure_functions(functions_json, "{project_id}"):
-           - 抽出した機能をカテゴリ分け・優先度付け・依存関係分析
+        4. structure_functions(functions_json):
+           - functions_json: extract_function_batchが返したJSON文字列
+           - カテゴリ分け・優先度付け・依存関係分析を実行
+           - 品質バリデーションも自動的に実行される（LLM as a Judge）
            ↓
-        5. validate_structured_functions(functions_json):
-           - 品質バリデーション
-           - 不十分な場合はステップ3へ戻る（focus_areaを変更）
-           ↓
-        6. add_structured_functions("{project_id}", functions_json):
+        5. add_structured_functions(functions_json):
            ★★★ここで増分的にDBに追加★★★
+           - functions_json: structure_functionsが返したJSON文字列
            - 構造化された機能をDBに追加（重複は自動スキップ）
            - この時点でDBに保存されるため、次の反復で get_existing_functions を再実行すると増えている
            ↓
-        7. get_existing_functions("{project_id}"):
+        6. get_existing_functions("{project_id}"):
            更新された既存機能リストを再取得
            ↓
-        8. analyze_coverage("{project_id}", specification):
-           網羅性分析を実行（重複チェック含む）
+        7. analyze_coverage(specification):
+           - specification: <FUNCTION_DOC>内の機能要件書
+           - 網羅性分析を実行（重複チェック含む）
+           - DBから現在保存されている機能を取得して分析
            - completion_status="continue" → ステップ3へ戻る（missing_areasを focus_area に設定）
-           - duplicate_functions が検出された場合 → ステップ9で削除
+           - duplicate_functions が検出された場合 → ステップ8で削除
            - completion_status="complete" → 終了
            ↓
-        9. delete_duplicate_function(function_id, reason): ★新機能★
+        8. delete_duplicate_function(function_id, reason):
            重複している機能を削除
-           - function_id: analyze_coverageが検出した重複機能のUUID
+           - function_id: analyze_coverageが検出した重複機能のUUID（文字列）
            - reason: 重複理由（ログ用）
            - 削除後は get_existing_functions を再実行して確認
         
@@ -1788,8 +1806,21 @@ class FunctionStructuringAgent:
                 else:
                     raise
 
-            # MALFORMED_FUNCTION_CALL または STOP で終了した場合
-            if finish_reason in ['MALFORMED_FUNCTION_CALL', 'STOP']:
+            # STOPは正常終了なのでそのまま返す
+            if finish_reason == 'STOP':
+                message_count = len(result["messages"])
+                input_tokens = 0
+
+                if hasattr(last_message, 'usage_metadata'):
+                    input_tokens = last_message.usage_metadata.get('input_tokens', 0)
+
+                self.base_service.logger.info(
+                    f"[AGENT] Agent completed normally with STOP at {message_count} messages, {input_tokens} tokens"
+                )
+                return result
+
+            # MALFORMED_FUNCTION_CALL は異常終了なのでリトライ
+            if finish_reason == 'MALFORMED_FUNCTION_CALL':
                 message_count = len(result["messages"])
                 input_tokens = 0
 
@@ -1941,11 +1972,40 @@ class FunctionStructuringAgent:
         return uuid.UUID(str(value))
     
     @staticmethod
+    def _normalize_priority(priority: str) -> str:
+        """優先度をDB制約に適合する形式に正規化
+
+        DB制約: 'Must', 'Should', 'Could', 'Wont' (アポストロフィなし)
+        """
+        if not priority:
+            return "Should"
+
+        # アポストロフィを除去
+        priority_clean = priority.replace("'", "").strip()
+
+        # 大文字小文字を正規化
+        priority_map = {
+            "must": "Must",
+            "should": "Should",
+            "could": "Could",
+            "wont": "Wont",
+            "won't": "Wont",  # アポストロフィ付きも対応
+            "would": "Wont",
+        }
+
+        normalized = priority_map.get(priority_clean.lower())
+        if normalized:
+            return normalized
+
+        # デフォルト
+        return "Should"
+
+    @staticmethod
     def _normalize_category(category: str) -> str:
         """カテゴリ名をDB制約に適合する形式に正規化"""
         if not category:
             return "logic"
-            
+
         category_lower = category.lower()
         
         # カテゴリマッピング
