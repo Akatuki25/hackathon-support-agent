@@ -16,3 +16,17 @@ pydantic
 langchain_anthropic
 json-repair
 markdown-it-py
+langgraph
+
+# Phase 3: Celery非同期処理
+celery[redis]==5.3.4
+redis==4.6.0
+flower==2.0.1
+
+# Phase 3: WebSearch・ドキュメント取得
+beautifulsoup4==4.12.3
+html2text==2024.2.26
+requests>=2.32.4
+
+# Phase 2/3: タスク依存関係分析
+networkx>=3.1

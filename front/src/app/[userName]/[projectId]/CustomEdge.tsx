@@ -27,7 +27,7 @@ export function CustomEdge({
     targetY,
   });
 
-  const isAnimated = data?.animated || false;
+  const isAnimated = false;
   const isNextDay = data?.isNextDay || false;
 
   return (

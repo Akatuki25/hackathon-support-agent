@@ -97,6 +97,15 @@ export type TaskType = {
   due_at?: string; // datetime from FastAPI is string (ISO 8601)
   depends_on_task_id?: string; // UUID from FastAPI is string
   source_doc_id?: string; // UUID from FastAPI is string
+  function_id?: string; // UUID from FastAPI is string
+  node_id?: string;
+  category?: string;
+  start_time?: string;
+  estimated_hours?: number;
+  assignee?: string;
+  completed?: boolean;
+  position_x?: number;
+  position_y?: number;
 };
 
 export type TaskResponseType = {
@@ -120,6 +129,18 @@ export type TaskAssignmentResponseType = {
 };
 
 export type TaskAssignmentPatch = Partial<TaskAssignmentType>; // All fields optional for PATCH
+
+// --- TaskDependency Types ---
+export type TaskDependencyType = {
+  id: string; // UUID from FastAPI is string
+  edge_id: string;
+  source_task_id: string; // UUID from FastAPI is string
+  target_task_id: string; // UUID from FastAPI is string
+  source_node_id: string;
+  target_node_id: string;
+  is_animated: boolean;
+  is_next_day: boolean;
+};
 
 // --- QA Types ---
 export interface QAType {

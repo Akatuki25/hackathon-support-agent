@@ -1,0 +1,48 @@
+name: Deploy Backend to Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'back/**'
+      - '.github/workflows/deploy-backend.yml'
+      - 'railway/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        working-directory: ./back
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway up --service backend
+
+      - name: Run Database Migrations
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway run --service backend python create_tables.py
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Health Check
+        run: |
+          curl -f ${{ secrets.BACKEND_URL }}/ || exit 1
+
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "✅ Backend deployed successfully to Railway"
+          echo "URL: ${{ secrets.BACKEND_URL }}"
