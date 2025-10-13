@@ -11,7 +11,7 @@ terraform {
 resource "neon_project" "main" {
   name       = "${var.project_name}-${var.environment}"
   region_id  = var.region
-  pg_version = 16
+  pg_version = 15
 
   default_endpoint_settings {
     autoscaling_limit_min_cu = 0.25
