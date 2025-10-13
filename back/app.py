@@ -20,8 +20,11 @@ app = FastAPI(
 async def startup_event():
     Base.metadata.create_all(bind=engine)
 
-# CORS設定 多分最後のurl/の/は必要ない
-origins = ["http://localhost:3000"]
+# CORS設定
+origins = [
+    "http://localhost:3000",
+    "https://hackathon-support-agent-prod.vercel.app"
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
