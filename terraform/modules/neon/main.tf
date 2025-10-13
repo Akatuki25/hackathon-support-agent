@@ -15,24 +15,18 @@ resource "neon_project" "main" {
   history_retention_seconds = 21600 # 無料枠の上限: 6時間
 }
 
-# メインブランチ（Neonプロジェクト作成時に自動生成されるデフォルトブランチを使用）
-data "neon_branch" "main" {
-  project_id = neon_project.main.id
-  id         = neon_project.main.default_branch_id
-}
-
 # 開発ブランチ（dev環境のみ）
 resource "neon_branch" "dev" {
   count      = var.environment == "dev" ? 1 : 0
   project_id = neon_project.main.id
-  parent_id  = data.neon_branch.main.id
+  parent_id  = neon_project.main.default_branch_id
   name       = "dev"
 }
 
 # メインエンドポイント
 resource "neon_endpoint" "main" {
   project_id = neon_project.main.id
-  branch_id  = data.neon_branch.main.id
+  branch_id  = neon_project.main.default_branch_id
   type       = "read_write"
 
   autoscaling_limit_min_cu = 0.25
@@ -45,7 +39,7 @@ resource "neon_endpoint" "main" {
 # データベース作成
 resource "neon_database" "main" {
   project_id = neon_project.main.id
-  branch_id  = data.neon_branch.main.id
+  branch_id  = neon_project.main.default_branch_id
   name       = "hackathon_support_agent"
   owner_name = "neondb_owner"
 }
@@ -53,6 +47,6 @@ resource "neon_database" "main" {
 # ロール（ユーザー）作成
 resource "neon_role" "app_user" {
   project_id = neon_project.main.id
-  branch_id  = data.neon_branch.main.id
+  branch_id  = neon_project.main.default_branch_id
   name       = "app_user"
 }
