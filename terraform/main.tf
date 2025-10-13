@@ -52,3 +52,7 @@ module "vercel" {
   gh_oauth_client_id     = var.gh_oauth_client_id
   gh_oauth_client_secret = var.gh_oauth_client_secret
 }
+# Trigger apply after Neon project deletion
+
+
+

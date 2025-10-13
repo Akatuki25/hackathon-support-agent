@@ -9,21 +9,18 @@ terraform {
 
 # Neonプロジェクト
 resource "neon_project" "main" {
-  name       = "${var.project_name}-${var.environment}"
-  region_id  = var.region
-  pg_version = 15
-
-  default_endpoint_settings {
-    autoscaling_limit_min_cu = 0.25
-    autoscaling_limit_max_cu = 2
-    suspend_timeout_seconds  = 300 # 5分でスケールtoゼロ
-  }
+  name                      = "${var.project_name}-${var.environment}"
+  region_id                 = var.region
+  pg_version                = 15
+  history_retention_seconds = 21600 # 無料枠の上限: 6時間
 }
 
-# メインブランチ
+# メインブランチ（公式exampleに従って新規ブランチを作成）
+# デフォルトで"main"が存在するため、別名を使用
 resource "neon_branch" "main" {
   project_id = neon_project.main.id
-  name       = "main"
+  parent_id  = neon_project.main.default_branch_id
+  name       = "prod"
 }
 
 # 開発ブランチ（dev環境のみ）
@@ -32,6 +29,21 @@ resource "neon_branch" "dev" {
   project_id = neon_project.main.id
   parent_id  = neon_branch.main.id
   name       = "dev"
+}
+
+# ロール（ユーザー）作成
+resource "neon_role" "app_user" {
+  project_id = neon_project.main.id
+  branch_id  = neon_branch.main.id
+  name       = "app_user"
+}
+
+# データベース作成
+resource "neon_database" "main" {
+  project_id = neon_project.main.id
+  branch_id  = neon_branch.main.id
+  name       = "hackathon_support_agent"
+  owner_name = neon_role.app_user.name
 }
 
 # メインエンドポイント
@@ -45,19 +57,4 @@ resource "neon_endpoint" "main" {
 
   pooler_enabled = true
   pooler_mode    = "transaction"
-}
-
-# データベース作成
-resource "neon_database" "main" {
-  project_id = neon_project.main.id
-  branch_id  = neon_branch.main.id
-  name       = "hackathon_support_agent"
-  owner_name = "neondb_owner"
-}
-
-# ロール（ユーザー）作成
-resource "neon_role" "app_user" {
-  project_id = neon_project.main.id
-  branch_id  = neon_branch.main.id
-  name       = "app_user"
 }
