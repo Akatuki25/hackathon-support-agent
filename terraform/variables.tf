@@ -46,3 +46,15 @@ variable "gh_oauth_client_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "neon_api_key" {
+  description = "Neon API Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "vercel_api_token" {
+  description = "Vercel API Token"
+  type        = string
+  sensitive   = true
+}
