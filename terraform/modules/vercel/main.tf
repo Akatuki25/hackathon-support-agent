@@ -71,11 +71,19 @@ resource "vercel_project_environment_variable" "dev_api_url" {
   target     = ["development"]
 }
 
-# 初回デプロイをトリガー
+# 環境変数が変更されたら自動的に再デプロイ
 resource "vercel_deployment" "production" {
   project_id = vercel_project.frontend.id
   ref        = "main"
   production = true
+
+  # 環境変数の変更を検知するためのトリガー
+  triggers = {
+    api_url        = var.backend_url
+    nextauth_url   = "https://${vercel_project.frontend.name}.vercel.app"
+    github_id      = var.gh_oauth_client_id
+    nextauth_secret = var.nextauth_secret
+  }
 
   depends_on = [
     vercel_project_environment_variable.api_url,
