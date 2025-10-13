@@ -6,10 +6,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
 from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency
 
+# データベース初期化
+from database import engine, Base
+
 app = FastAPI(
     title="LangChain Server",
     version="1.0"
 )
+
+# アプリ起動時にテーブルを作成（既存のテーブルは変更しない）
+@app.on_event("startup")
+async def startup_event():
+    Base.metadata.create_all(bind=engine)
 
 # CORS設定 多分最後のurl/の/は必要ない
 origins = ["http://localhost:3000"]

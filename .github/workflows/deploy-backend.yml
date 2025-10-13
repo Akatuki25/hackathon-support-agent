@@ -7,7 +7,7 @@ on:
     paths:
       - 'back/**'
       - '.github/workflows/deploy-backend.yml'
-      - 'railway/**'
+      - 'railway.toml'
 
 jobs:
   deploy:
@@ -20,19 +20,17 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway
-        working-directory: ./back
+      - name: Link Railway Project
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
-          railway up --service backend
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment production
 
-      - name: Run Database Migrations
+      - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway run --service backend python create_tables.py
+          railway up
 
       - name: Wait for deployment
         run: sleep 30
