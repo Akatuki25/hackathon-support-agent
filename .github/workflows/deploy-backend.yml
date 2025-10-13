@@ -24,15 +24,9 @@ jobs:
         run: |
           railway up --service hackathon-support-agent
 
-      - name: Wait for deployment
-        run: sleep 30
-
-      - name: Health Check
-        run: |
-          curl -f ${{ secrets.BACKEND_URL }}/ || exit 1
-
       - name: Notify Success
         if: success()
         run: |
           echo "✅ Backend deployed successfully to Railway"
           echo "URL: ${{ secrets.BACKEND_URL }}"
+          echo "Deployment completed. Railway will handle health checks automatically."
