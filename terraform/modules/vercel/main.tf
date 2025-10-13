@@ -77,12 +77,13 @@ resource "vercel_deployment" "production" {
   ref        = "main"
   production = true
 
-  # 環境変数の変更を検知するためのトリガー
-  triggers = {
-    api_url        = var.backend_url
-    nextauth_url   = "https://${vercel_project.frontend.name}.vercel.app"
-    github_id      = var.gh_oauth_client_id
-    nextauth_secret = var.nextauth_secret
+  # 環境変数の変更を検知して再デプロイ
+  lifecycle {
+    replace_triggered_by = [
+      vercel_project_environment_variable.api_url,
+      vercel_project_environment_variable.nextauth_secret,
+      vercel_project_environment_variable.github_id
+    ]
   }
 
   depends_on = [
