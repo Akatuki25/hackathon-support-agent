@@ -3955,3 +3955,4 @@ Here's a summary of the steps taken and the current status:
 
 網羅率100%で、重複する機能も存在しないことを確認しました。...
 2025-10-13 07:20:09,334 | INFO | hackthon_support_agent.BaseService | [AGENT] Token usage: input=55623, messages=61
+2025-10-13 07:46:50,113 | INFO | hackthon_support_agent | Loaded environment variables from /workspaces/hackthon_support_agent/back/.env.local
