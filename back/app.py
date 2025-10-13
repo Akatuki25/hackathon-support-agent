@@ -10,8 +10,9 @@ from routers import qanda, summary,  framework, directory, environment,  taskDet
 from database import engine, Base
 
 app = FastAPI(
-    title="LangChain Server",
-    version="1.0"
+    title="Hackathon Support Agent API",
+    version="1.0",
+    description="AI-powered project planning and task management for hackathons"
 )
 
 # アプリ起動時にテーブルを作成（既存のテーブルは変更しない）
