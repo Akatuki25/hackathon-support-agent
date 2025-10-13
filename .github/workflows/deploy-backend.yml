@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy to Railway
         run: |
-          railway up --service hackathon-support-agent-production
+          railway up --service hackathon-support-agent
 
       - name: Wait for deployment
         run: sleep 30
