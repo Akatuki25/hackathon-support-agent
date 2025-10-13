@@ -15,7 +15,7 @@ terraform {
   # Terraform Cloud でステート管理（推奨）
   # または S3/GCS などのリモートバックエンド
   cloud {
-    organization = "your-organization"  # 要変更
+    organization = "your-organization" # 要変更
     workspaces {
       name = "hackathon-support-agent"
     }
@@ -35,11 +35,11 @@ module "neon" {
 module "vercel" {
   source = "./modules/vercel"
 
-  project_name        = var.project_name
-  github_repo         = var.github_repo
-  backend_url         = var.backend_url
-  environment         = var.environment
-  nextauth_secret      = var.nextauth_secret
+  project_name           = var.project_name
+  github_repo            = var.github_repo
+  backend_url            = var.backend_url
+  environment            = var.environment
+  nextauth_secret        = var.nextauth_secret
   gh_oauth_client_id     = var.gh_oauth_client_id
   gh_oauth_client_secret = var.gh_oauth_client_secret
 }

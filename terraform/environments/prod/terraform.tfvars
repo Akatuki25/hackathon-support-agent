@@ -2,7 +2,7 @@
 
 project_name = "hackathon-support-agent"
 environment  = "prod"
-neon_region  = "aws-ap-southeast-1"  # シンガポール
+neon_region  = "aws-ap-southeast-1" # シンガポール
 
 # GitHubリポジトリ（要変更）
 github_repo = "Akatuki25/hackathon-support-agent"

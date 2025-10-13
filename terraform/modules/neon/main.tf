@@ -9,14 +9,14 @@ terraform {
 
 # Neonプロジェクト
 resource "neon_project" "main" {
-  name      = "${var.project_name}-${var.environment}"
-  region_id = var.region
+  name       = "${var.project_name}-${var.environment}"
+  region_id  = var.region
   pg_version = 16
 
   default_endpoint_settings {
     autoscaling_limit_min_cu = 0.25
     autoscaling_limit_max_cu = 2
-    suspend_timeout_seconds  = 300  # 5分でスケールtoゼロ
+    suspend_timeout_seconds  = 300 # 5分でスケールtoゼロ
   }
 }
 

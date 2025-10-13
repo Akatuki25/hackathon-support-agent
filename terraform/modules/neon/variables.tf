@@ -6,7 +6,7 @@ variable "project_name" {
 variable "region" {
   description = "Neonリージョン"
   type        = string
-  default     = "aws-ap-southeast-1"  # シンガポール（日本に最も近い）
+  default     = "aws-ap-southeast-1" # シンガポール（日本に最も近い）
 }
 
 variable "environment" {

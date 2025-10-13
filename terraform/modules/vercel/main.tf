@@ -19,9 +19,9 @@ resource "vercel_project" "frontend" {
 
   root_directory = "front"
 
-  build_command = "npm run build"
+  build_command    = "npm run build"
   output_directory = ".next"
-  install_command = "npm install"
+  install_command  = "npm install"
 }
 
 # 環境変数（Production）
