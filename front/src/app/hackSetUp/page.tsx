@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Clock, Users, ChevronRight } from "lucide-react";
+import { Zap, Clock, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { useDarkMode } from "@/hooks/useDarkMode";

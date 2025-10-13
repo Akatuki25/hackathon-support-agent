@@ -22,9 +22,9 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
   const [showAddButton, setShowAddButton] = useState(false);
   const [completed, setCompleted] = useState(nodeData?.completed || false);
   const [category, setCategory] = useState<NodeCategory>(nodeData?.category || 'default');
-  const [startTime, setStartTime] = useState(nodeData?.startTime || '');
+  const [startTime] = useState(nodeData?.startTime || '');
   const [estimatedHours, setEstimatedHours] = useState(nodeData?.estimatedHours || 1);
-  const [assignee, setAssignee] = useState(nodeData?.assignee || '');
+  const [assignee] = useState(nodeData?.assignee || '');
   const { darkMode } = useDarkMode();
   const { getNodes, setNodes, getEdges, setEdges } = useReactFlow();
   const textareaRef = useRef<HTMLTextAreaElement>(null);

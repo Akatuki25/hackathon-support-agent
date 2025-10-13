@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState, ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { blocksToMarkdown, markdownToBlocks, filterSuggestionItems } from "@blocknote/core";
 import type { Block as BlockType, PartialBlock as PartialBlockType } from "@blocknote/core";
 import { en } from "@blocknote/core/locales";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote, FormattingToolbar, FormattingToolbarController, SuggestionMenuController, getDefaultReactSlashMenuItems, getFormattingToolbarItems } from "@blocknote/react";
-import { AIMenuController, AIToolbarButton, createAIExtension, createBlockNoteAIClient, getAISlashMenuItems } from "@blocknote/xl-ai";
+import { AIMenuController, AIToolbarButton, createAIExtension, getAISlashMenuItems } from "@blocknote/xl-ai";
+import { DefaultChatTransport } from "ai";
 import { en as aiEn } from "@blocknote/xl-ai/locales";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/core/style.css";
@@ -49,15 +49,7 @@ const defaultSanitize = (input: string) =>
     .replace(/[、]/g, ",")
     .trim();
 
-// AI クライアントとモデルの設定
-const client = createBlockNoteAIClient({
-  apiKey: "test-token",
-  baseURL: "/api/ai",
-});
-
-const model = createGoogleGenerativeAI({
-  ...client.getProviderSettings("google"),
-})("gemini-2.5-flash-lite");
+// AI モデルの設定は不要（transportでバックエンドに委譲）
 
 type BlockNoteEditorInstance = ReturnType<typeof useCreateBlockNote>;
 type EditorDictionary = typeof en & { ai?: typeof aiEn };
@@ -122,7 +114,14 @@ export default function BaseEditor({
   const setContentInitialized = onContentInitialized ?? setInternalContentInitialized;
 
   const dictionary: EditorDictionary = enableAI ? { ...en, ai: aiEn } : en;
-  const aiExtension = enableAI ? createAIExtension({ model }) : null;
+  // AI拡張の設定 - バックエンドの /api/blocknote-ai を使用
+  const aiExtension = enableAI
+    ? createAIExtension({
+        transport: new DefaultChatTransport({
+          api: "/api/blocknote-ai",
+        }),
+      })
+    : null;
 
   // BlockNote エディターの初期化
   const editor = useCreateBlockNote({
@@ -139,9 +138,7 @@ export default function BaseEditor({
     ...(editorConfig.blockSpecs && { blockSpecs: editorConfig.blockSpecs }),
     // AI拡張を有効にする
     ...(enableAI && aiExtension && {
-      _extensions: {
-        ai: aiExtension,
-      },
+      extensions: [aiExtension],
     }),
   });
 

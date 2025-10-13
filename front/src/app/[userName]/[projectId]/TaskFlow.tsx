@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
-import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, Background, useNodesState, useEdgesState, Connection } from '@xyflow/react';
+import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
 import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
 

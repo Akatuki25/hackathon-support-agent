@@ -120,10 +120,10 @@ export default function FunctionStructuring() {
         setStructuringResult(structuredData);
         setProcessingState('completed');
         setAgentProgress("機能構造化が完了しました！");
-      } else if ((result as any).partial_success) {
+      } else if ('partial_success' in result && result.partial_success) {
         // 部分的に成功した場合
         console.warn('部分的な成功:', result);
-        const partialResult = result as any;
+        const partialResult = result as { partial_success: boolean; saved_functions_count?: number; error?: string };
         setAgentProgress(`部分的に機能を構造化しました (${partialResult.saved_functions_count}個の機能を保存)`);
 
         // 保存された機能を取得
@@ -303,7 +303,7 @@ export default function FunctionStructuring() {
           setProcessingState('completed');
           return;
         }
-      } catch (error) {
+      } catch {
         console.log('既存結果なし、新規実行が必要');
       }
 
@@ -313,7 +313,7 @@ export default function FunctionStructuring() {
     if (projectId) {
       checkExistingResults();
     }
-  }, [projectId, session, status, router]);
+  }, [projectId, session, status, router, handleStructureFunctions]);
 
   if (status === "loading" || processingState === 'idle') {
     return <Loading />;
@@ -555,7 +555,7 @@ export default function FunctionStructuring() {
                                       <div className="flex space-x-2">
                                         <select
                                           value={editingValues.category || func.category}
-                                          onChange={(e) => setEditingValues({...editingValues, category: e.target.value as any})}
+                                          onChange={(e) => setEditingValues({...editingValues, category: e.target.value as StructuredFunction['category']})}
                                           className={`text-xs border rounded px-2 py-1 ${
                                             darkMode ? "bg-gray-700 border-gray-600 text-gray-300" : "bg-white border-gray-300 text-gray-700"
                                           }`}
@@ -567,7 +567,7 @@ export default function FunctionStructuring() {
 
                                         <select
                                           value={editingValues.priority || func.priority}
-                                          onChange={(e) => setEditingValues({...editingValues, priority: e.target.value as any})}
+                                          onChange={(e) => setEditingValues({...editingValues, priority: e.target.value as StructuredFunction['priority']})}
                                           className={`text-xs border rounded px-2 py-1 ${
                                             darkMode ? "bg-gray-700 border-gray-600 text-gray-300" : "bg-white border-gray-300 text-gray-700"
                                           }`}
@@ -723,7 +723,7 @@ export default function FunctionStructuring() {
                         推奨実装順序
                       </h3>
                       <div className="space-y-2">
-                        {structuringResult.implementation_order.slice(0, 5).map((item, index) => (
+                        {structuringResult.implementation_order.slice(0, 5).map((item) => (
                           <div
                             key={item.function_id}
                             className={`p-3 rounded-lg border backdrop-blur-sm ${
@@ -1024,7 +1024,7 @@ export default function FunctionStructuring() {
                   </label>
                   <select
                     value={newFunctionData.category}
-                    onChange={(e) => setNewFunctionData({...newFunctionData, category: e.target.value as any})}
+                    onChange={(e) => setNewFunctionData({...newFunctionData, category: e.target.value as StructuredFunction['category']})}
                     className={`w-full px-3 py-2 rounded-lg border outline-none ${
                       darkMode
                         ? "bg-gray-700/50 border-gray-600 text-gray-100"
@@ -1043,7 +1043,7 @@ export default function FunctionStructuring() {
                   </label>
                   <select
                     value={newFunctionData.priority}
-                    onChange={(e) => setNewFunctionData({...newFunctionData, priority: e.target.value as any})}
+                    onChange={(e) => setNewFunctionData({...newFunctionData, priority: e.target.value as StructuredFunction['priority']})}
                     className={`w-full px-3 py-2 rounded-lg border outline-none ${
                       darkMode
                         ? "bg-gray-700/50 border-gray-600 text-gray-100"

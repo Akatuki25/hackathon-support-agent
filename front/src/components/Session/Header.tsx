@@ -15,6 +15,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import type { Session } from "next-auth";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function CyberHeader() {
@@ -720,7 +721,7 @@ const ProjectMemberForm = ({
   }, [projectId]);
 
   // 既存メンバーを削除
-  const removeExistingMember = async (projectMemberId: string, githubName: string) => {
+  const removeExistingMember = async (projectMemberId: string) => {
     try {
       const { deleteProjectMember } = await import("@/libs/modelAPI/project_member");
       await deleteProjectMember(projectMemberId);
@@ -895,7 +896,7 @@ const ProjectMemberForm = ({
                   <span>{member.github_name}</span>
                   <button
                     type="button"
-                    onClick={() => removeExistingMember(member.project_member_id, member.github_name)}
+                    onClick={() => removeExistingMember(member.project_member_id)}
                     className={`ml-2 hover:opacity-70 ${
                       darkMode ? "text-green-400" : "text-green-600"
                     }`}
@@ -1051,7 +1052,7 @@ const MemberEditForm = ({
 }: {
   darkMode: boolean;
   onClose: () => void;
-  session: any;
+  session: Session | null;
 }) => {
   const [memberName, setMemberName] = useState("");
   const [memberSkill, setMemberSkill] = useState("");

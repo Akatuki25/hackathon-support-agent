@@ -204,7 +204,7 @@ export default function AllProjectPage() {
                   : "bg-purple-500/10 text-purple-600 border border-purple-300/30"
               }`}
             >
-              // PROJECT_DATABASE_ACCESS
+              {/* PROJECT_DATABASE_ACCESS */}
             </div>
 
             <h1
@@ -388,7 +388,7 @@ export default function AllProjectPage() {
                       darkMode ? "text-gray-400" : "text-gray-500"
                     }`}
                   >
-                    // CREATE_NEW_PROJECT
+                    {/* CREATE_NEW_PROJECT */}
                   </p>
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default function AllProjectPage() {
                               darkMode ? "text-cyan-400" : "text-purple-600"
                             }`}
                           >
-                            // PROJECT_CONCEPT
+                            {/* PROJECT_CONCEPT */}
                           </span>
                         </div>
                         <p

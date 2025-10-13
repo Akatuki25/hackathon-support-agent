@@ -3,6 +3,9 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+    ports:
+      - "3000:3000"
+      - "8000:8000"
     volumes:
       - ..:/workspaces/hackathon_support_agent:cashed
     env_file:

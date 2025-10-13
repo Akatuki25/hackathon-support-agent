@@ -12,9 +12,11 @@ const MemberSettings = () => {
 
   const [loading, setLoading] = useState(false);
   const [member, setMember] = useState<MemberType>({
+    member_id: "",
     member_name: "",
     member_skill: "",
     github_name: "",
+    email: "",
   });
 
   const handleChange =

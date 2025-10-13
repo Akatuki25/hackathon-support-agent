@@ -13,7 +13,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 // QA作成時にIDと作成日を除外するための型
 export type QACreateType = Omit<QAType, 'qa_id' | 'created_at'>;
 
-type SaveQuestionsPayload = { QA: QAType[] };
+type SaveQuestionsPayload = { QA: QACreateType[] };
 type SaveQuestionsResponse = { message: string };
 
 // --- API呼び出し関数 ---

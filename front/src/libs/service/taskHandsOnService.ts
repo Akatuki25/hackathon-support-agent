@@ -49,7 +49,7 @@ export interface DeleteHandsOnResponse {
   message: string;
 }
 
-export interface HandsOnPreviewResponse<TPreview = Record<string, unknown>> {
+export interface HandsOnPreviewResponse {
   success: boolean;
   preview_mode?: boolean;
   message: string;
@@ -95,10 +95,10 @@ export const deleteProjectHandsOn = async (
   return response.data;
 };
 
-export const previewHandsOnGeneration = async <TPreview = Record<string, unknown>>(
+export const previewHandsOnGeneration = async (
   request: HandsOnGenerationRequest,
-): Promise<HandsOnPreviewResponse<TPreview>> => {
+): Promise<HandsOnPreviewResponse> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.post<HandsOnPreviewResponse<TPreview>>(`${baseUrl}/preview`, request);
+  const response = await axios.post<HandsOnPreviewResponse>(`${baseUrl}/preview`, request);
   return response.data;
 };

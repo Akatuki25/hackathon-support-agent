@@ -71,8 +71,8 @@ export interface StructuringResult {
     };
     dependency_analysis: {
       types: Record<string, number>;
-      circular_dependencies: any[];
-      critical_paths: any[];
+      circular_dependencies: unknown[];
+      critical_paths: unknown[];
       complexity_score: number;
     };
   };
