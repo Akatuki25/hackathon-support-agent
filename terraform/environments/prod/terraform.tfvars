@@ -8,7 +8,7 @@ neon_region  = "aws-ap-southeast-1" # シンガポール
 github_repo = "Akatuki25/hackathon-support-agent"
 
 # Railway BackendのURL（デプロイ後に更新）
-backend_url = "https://hackathon-agent-api.up.railway.app"
+backend_url = "https://hackathon-support-agent-production.up.railway.app"
 
 # シークレットはGitHub Secretsまたは環境変数から注入
 # nextauth_secret        = ""  # TF_VAR_nextauth_secretで設定
