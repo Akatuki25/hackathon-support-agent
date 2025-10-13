@@ -32,7 +32,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hackathon Support Agent API", "status": "healthy"}
 
 # APIルーターの登録
 # DB のプロジェクト
