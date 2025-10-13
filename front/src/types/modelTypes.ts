@@ -131,6 +131,18 @@ export type TaskAssignmentResponseType = {
 
 export type TaskAssignmentPatch = Partial<TaskAssignmentType>; // All fields optional for PATCH
 
+// --- TaskDependency Types ---
+export type TaskDependencyType = {
+  id: string; // UUID from FastAPI is string
+  edge_id: string;
+  source_task_id: string; // UUID from FastAPI is string
+  target_task_id: string; // UUID from FastAPI is string
+  source_node_id: string;
+  target_node_id: string;
+  is_animated: boolean;
+  is_next_day: boolean;
+};
+
 // --- QA Types ---
 export interface QAType {
   qa_id: string;
