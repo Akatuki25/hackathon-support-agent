@@ -15,7 +15,7 @@ terraform {
   # Terraform Cloud でステート管理（推奨）
   # または S3/GCS などのリモートバックエンド
   cloud {
-    organization = "hackathon-support-agent"
+    organization = "akatuki-project"
     workspaces {
       name = "hackathon-support-agent"
     }
