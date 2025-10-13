@@ -9,9 +9,10 @@ terraform {
 
 # Neonプロジェクト
 resource "neon_project" "main" {
-  name       = "${var.project_name}-${var.environment}"
-  region_id  = var.region
-  pg_version = 15
+  name                     = "${var.project_name}-${var.environment}"
+  region_id                = var.region
+  pg_version               = 15
+  history_retention_seconds = 21600 # 無料枠の上限: 6時間
 }
 
 # メインブランチ
