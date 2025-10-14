@@ -121,7 +121,7 @@ export default function HackathonSupportAgentLandingPage() {
           <p
             className={`text-lg md:text-xl mb-8 ${darkMode ? "text-gray-300" : "text-gray-600"} font-mono max-w-3xl mx-auto`}
           >
-            {"// ハッカソンで“詰まる”をなくす。AIがあなたの開発を全方位からサポートします。"}
+            {"// ハッカソンを成長する機会に！AIがあなたの開発を全方位からサポートします。"}
           </p>
 
           <button
