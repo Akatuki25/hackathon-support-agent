@@ -8,7 +8,6 @@ import {
   Workflow,
   Cpu,
   Brain,
-  Users,
 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import CyberHeader from "@/components/Session/Header";
