@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from models.project_base import ProjectDocument, AIDocument
 from typing import Optional, Dict, Any
 import uuid
+import json
+import re
 
 
 class AIDocumentService(BaseService):
@@ -157,7 +159,19 @@ class AIDocumentService(BaseService):
 
 ---
 
+## 出力形式の指示
+
 {format_instructions}
+
+**重要**: JSON形式で出力する際の注意事項:
+1. 文字列内のバックスラッシュ（\\）は二重にエスケープする（\\\\）
+2. 文字列内のダブルクォート（"）はエスケープする（\\"）
+3. 改行は \\n として表現する
+4. Markdownコードブロックの記号（```）は使用しない代わりに、コードブロックは単に「コード:」という見出しとインデントで表現する
+5. パスやURLに含まれるバックスラッシュは全て順スラッシュ（/）に置き換える
+6. 正規表現やエスケープシーケンスの説明が必要な場合は、具体例を避けて説明文のみにする
+
+## 生成内容の指針
 
 各カテゴリについて、以下のような詳細で実用的なドキュメントを生成してください：
 
@@ -168,17 +182,133 @@ class AIDocumentService(BaseService):
 - **deployment**: CI/CDパイプライン、環境変数管理、モニタリング戦略
 - **ai_design**: システム全体のアーキテクチャ図、マイクロサービス連携、セキュリティ設計
 
-すべてMarkdown形式で、実装可能な具体的な内容を含めてください。"""
+すべてMarkdown形式で、実装可能な具体的な内容を含めてください。
+ただし、複雑なエスケープシーケンスやコードブロック内の特殊文字は避け、シンプルで分かりやすい表現を心がけてください。"""
         )
 
-        chain = prompt_template | self.llm_flash | parser
+        # パース失敗時のリトライ処理
+        max_retries = 2
+        last_error = None
 
-        result = chain.invoke({
-            "frame_work_doc": frame_work_doc,
-            "function_doc": function_doc or "指定なし",
-            "specification": specification or "指定なし",
-            "format_instructions": parser.get_format_instructions()
-        })
+        for attempt in range(max_retries):
+            try:
+                chain = prompt_template | self.llm_flash | parser
+
+                result = chain.invoke({
+                    "frame_work_doc": frame_work_doc,
+                    "function_doc": function_doc or "指定なし",
+                    "specification": specification or "指定なし",
+                    "format_instructions": parser.get_format_instructions()
+                })
+
+                return result
+
+            except Exception as e:
+                last_error = e
+                error_message = str(e)
+
+                # JSONパースエラーの場合
+                if "Invalid \\escape" in error_message or "JSON" in error_message:
+                    self.logger.warning(f"JSONパースエラー (試行 {attempt + 1}/{max_retries}): {error_message}")
+
+                    # 最後の試行でない場合は続行
+                    if attempt < max_retries - 1:
+                        continue
+
+                    # 最後の試行でもエラーの場合、シンプルな文字列出力にフォールバック
+                    self.logger.error(f"JSONパース失敗。フォールバックモードで再試行")
+                    try:
+                        # シンプルなテキスト生成にフォールバック
+                        fallback_result = await self._generate_simple_documents(
+                            frame_work_doc, function_doc, specification
+                        )
+                        return fallback_result
+                    except Exception as fallback_error:
+                        self.logger.error(f"フォールバックも失敗: {fallback_error}")
+                        raise ValueError(f"AIドキュメント生成に失敗しました: {str(last_error)}")
+                else:
+                    # JSONパース以外のエラーは即座に再スロー
+                    raise
+
+        # すべてのリトライが失敗
+        raise ValueError(f"AIドキュメント生成に失敗しました (最大リトライ回数超過): {str(last_error)}")
+
+    async def _generate_simple_documents(
+        self,
+        frame_work_doc: str,
+        function_doc: str = "",
+        specification: str = ""
+    ) -> Dict[str, str]:
+        """
+        JSONパース失敗時のフォールバック: カテゴリごとに個別に生成
+
+        Args:
+            frame_work_doc: フレームワーク選択情報
+            function_doc: 機能ドキュメント
+            specification: 仕様書
+
+        Returns:
+            カテゴリ別ドキュメント辞書
+        """
+        self.logger.info("フォールバックモード: カテゴリごとに個別生成開始")
+
+        categories = {
+            "environment": "環境構築サマリ。Docker、ローカル環境のセットアップ手順",
+            "front_end": "フロントエンド技術の詳細。選択された技術についての理由とベストプラクティス",
+            "back_end": "バックエンド技術の詳細。API設計、認証、データ処理ロジック",
+            "database": "データベース設計。スキーマ設計、インデックス戦略、マイグレーション手順",
+            "deployment": "デプロイメント。CI/CD、ホスティング環境、スケーリング戦略",
+            "ai_design": "システムアーキテクチャ。技術スタック間の連携とデータフロー"
+        }
+
+        result = {}
+
+        for category, description in categories.items():
+            try:
+                prompt = ChatPromptTemplate.from_template(
+                    """あなたは技術ドキュメント作成の専門家です。
+
+以下の情報から、「{category}」に関する技術ドキュメントを生成してください。
+
+目的: {description}
+
+## フレームワーク情報
+{frame_work_doc}
+
+## 機能要件
+{function_doc}
+
+## 仕様書
+{specification}
+
+---
+
+**重要な制約**:
+- 出力はプレーンテキストのMarkdown形式のみ
+- バックスラッシュやエスケープシーケンスは使用しない
+- コードブロックは使わず、コード例は単に「コード例:」という見出しとインデントで表現
+- 実装可能な具体的で実用的な内容を含める
+- 簡潔かつ明確に記述する
+
+ドキュメント:"""
+                )
+
+                chain = prompt | self.llm_flash | StrOutputParser()
+
+                doc = chain.invoke({
+                    "category": category,
+                    "description": description,
+                    "frame_work_doc": frame_work_doc,
+                    "function_doc": function_doc or "指定なし",
+                    "specification": specification or "指定なし"
+                })
+
+                result[category] = doc.strip()
+                self.logger.info(f"カテゴリ '{category}' 生成完了")
+
+            except Exception as e:
+                self.logger.error(f"カテゴリ '{category}' 生成失敗: {e}")
+                result[category] = f"# {category}\n\nドキュメント生成に失敗しました。"
 
         return result
 
