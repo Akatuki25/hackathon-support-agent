@@ -4,8 +4,9 @@
 """
 import json
 import uuid
+import time
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate
@@ -14,6 +15,12 @@ from .base_service import BaseService
 from models.project_base import (
     ProjectBase, ProjectDocument, StructuredFunction, Task
 )
+
+
+class ValidationConfig:
+    """バリデーションの設定"""
+    MAX_RETRIES = 3  # 最大リトライ回数
+    RETRY_DELAY = 1  # リトライ間隔（秒）
 
 
 class FunctionBatch(BaseModel):
@@ -205,46 +212,70 @@ class TaskGenerationService(BaseService):
         return batches
     
     async def _process_batch(
-        self, 
-        batch: List[FunctionBatch], 
+        self,
+        batch: List[FunctionBatch],
         project_context: Dict[str, Any],
         batch_id: str
     ) -> BatchTaskResponse:
-        """1つのバッチを処理してタスクを生成"""
-        import time
+        """1つのバッチを処理してタスクを生成（リトライ機能付き）"""
         start_time = time.time()
-        
-        # プロンプトの作成
-        prompt = self._create_task_generation_prompt(batch, project_context)
-        
-        # LLM呼び出し
-        try:
-            response = await self.llm_pro.ainvoke(prompt)
-            response_content = response.content if hasattr(response, 'content') else str(response)
-        except Exception as e:
-            raise ValueError(f"LLM generation failed: {str(e)}")
-        
-        # レスポンスをパース
-        try:
-            parsed_response = self._parse_llm_response(response_content)
-            generated_tasks = self._convert_to_generated_tasks(parsed_response, batch)
-        except Exception as e:
-            raise ValueError(f"Failed to parse LLM response: {str(e)}")
-        
-        processing_time = time.time() - start_time
-        
-        return BatchTaskResponse(
-            batch_id=batch_id,
-            functions_processed=[func.function_id for func in batch],
-            generated_tasks=generated_tasks,
-            total_tasks=len(generated_tasks),
-            processing_time=processing_time
-        )
+
+        # リトライループ
+        for attempt in range(ValidationConfig.MAX_RETRIES):
+            try:
+                # プロンプトの作成
+                prompt = self._create_task_generation_prompt(batch, project_context, attempt)
+
+                # LLM呼び出し
+                response = await self.llm_pro.ainvoke(prompt)
+                response_content = response.content if hasattr(response, 'content') else str(response)
+
+                # レスポンスをパース
+                parsed_response = self._parse_llm_response(response_content)
+
+                # Pydanticバリデーション付きでタスクに変換
+                generated_tasks, validation_errors = self._convert_to_generated_tasks_with_validation(
+                    parsed_response, batch
+                )
+
+                # バリデーションエラーがない、または最後の試行
+                if not validation_errors or attempt == ValidationConfig.MAX_RETRIES - 1:
+                    if validation_errors:
+                        self.logger.error(
+                            f"❌ Batch {batch_id}: Validation errors remain after {ValidationConfig.MAX_RETRIES} attempts. "
+                            f"Generated {len(generated_tasks)}/{len(parsed_response.get('tasks', []))} tasks. "
+                            f"Errors: {validation_errors[:3]}"  # 最初の3件のみ表示
+                        )
+                    else:
+                        self.logger.info(f"✅ Batch {batch_id}: All tasks validated successfully on attempt {attempt + 1}")
+
+                    processing_time = time.time() - start_time
+                    return BatchTaskResponse(
+                        batch_id=batch_id,
+                        functions_processed=[func.function_id for func in batch],
+                        generated_tasks=generated_tasks,
+                        total_tasks=len(generated_tasks),
+                        processing_time=processing_time
+                    )
+
+                # バリデーションエラーがある場合はリトライ
+                self.logger.warning(
+                    f"⚠️ Batch {batch_id}: Validation failed on attempt {attempt + 1}/{ValidationConfig.MAX_RETRIES}. "
+                    f"Errors: {len(validation_errors)} tasks failed validation. Retrying..."
+                )
+                time.sleep(ValidationConfig.RETRY_DELAY)
+
+            except Exception as e:
+                self.logger.error(f"Error in batch processing attempt {attempt + 1}: {str(e)}")
+                if attempt == ValidationConfig.MAX_RETRIES - 1:
+                    raise ValueError(f"Batch processing failed after {ValidationConfig.MAX_RETRIES} attempts: {str(e)}")
+                time.sleep(ValidationConfig.RETRY_DELAY)
     
     def _create_task_generation_prompt(
-        self, 
-        batch: List[FunctionBatch], 
-        project_context: Dict[str, Any]
+        self,
+        batch: List[FunctionBatch],
+        project_context: Dict[str, Any],
+        attempt: int = 0
     ) -> str:
         """厳密なタスク生成プロンプトを作成"""
         
@@ -253,9 +284,18 @@ class TaskGenerationService(BaseService):
             for func in batch
         ])
         
+        retry_warning = ""
+        if attempt > 0:
+            retry_warning = f"""
+⚠️ **これは{attempt + 1}回目の試行です。前回バリデーションエラーがありました。**
+- すべての必須フィールドを必ず含めてください
+- データ型を正確に守ってください（estimated_hoursは数値）
+- 空文字列や不正な値を避けてください
+"""
+
         prompt = f"""あなたは機能をタスクに分解する専門家です。
 以下の厳密な思考プロセスに従って処理してください。
-
+{retry_warning}
 ## プロジェクト情報
 - プロジェクト: {project_context['project_title']}
 - 技術スタック: {project_context['tech_stack']}
@@ -264,46 +304,53 @@ class TaskGenerationService(BaseService):
 ## 対象機能（{len(batch)}個）
 {functions_text}
 
-## 思考プロセス（必ず順守）
+## 重要な方針
+- 機能自体は既に大きくまとめられた単位で送られている（例: "ユーザー管理"、"プロジェクト管理"）
+- タスクは機能を実装しやすい単位に分割する
+- **ハッカソンは時間が限られているため、タスク数を最小限にする**
+- **1機能あたり2-3個のタスク**を目安とする（最大4個まで）
+- 関連する細かい作業は必ず1つのタスクにまとめる
+- **全体で30-50タスク程度**に収めることを意識する
 
-### Step 1: 機能分類
-各機能を以下のパターンに分類：
-- データモデル系: テーブル/モデルが必要
-- CRUD系: 基本的なデータ操作  
-- 認証系: セキュリティ/権限
-- UI系: 画面/コンポーネント
-- 統合系: 外部API連携
-- 分析系: データ集計/可視化
+## タスク生成ルール
 
-### Step 2: タスク生成ルール
-各パターンに対して必須タスクを生成：
+各機能パターンに対して、**統合されたタスク**を生成：
 
-**データモデル系の場合:**
-1. DBスキーマ設計（必須）
-2. モデルクラス実装（必須）
-3. マイグレーション実行（必須）
+**ユーザー管理系（認証含む）の場合:**
+1. 「ユーザー管理のバックエンド実装」
+   → DBモデル、認証ロジック、APIエンドポイントをそれぞれタスクとして登録
+   → 見積: 6-10時間
+2. 「ユーザー管理のフロントエンド実装」
+   → ログイン画面、登録画面、プロフィール画面をそれぞれタスクとして登録
+   → 見積: 6-10時間
 
-**CRUD系の場合:**
-1. APIエンドポイント実装（必須）
-2. バリデーション実装（必須）
-3. フロントエンド画面実装（必須）
+**データ管理系（CRUD）の場合:**
+1. 「[機能名]のバックエンド実装」
+   → DBモデル、APIエンドポイント、バリデーションをそれぞれタスクとして登録
+   → 見積: 4-8時間
+2. 「[機能名]のフロントエンド実装」
+   → 一覧画面、詳細画面、編集画面、削除機能をそれぞれタスクとして登録
+   → 見積: 6-10時間
 
-**認証系の場合:**
-1. 認証ミドルウェア実装（必須）
-2. トークン管理実装（必須）
-3. ログイン/ログアウトUI実装（必須）
+**UI中心の機能の場合:**
+1. 「[機能名]の画面実装」
+   → コンポーネント設計、スタイリング、レスポンシブ対応をそれぞれタスクとして登録
+   → 見積: 4-8時間
+2. 「[機能名]のデータ連携」（必要な場合のみ）
+   → API連携、状態管理をそれぞれタスクとして登録
+   → 見積: 2-4時間
 
-**UI系の場合:**
-1. コンポーネント設計（必須）
-2. スタイリング実装（必須）
-3. レスポンシブ対応（推奨）
+**外部連携系の場合:**
+1. 「[サービス名]連携機能の実装」
+   → API接続、データマッピング、エラーハンドリングをそれぞれタスクとして登録
+   → 見積: 4-8時間
 
-### Step 3: 見積もり時間の設定
-- DB設計: 1-2時間
-- API実装: 2-4時間
-- フロントエンド画面: 3-6時間
-- 認証系: 3-5時間
-- 統合系: 4-8時間
+## タスク統合の原則
+- DBスキーマ設計とモデル実装は**1つのタスク**にまとめる
+- 関連するAPIエンドポイントは**1つのタスク**にまとめる
+- 関連する画面（一覧・詳細・編集）は**1つのタスク**にまとめる
+- タスクの説明に関しては過不足なく**必要な要件を全て**記載すること
+- バックエンドとフロントエンドは**分離**する（別タスク）
 
 ## 出力形式（必須）
 ```json
@@ -313,17 +360,17 @@ class TaskGenerationService(BaseService):
       "function_id": "機能ID",
       "function_name": "機能名",
       "task_name": "具体的なタスク名",
-      "task_description": "タスクの詳細説明",
+      "task_description": "タスクの詳細説明（統合された作業内容を明記）",
       "category": "DB設計|バックエンド|フロントエンド|認証|統合",
       "priority": "Must|Should|Could",
-      "estimated_hours": 2.5,
+      "estimated_hours": 6.0,
       "reason": "このタスクが必要な理由"
     }}
   ]
 }}
 ```
 
-必ずJSON形式で出力してください。各機能に対して3-5個のタスクを生成してください。"""
+**重要**: 各機能に対して**2-4個のタスク**を生成してください。細かく分割しすぎないでください。"""
 
         return prompt
     
@@ -347,18 +394,24 @@ class TaskGenerationService(BaseService):
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in LLM response: {e}")
     
-    def _convert_to_generated_tasks(
-        self, 
-        parsed_response: Dict[str, Any], 
+    def _convert_to_generated_tasks_with_validation(
+        self,
+        parsed_response: Dict[str, Any],
         batch: List[FunctionBatch]
-    ) -> List[GeneratedTask]:
-        """パースされたレスポンスをGeneratedTaskオブジェクトに変換"""
+    ) -> tuple[List[GeneratedTask], List[str]]:
+        """
+        パースされたレスポンスをGeneratedTaskオブジェクトに変換（バリデーションエラーを返す）
+
+        Returns:
+            tuple: (成功したタスクのリスト, エラーメッセージのリスト)
+        """
         generated_tasks = []
-        
+        validation_errors = []
+
         if "tasks" not in parsed_response:
             raise ValueError("No 'tasks' key found in parsed response")
-        
-        for task_data in parsed_response["tasks"]:
+
+        for idx, task_data in enumerate(parsed_response["tasks"]):
             try:
                 # function_idを適切に設定（LLMの出力では正しくないことがある）
                 function_id = task_data.get("function_id")
@@ -369,7 +422,8 @@ class TaskGenerationService(BaseService):
                     # バッチから対応する機能を探す
                     matching_func = next((f for f in batch if f.function_code in str(function_id) or f.function_name in str(function_id)), None)
                     function_id = matching_func.function_id if matching_func else batch[0].function_id if batch else None
-                
+
+                # Pydanticバリデーション
                 task = GeneratedTask(
                     function_id=function_id,
                     function_name=task_data["function_name"],
@@ -381,10 +435,30 @@ class TaskGenerationService(BaseService):
                     reason=task_data.get("reason", "")
                 )
                 generated_tasks.append(task)
+
+            except ValidationError as e:
+                # Pydanticバリデーションエラー
+                error_msg = f"Task {idx + 1} validation failed: {e.errors()}"
+                validation_errors.append(error_msg)
+                self.logger.debug(f"Pydantic validation error: {error_msg}")
+
             except (KeyError, ValueError, TypeError) as e:
-                print(f"Warning: Skipping invalid task data: {e}")
-                continue
-        
+                # その他のエラー（必須フィールド欠落、型変換エラーなど）
+                error_msg = f"Task {idx + 1} processing failed: {str(e)}"
+                validation_errors.append(error_msg)
+                self.logger.debug(f"Task processing error: {error_msg}")
+
+        return generated_tasks, validation_errors
+
+    def _convert_to_generated_tasks(
+        self,
+        parsed_response: Dict[str, Any],
+        batch: List[FunctionBatch]
+    ) -> List[GeneratedTask]:
+        """
+        パースされたレスポンスをGeneratedTaskオブジェクトに変換（後方互換性のため残す）
+        """
+        generated_tasks, _ = self._convert_to_generated_tasks_with_validation(parsed_response, batch)
         return generated_tasks
     
     

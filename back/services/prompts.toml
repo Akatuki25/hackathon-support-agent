@@ -304,6 +304,77 @@ generate_evaluate_summary="""
 
 
 """
+confidence_feedback = """
+あなたはプロジェクト仕様書の品質評価エキスパートです。
+以下の仕様書とQ&Aの内容から、仕様書の完成度と確信度を分析し、フィードバックを提供してください。
+
+仕様書:
+{specification}
+
+Q&Aの内容:
+{question_answer}
+
+## 出力スキーマ (JSON形式)
+
+以下のJSON構造で厳密に出力してください:
+
+```json
+{{
+  "overall_confidence": float,      // 全体の確信度 (0.0〜1.0)
+  "clarity_score": float,           // 仕様の明確性スコア (0.0〜1.0)
+  "feasibility_score": float,       // 技術的実現可能性スコア (0.0〜1.0)
+  "scope_score": float,             // スコープの適切性スコア (0.0〜1.0)
+  "value_score": float,             // ユーザー価値スコア (0.0〜1.0)
+  "completeness_score": float,      // 情報の完全性スコア (0.0〜1.0)
+  "clarity_feedback": "string",     // 明確性に関する詳細フィードバック
+  "feasibility_feedback": "string", // 実現可能性に関する詳細フィードバック
+  "scope_feedback": "string",       // スコープに関する詳細フィードバック
+  "value_feedback": "string",       // ユーザー価値に関する詳細フィードバック
+  "completeness_feedback": "string",// 完全性に関する詳細フィードバック
+  "improvement_suggestions": ["string1", "string2", ...], // 改善提案のリスト
+  "confidence_reason": "string"     // 全体確信度の理由
+}}
+```
+
+## 重要な制約
+
+1. **全てのスコアは0.0から1.0の範囲の小数値で出力**
+   - 例: 0.75, 0.82, 0.65
+   - 1.0を超える値は絶対に出力しないこと
+2. **フィードバック文字列は具体的で実用的な内容を含める**
+3. **improvement_suggestionsは配列形式で3〜5個の提案を含める**
+
+## 評価観点
+
+1. **仕様の明確性 (clarity_score)**
+   - 要件が明確に定義されているか
+   - 曖昧な表現や不明瞭な部分はないか
+   - 実装者が理解しやすい記述になっているか
+
+2. **技術的実現可能性 (feasibility_score)**
+   - 提案された機能が技術的に実現可能か
+   - 現実的な技術スタックで実装できるか
+   - 技術的リスクは許容範囲内か
+
+3. **スコープの適切性 (scope_score)**
+   - ハッカソンの期間内で実現可能な範囲か
+   - 優先順位が適切に設定されているか
+   - MVPとして最小限の機能セットになっているか
+
+4. **ユーザー価値 (value_score)**
+   - エンドユーザーにとって価値のある機能か
+   - 解決する課題が明確か
+   - ユーザー体験が考慮されているか
+
+5. **情報の完全性 (completeness_score)**
+   - 開発に必要な情報が十分に含まれているか
+   - 不足している情報や詳細化が必要な部分はないか
+   - ステークホルダーの期待が明確か
+
+各観点について詳細な理由と改善提案を含めてください。
+
+{format_instructions}
+"""
 
 [function_service.confidence_feedback]
 generate_confidence_feedback = """
@@ -470,11 +541,85 @@ MVPに最低限必要な観点：
 - 受入基準（成功の定義、1〜3個）
 - 主要リスク/依存（外部API、法務/PII、期間制約など）
 
-出力は JSON（MVPJudge）に**厳密準拠**。特に:
-- mvp_feasible は True/False を明確に
-- blockers は「これが未定だと実装が止まる」ものだけ
-- followup_questions はユーザーにそのまま聞ける短い質問で（最大5）
-- reasons は短い箇条書き
+## 出力スキーマ (JSON形式)
+
+以下のJSON構造で厳密に出力してください:
+
+```json
+{{
+  "mvp_feasible": bool,           // MVP実現可能性: true または false
+  "score_0_100": int,             // 総合スコア: 0から100の整数値
+  "confidence": float,            // **判定の確信度: 0.0から1.0の範囲の小数（例: 0.75, 0.85）**
+  "qa": [                         // 追加質問のリスト（0〜5個）
+    {{
+      "question": "string",       // ユーザーへの質問文
+      "importance": int,          // 重要度: 1から5の整数（5が最重要）
+      "is_ai": bool,              // AI生成フラグ: 通常はtrue
+      "project_id": null,         // プロジェクトID（オプション、通常はnull）
+      "answer": "string or null"  // 回答例または推奨回答（オプション）
+    }}
+  ]
+}}
+```
+
+## 重要な制約と型指定
+
+1. **mvp_feasible**: 必ずboolean型（true または false）で出力
+2. **score_0_100**: 0以上100以下の整数値（例: 65, 80, 95）
+3. **confidence**: **必ず0.0以上1.0以下の小数値で出力してください**
+   - 絶対に1.0を超える値（例: 5, 2.5など）は出力しないでください
+   - 確信度が非常に高い場合: 0.85 - 1.0
+   - 確信度が高い場合: 0.7 - 0.85
+   - 中程度の確信度: 0.5 - 0.7
+   - 確信度が低い場合: 0.3 - 0.5
+   - 非常に不確実な場合: 0.0 - 0.3
+4. **qa配列**: 最低0個、最大5個の質問を含める
+   - 要件が十分な場合は空配列 [] を返す
+   - 不足がある場合は具体的な質問を生成
+5. **importance**: 必ず1から5の整数値（5が最重要）
+
+## 判定基準
+
+- mvp_feasible=true かつ score_0_100 >= 75: 次のステップへ進める
+- それ以外の場合: qa配列に追加質問を含め、ユーザーへフィードバックを求める
+- confidence < 0.7 の場合: 判定に不確実性があることを示唆
+
+## 出力例
+
+確信度が高い場合:
+```json
+{{
+  "mvp_feasible": true,
+  "score_0_100": 85,
+  "confidence": 0.88,
+  "qa": []
+}}
+```
+
+確信度が低く追加質問が必要な場合:
+```json
+{{
+  "mvp_feasible": false,
+  "score_0_100": 60,
+  "confidence": 0.65,
+  "qa": [
+    {{
+      "question": "ユーザー認証の方式は何を想定していますか？（メール/パスワード、OAuth、SNS連携など）",
+      "importance": 5,
+      "is_ai": true,
+      "project_id": null,
+      "answer": null
+    }},
+    {{
+      "question": "データの保存期間や削除ポリシーについて決まっていますか？",
+      "importance": 4,
+      "is_ai": true,
+      "project_id": null,
+      "answer": null
+    }}
+  ]
+}}
+```
 
 要件ドラフト:
 {requirements_text}

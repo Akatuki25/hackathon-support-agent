@@ -307,13 +307,15 @@ export default function FunctionStructuring() {
         console.log('既存結果なし、新規実行が必要');
       }
 
+      // 新規実行が必要な場合のみ自動実行
       handleStructureFunctions();
     };
 
     if (projectId) {
       checkExistingResults();
     }
-  }, [projectId, session, status, router, handleStructureFunctions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, session, status, router]);
 
   if (status === "loading" || processingState === 'idle') {
     return <Loading />;

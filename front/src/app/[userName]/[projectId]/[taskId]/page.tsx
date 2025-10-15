@@ -5,10 +5,15 @@ import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useTask } from '@/libs/modelAPI/task';
-import { fetchTaskHandsOn, type TaskHandsOnResponse } from '@/libs/service/taskHandsOnService';
+import {
+  fetchTaskHandsOn,
+  type TaskHandsOnResponse,
+  type HandsOnContent,
+  type HandsOnMetadata
+} from '@/libs/service/taskHandsOnService';
 
-type HandsOnSuccessPayload = TaskHandsOnResponse & {
-  hands_on: NonNullable<TaskHandsOnResponse['hands_on']>;
+type HandsOnSuccessPayload = TaskHandsOnResponse<HandsOnContent, HandsOnMetadata> & {
+  hands_on: HandsOnContent;
 };
 
 type HandsOnState =
@@ -98,24 +103,165 @@ export default function TaskHandsOnPage() {
         return <p className={sectionBodyClass}>ハンズオンコンテンツを読み込み中...</p>;
       case 'success': {
         const { payload } = handsOnState;
+        const handsOn = payload.hands_on;
+
+        const contentBgClass = darkMode ? 'bg-slate-900/80 border border-cyan-500/20' : 'bg-gray-50 border border-gray-200';
+        const textClass = darkMode ? 'text-slate-200' : 'text-gray-700';
+        const headingClass = darkMode ? 'text-cyan-300 font-semibold' : 'text-blue-700 font-semibold';
+        const codeBlockClass = darkMode ? 'bg-black/60 text-green-200' : 'bg-gray-800 text-green-300';
+        const listClass = darkMode ? 'text-slate-300' : 'text-gray-600';
+        const linkClass = darkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-blue-600 hover:text-blue-700';
+
         return (
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <p className={`${sectionBodyClass} font-semibold`}>タスク: {payload.task_title}</p>
-              <p className={sectionBodyClass}>ハンズオンが利用可能です。</p>
-            </div>
-            <div>
-              <h2 className={`${sectionTitleClass} mb-2`}>Hands-on 内容</h2>
-              <pre className="max-h-[420px] overflow-auto rounded bg-black/60 p-4 text-xs leading-relaxed text-green-200">
-                {JSON.stringify(payload.hands_on, null, 2)}
-              </pre>
-            </div>
+          <div className="space-y-6">
+            {/* Overview */}
+            {handsOn.overview && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>概要</h3>
+                <p className={`${textClass} text-sm leading-relaxed`}>{handsOn.overview}</p>
+              </div>
+            )}
+
+            {/* Prerequisites */}
+            {handsOn.prerequisites && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>前提条件</h3>
+                <p className={`${textClass} text-sm whitespace-pre-wrap`}>{handsOn.prerequisites}</p>
+              </div>
+            )}
+
+            {/* Target Files */}
+            {handsOn.target_files && handsOn.target_files.length > 0 && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>対象ファイル</h3>
+                <ul className={`${listClass} text-sm space-y-1 list-disc list-inside`}>
+                  {handsOn.target_files.map((file, index) => (
+                    <li key={index}>
+                      <code className="font-mono text-xs">{file.path}</code> - {file.description} ({file.action})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Implementation Steps */}
+            {handsOn.implementation_steps && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>実装手順</h3>
+                <div className={`${textClass} text-sm prose prose-sm max-w-none whitespace-pre-wrap`}>
+                  {handsOn.implementation_steps}
+                </div>
+              </div>
+            )}
+
+            {/* Code Examples */}
+            {handsOn.code_examples && handsOn.code_examples.length > 0 && (
+              <div className="space-y-4">
+                <h3 className={headingClass}>コード例</h3>
+                {handsOn.code_examples.map((example, index) => (
+                  <div key={index} className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                    <div className="flex items-center justify-between">
+                      <p className={`${textClass} text-sm font-mono`}>{example.file}</p>
+                      <span className={`${badgeClass} text-xs`}>{example.language}</span>
+                    </div>
+                    <pre className={`${codeBlockClass} rounded p-3 text-xs overflow-x-auto`}>
+                      <code>{example.code}</code>
+                    </pre>
+                    {example.explanation && (
+                      <p className={`${listClass} text-xs italic`}>{example.explanation}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Verification */}
+            {handsOn.verification && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>動作確認</h3>
+                <p className={`${textClass} text-sm whitespace-pre-wrap`}>{handsOn.verification}</p>
+              </div>
+            )}
+
+            {/* Common Errors */}
+            {handsOn.common_errors && handsOn.common_errors.length > 0 && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-3`}>
+                <h3 className={headingClass}>よくあるエラー</h3>
+                <div className="space-y-3">
+                  {handsOn.common_errors.map((error, index) => (
+                    <div key={index} className="space-y-1">
+                      <p className={`${textClass} text-sm font-semibold`}>エラー: {error.error}</p>
+                      <p className={`${listClass} text-xs`}>原因: {error.cause}</p>
+                      <p className={`${listClass} text-xs`}>解決策: {error.solution}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Technical Context */}
+            {handsOn.technical_context && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>技術的背景</h3>
+                <p className={`${textClass} text-sm whitespace-pre-wrap`}>{handsOn.technical_context}</p>
+              </div>
+            )}
+
+            {/* Implementation Tips */}
+            {handsOn.implementation_tips && handsOn.implementation_tips.length > 0 && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-3`}>
+                <h3 className={headingClass}>実装のヒント</h3>
+                <div className="space-y-2">
+                  {handsOn.implementation_tips.map((tip, index) => (
+                    <div key={index} className="space-y-1">
+                      <p className={`${textClass} text-sm font-semibold`}>
+                        {tip.type === 'best_practice' ? '✓ ベストプラクティス' : '✗ アンチパターン'}
+                      </p>
+                      <p className={`${textClass} text-xs`}>{tip.tip}</p>
+                      <p className={`${listClass} text-xs italic`}>理由: {tip.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* References */}
+            {handsOn.references && handsOn.references.length > 0 && (
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>参考資料</h3>
+                <ul className={`${listClass} text-sm space-y-1`}>
+                  {handsOn.references.map((ref, index) => (
+                    <li key={index}>
+                      <a
+                        href={ref.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${linkClass} hover:underline`}
+                      >
+                        {ref.title}
+                      </a>
+                      {ref.type && <span className="text-xs ml-1">({ref.type})</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Metadata */}
             {payload.metadata && (
-              <div>
-                <h2 className={`${sectionTitleClass} mb-2`}>メタデータ</h2>
-                <pre className="max-h-[320px] overflow-auto rounded bg-black/60 p-4 text-xs leading-relaxed text-cyan-200">
-                  {JSON.stringify(payload.metadata, null, 2)}
-                </pre>
+              <div className={`${contentBgClass} rounded-lg p-4 space-y-2`}>
+                <h3 className={headingClass}>生成情報</h3>
+                <div className={`${listClass} text-xs space-y-1`}>
+                  {payload.metadata.quality_score !== undefined && (
+                    <p>品質スコア: {payload.metadata.quality_score}</p>
+                  )}
+                  {payload.metadata.generated_at && (
+                    <p>生成日時: {new Date(payload.metadata.generated_at).toLocaleString('ja-JP')}</p>
+                  )}
+                  {payload.metadata.generation_model && (
+                    <p>使用モデル: {payload.metadata.generation_model}</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
