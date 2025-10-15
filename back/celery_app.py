@@ -24,9 +24,11 @@ celery_app.conf.update(
     # タスク追跡
     task_track_started=True,
 
-    # タイムアウト設定（単一タスク最大10分）
-    task_time_limit=600,       # ハードリミット（10分）
-    task_soft_time_limit=540,  # ソフトリミット（9分、警告）
+    # タイムアウト設定
+    # 単一タスク: 5分（パース含め十分）
+    # プロジェクト全体: 60分（62タスク想定）
+    task_time_limit=3600,       # ハードリミット（60分）
+    task_soft_time_limit=3300,  # ソフトリミット（55分、警告）
 
     # リトライ設定
     task_acks_late=True,          # タスク完了後にACK

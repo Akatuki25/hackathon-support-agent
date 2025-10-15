@@ -179,24 +179,26 @@ class TaskHandsOnAgent:
 技術スタック: {tech_stack}
 プロジェクト概要: {project_summary}
 
-## 目標
-以下のツールを使って、最新かつ正確な情報を基に実装手順を作成してください:
-
-利用可能なツール:
+## 利用可能なツール
 {tools}
 
 ツール名: {tool_names}
 
-## 手順
-1. タスクの技術スタック（使用ライブラリ・フレームワーク）を特定
-2. web_searchで最新のベストプラクティス・公式ドキュメントを検索
-3. fetch_documentで詳細情報を取得
-4. 収集した情報を基に、初心者でも理解できる実装手順を作成
-5. 実際に動作するコード例を含める
-6. よくあるエラーとその解決方法を記載
+## 重要: 出力形式の指示
 
-## 出力形式（JSON）
-必ず以下のJSON形式で出力してください:
+あなたは必ずReActフォーマットで応答してください。以下の形式に厳密に従ってください：
+
+Thought: [現在の状況と次に何をすべきか考える]
+Action: [使用するツール名]
+Action Input: [ツールへの入力]
+Observation: [ツールの出力結果がここに表示されます]
+... (必要に応じてThought/Action/Action Input/Observationを繰り返す)
+Thought: [十分な情報を収集できた。最終的な回答を出す]
+Final Answer: [最終的な回答をここに書く]
+
+## 最終的な回答（Final Answer）の形式
+
+Final Answerには、以下のJSON形式の内容を含めてください：
 
 {{
   "overview": "タスクの概要（何を実装するか、なぜ必要か）",
@@ -241,29 +243,26 @@ class TaskHandsOnAgent:
   "referenced_urls": ["参照したURLのリスト"]
 }}
 
-## ReActループ
-Thought: 現在の状況と次に何をすべきか考える
-Action: 使用するツール名
-Action Input: ツールへの入力
-Observation: ツールの出力
-... (必要に応じて繰り返し)
-Thought: 十分な情報を収集できた。最終的な回答を出す
-Final Answer: 上記JSON形式の出力
-
 ## JSON出力の重要な注意事項
-1. **文字列値内の改行**: 必ず \\n でエスケープしてください
+1. **文字列値内の改行**: 必ず \\n でエスケープ
    - 正しい例: "step 1\\nstep 2"
    - 誤り例: "step 1
-step 2" (生の改行は不正)
+step 2"
 
-2. **implementation_stepsやcode内の改行**: 全て \\n に置換してください
-   - Markdownの見出しや箇条書きの改行も \\n を使用
-   - コードブロック内の改行も \\n を使用
-   - 例: "### Step 1\\n\\nコード例:\\n```python\\ndef hello():\\n    pass\\n```"
+2. **implementation_stepsやcode内の改行**: 全て \\n に置換
+   - 例: "### Step 1\\n\\nコード:\\n```python\\ndef hello():\\n    pass\\n```"
 
 3. **ダブルクォート**: 文字列値内では \\" でエスケープ
 
 4. **バックスラッシュ**: \\\\ でエスケープ（ただし\\nは例外）
+
+## タスクの実行手順
+1. タスクの技術スタック（使用ライブラリ・フレームワーク）を特定
+2. web_searchで最新のベストプラクティス・公式ドキュメントを検索
+3. fetch_documentで詳細情報を取得
+4. 収集した情報を基に、初心者でも理解できる実装手順を作成
+5. 実際に動作するコード例を含める
+6. よくあるエラーとその解決方法を記載
 
 それでは、タスク「{task_title}」のハンズオンを作成してください。
 
@@ -461,12 +460,8 @@ step 2" (生の改行は不正)
             print(f"出力の最初の500文字: {output[:500]}...")
             print(f"出力の最後の500文字: {output[-500:] if len(output) > 500 else output}")
 
-            # フォールバック: 空のデータを返す
-            return {
-                "overview": output[:1000] if output else "生成エラー",
-                "prerequisites": "パース失敗",
-                "implementation_steps": output if len(output) < 10000 else output[:10000],
-            }
+            # パースエラーを上位に伝播（Celeryタスク側で再生成する）
+            raise ValueError(f"JSON parse failed: {e}") from e
 
     def _evaluate_quality(self, hands_on_data: Dict) -> float:
         """

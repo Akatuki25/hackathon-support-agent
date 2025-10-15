@@ -18,21 +18,30 @@ from uuid import UUID
 @celery_app.task(bind=True, max_retries=3, retry_backoff=True)
 def generate_single_task_hands_on(
     self,
-    task_id: str,
-    project_context: Dict,
-    config: Dict = None
+    *args,
+    **kwargs
 ):
     """
     単一タスクのハンズオン生成（Celeryタスク）
 
     Args:
-        task_id: タスクID
-        project_context: プロジェクトコンテキスト
-        config: 生成設定
+        chain使用時: 前のタスクの結果, task_id, project_context, config
+        通常呼び出し: task_id, project_context, config
 
     Returns:
         Dict: 生成結果
     """
+    # 引数の解析（chainで前のタスクの結果が渡される場合に対応）
+    if len(args) == 4 and isinstance(args[0], dict) and "task_id" in args[0]:
+        # chainで前のタスクの結果が渡された場合
+        previous_result, task_id, project_context, config = args
+    elif len(args) >= 3:
+        # 通常呼び出し
+        task_id, project_context, config = args[0], args[1], args[2] if len(args) > 2 else None
+        previous_result = None
+    else:
+        raise ValueError(f"Invalid arguments: args={args}, kwargs={kwargs}")
+
     db = SessionLocal()
 
     try:
@@ -62,13 +71,20 @@ def generate_single_task_hands_on(
 
     except Exception as e:
         db.rollback()
-        print(f"[Celery] エラー: {task.title if task else task_id} - {str(e)}")
+        error_msg = str(e)
+        print(f"[Celery] エラー: {task.title if task else task_id} - {error_msg}")
 
-        # WebSearchタイムアウト等でリトライ
-        if "timeout" in str(e).lower() or "network" in str(e).lower():
-            raise self.retry(exc=e, countdown=60)  # 60秒後にリトライ
-        else:
-            raise  # その他のエラーは即失敗
+        # パースエラーの場合は即座に再試行（最大3回）
+        if "parse failed" in error_msg.lower() and self.request.retries < self.max_retries:
+            print(f"[Celery] パースエラー検出 - 再生成 (試行 {self.request.retries + 1}/{self.max_retries})")
+            raise self.retry(exc=e, countdown=5)
+
+        # ネットワークエラーは待機してリトライ
+        if "timeout" in error_msg.lower() or "network" in error_msg.lower():
+            raise self.retry(exc=e, countdown=60)
+
+        # その他のエラーは即失敗
+        raise
 
     finally:
         db.close()
