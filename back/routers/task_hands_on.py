@@ -138,7 +138,7 @@ async def start_hands_on_generation(
         first_task = (
             db.query(Task)
             .filter_by(project_id=project_uuid)
-            .order_by(Task.created_at)
+            .order_by(Task.task_id)
             .first()
         )
 
