@@ -120,7 +120,13 @@ class TaskHandsOnAgent:
         )
 
         # ツールの初期化
-        self.web_search_tool = WebSearchTool()
+        # WebSearchToolはTAVILY_API_KEYがある場合のみ初期化
+        tavily_api_key = os.getenv("TAVILY_API_KEY")
+        if tavily_api_key and self.config.get("enable_web_search", True):
+            self.web_search_tool = WebSearchTool(api_key=tavily_api_key)
+        else:
+            self.web_search_tool = None
+
         self.document_fetch_tool = DocumentFetchTool()
 
         # ReActエージェントの構築
@@ -296,6 +302,9 @@ step 2" (生の改行は不正)
     def _web_search_wrapper(self, query: str) -> str:
         """Web検索ラッパー"""
         try:
+            if not self.web_search_tool:
+                return "Web search is not available (TAVILY_API_KEY not configured)."
+
             if not self.config.get("enable_web_search", True):
                 return "Web search is disabled in config."
 
