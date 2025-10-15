@@ -1,5 +1,5 @@
 [build]
-builder = "DOCKERFILE"
+builder = "dockerfile"
 dockerfilePath = "Dockerfile.prod"
 
 [deploy]
