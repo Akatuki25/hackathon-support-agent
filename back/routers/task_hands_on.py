@@ -6,6 +6,7 @@ Phase 3: ハンズオン生成・取得・管理のエンドポイント
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 from uuid import UUID
@@ -14,6 +15,7 @@ from datetime import datetime
 from database import get_db
 from services.task_hands_on_service import TaskHandsOnService
 from tasks.hands_on_tasks import generate_all_hands_on
+from models.project_base import HandsOnGenerationJob, Task, TaskHandsOn
 
 
 router = APIRouter(prefix="/api/task_hands_on", tags=["TaskHandsOn"])
@@ -99,13 +101,68 @@ async def start_hands_on_generation(
     プロジェクト全体のハンズオン生成開始
 
     Celeryタスクを起動して即座にレスポンス返却
+
+    重複実行防止:
+    - 既存のジョブ(queued/processing/completed)をチェック
+    - 既にハンズオンが存在する場合はスキップ
+    - データベーストランザクションで排他制御
     """
     try:
         service = TaskHandsOnService(db)
+        project_uuid = UUID(request.project_id)
 
-        # ジョブレコード作成
+        # 🔒 Step 1: 既存のジョブをチェック (処理中 or 完了済み)
+        existing_job = (
+            db.query(HandsOnGenerationJob)
+            .filter(
+                and_(
+                    HandsOnGenerationJob.project_id == project_uuid,
+                    HandsOnGenerationJob.status.in_(["queued", "processing", "completed"])
+                )
+            )
+            .with_for_update(skip_locked=True)  # 排他制御 (他のトランザクションがロック中ならスキップ)
+            .first()
+        )
+
+        if existing_job:
+            return HandsOnGenerationResponse(
+                success=True,
+                job_id=str(existing_job.job_id),
+                project_id=request.project_id,
+                status=existing_job.status,
+                total_tasks=existing_job.total_tasks,
+                message=f"Hands-on generation already {existing_job.status}"
+            )
+
+        # 🔒 Step 2: 最初のタスクにハンズオンが既に存在するかチェック
+        first_task = (
+            db.query(Task)
+            .filter_by(project_id=project_uuid)
+            .order_by(Task.created_at)
+            .first()
+        )
+
+        if first_task:
+            existing_hands_on = (
+                db.query(TaskHandsOn)
+                .filter_by(task_id=first_task.task_id)
+                .first()
+            )
+
+            if existing_hands_on:
+                # 既にハンズオンが存在する
+                return HandsOnGenerationResponse(
+                    success=True,
+                    job_id="already-completed",
+                    project_id=request.project_id,
+                    status="completed",
+                    total_tasks=db.query(Task).filter_by(project_id=project_uuid).count(),
+                    message="Hands-on already exists for this project"
+                )
+
+        # 🆕 新規ジョブ作成
         job = service.create_generation_job(
-            project_id=UUID(request.project_id),
+            project_id=project_uuid,
             config=request.config
         )
 

@@ -19,19 +19,93 @@ export interface HandsOnGenerationResponse {
   message: string;
 }
 
+export interface HandsOnJobStatusProgress {
+  total_tasks: number;
+  completed: number;
+  failed: number;
+  processing: number;
+  pending: number;
+}
+
+export interface HandsOnProcessingTask {
+  task_id: string;
+  task_title: string;
+}
+
+export interface HandsOnCompletedTask {
+  task_id: string;
+  task_title: string;
+  quality_score: number | null;
+  completed_at: string | null;
+}
+
 export interface HandsOnJobStatusResponse {
   success: boolean;
   job_id: string;
   project_id: string;
   status: string;
-  progress: Record<string, unknown>;
-  current_processing: Record<string, unknown>[];
-  completed_tasks: Record<string, unknown>[];
+  progress: HandsOnJobStatusProgress;
+  current_processing: HandsOnProcessingTask[];
+  completed_tasks: HandsOnCompletedTask[];
   error_message?: string | null;
   error_details?: Record<string, unknown> | null;
   created_at?: string | null;
   started_at?: string | null;
   completed_at?: string | null;
+}
+
+export interface HandsOnTargetFile {
+  path: string;
+  description: string;
+  action: string;
+}
+
+export interface HandsOnCodeExample {
+  file: string;
+  language: string;
+  code: string;
+  explanation?: string;
+}
+
+export interface HandsOnCommonError {
+  error: string;
+  cause: string;
+  solution: string;
+}
+
+export interface HandsOnImplementationTip {
+  type: 'best_practice' | 'anti_pattern';
+  tip: string;
+  reason: string;
+}
+
+export interface HandsOnReference {
+  title: string;
+  url: string;
+  type?: string;
+}
+
+export interface HandsOnContent {
+  hands_on_id: string;
+  overview: string | null;
+  prerequisites: string | null;
+  target_files: HandsOnTargetFile[] | null;
+  implementation_steps: string | null;
+  code_examples: HandsOnCodeExample[] | null;
+  verification: string | null;
+  common_errors: HandsOnCommonError[] | null;
+  references: HandsOnReference[] | null;
+  technical_context: string | null;
+  implementation_tips: HandsOnImplementationTip[] | null;
+}
+
+export interface HandsOnMetadata {
+  generated_at: string | null;
+  quality_score: number | null;
+  generation_model: string | null;
+  information_freshness: string | null;
+  search_queries: string[] | null;
+  referenced_urls: string[] | null;
 }
 
 export interface TaskHandsOnResponse<THandsOn = Record<string, unknown>, TMetadata = Record<string, unknown>> {
@@ -79,7 +153,7 @@ export const fetchHandsOnJobStatus = async (
   return response.data;
 };
 
-export const fetchTaskHandsOn = async <THandsOn = Record<string, unknown>, TMetadata = Record<string, unknown>>(
+export const fetchTaskHandsOn = async <THandsOn = HandsOnContent, TMetadata = HandsOnMetadata>(
   taskId: string,
 ): Promise<TaskHandsOnResponse<THandsOn, TMetadata>> => {
   const baseUrl = ensureBaseUrl();

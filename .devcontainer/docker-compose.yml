@@ -3,14 +3,44 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspaces/hackathon_support_agent:cached
+    command: ["tail", "-f", "/dev/null"]
+
+  backend:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
     ports:
-      - "3000:3000"
       - "8000:8000"
     volumes:
-      - ..:/workspaces/hackathon_support_agent:cashed
+      - ..:/workspaces/hackathon_support_agent:cached
     env_file:
       - ../back/.env
-    command: ["tail", "-f", "/dev/null"]
+    environment:
+      - DATABASE_URL=postgresql://hack_helper:hackathon@db/hackathon_support_agent
+      - REDIS_URL=redis://redis:6379/0
+    working_dir: /workspaces/hackathon_support_agent/back
+    depends_on:
+      - db
+      - redis
+    command: python app.py
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ..:/workspaces/hackathon_support_agent:cached
+      - /workspaces/hackathon_support_agent/front/node_modules
+    env_file:
+      - ../front/.env
+    working_dir: /workspaces/hackathon_support_agent/front
+    depends_on:
+      - backend
+    command: bash -c "npm install && npm run dev"
 
   db:
     image: postgres:17

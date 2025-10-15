@@ -77,5 +77,8 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-arm64-gnu": "^1.30.2"
   }
 }

@@ -20,9 +20,15 @@ from models.project_base import (
 )
 
 
+class ValidationConfig:
+    """バリデーションの設定"""
+    MAX_RETRIES = 3  # 最大リトライ回数
+    RETRY_DELAY = 1  # リトライ間隔（秒）
+
+
 class ContextualInformationRetrieval:
     """関連情報のセマンティック検索クラス"""
-    
+
     def __init__(self, db: Session):
         self.db = db
     
@@ -282,25 +288,60 @@ class FunctionStructuringPipeline:
         
         prompt = ChatPromptTemplate.from_template("""
         以下のテキストから独立した機能を抽出してください。
-        
+
         機能要件書:
         {function_doc}
-        
+
         プロジェクト制約:
         {constraints}
-        
+
+        **重要な抽出方針**:
+        - **実装可能な粒度で抽出** - エンジニアがタスクに分解できるレベル
+        - ハッカソンで実装可能な規模を考慮し、MVP(最小実用プロダクト)に必要な機能のみ抽出
+        - 目標: 全体で**15-25個の機能**に収める
+        - **descriptionは必須** - 何を実装するのか具体的に記述（空文字列は絶対に禁止）
+
         抽出基準:
-        1. 単一の責任を持つ機能単位
-        2. ユーザーが実行できるアクション
-        3. システムが提供するサービス
-        4. 明確な入力・出力・処理を持つもの
-        5. ハッカソンで実装可能な粒度
-        
+        1. **実装単位で抽出** - フロント/バックエンドで明確に実装できる単位
+        2. ユーザーストーリーとして独立している機能
+        3. 1つの機能 = フロント1画面 or バックエンド1エンドポイント群 程度の粒度
+        4. 認証、CRUD、UI、連携など目的が明確な単位
+        5. **descriptionには実装内容を詳細に書く**（API仕様、画面要素、ビジネスロジックなど）
+
+        **良い例（実装可能な粒度）**:
+        - ✅ 機能名: "ユーザー登録API"
+          description: "メールアドレスとパスワードでユーザーを新規登録。バリデーション、重複チェック、パスワードハッシュ化を実装。POST /api/users エンドポイント"
+
+        - ✅ 機能名: "ログイン認証フロー"
+          description: "メール/パスワード認証、JWTトークン発行、セッション管理。POST /api/auth/login エンドポイント、認証ミドルウェア実装"
+
+        - ✅ 機能名: "プロジェクト一覧画面"
+          description: "ユーザーのプロジェクト一覧を表示。カード形式UI、フィルタリング機能、ページネーション、新規作成ボタン配置"
+
+        - ✅ 機能名: "タスクステータス更新API"
+          description: "タスクの完了/未完了をトグル。PUT /api/tasks/:id/status エンドポイント、楽観的ロック実装"
+
+        **悪い例（粗すぎる・詳細なし）**:
+        - ❌ 機能名: "ユーザー管理"
+          description: "" ← 空文字列は禁止！
+
+        - ❌ 機能名: "UI/UX対応"
+          description: "モバイルフレンドリー" ← 実装内容が不明確
+
+        - ❌ 機能名: "システム全体の設計"
+          description: "アーキテクチャ構築" ← 粗すぎる
+
+        **descriptionの書き方（必須）**:
+        - 何を実装するのか（APIエンドポイント、画面、ロジック）
+        - 技術的な詳細（認証方式、データ形式、バリデーション内容）
+        - ビジネスロジック（計算式、条件分岐、制約事項）
+        - **最低50文字以上、具体的に記述すること**
+
         出力形式（JSON配列のみ）:
         [
           {{
-            "function_name": "ユーザー登録",
-            "description": "新規ユーザーがアカウントを作成する",
+            "function_name": "ユーザー登録API",
+            "description": "メールアドレスとパスワードでユーザーを新規登録する。入力バリデーション（メール形式、パスワード8文字以上）、既存ユーザー重複チェック、bcryptによるパスワードハッシュ化を実装。POST /api/users エンドポイントとして公開。",
             "estimated_category": "auth",
             "text_position": 1
           }}
@@ -349,12 +390,23 @@ class FunctionStructuringPipeline:
             "functions": json.dumps(functions, ensure_ascii=False),
             "tech_constraints": json.dumps(context.get("technology", {}), ensure_ascii=False)
         })
-        
+
+        self.base_service.logger.debug(f"[CATEGORIZE] LLM raw result preview: {result[:500]}")
+
         try:
             repaired_json = repair_json(result)
-            return json.loads(repaired_json)
+            categorized = json.loads(repaired_json)
+            self.base_service.logger.info(f"[CATEGORIZE] Categorization successful: {len(categorized)} functions")
+            # カテゴリ分布をログ出力
+            categories = {}
+            for func in categorized:
+                cat = func.get("category", "unknown")
+                categories[cat] = categories.get(cat, 0) + 1
+            self.base_service.logger.info(f"[CATEGORIZE] Category distribution: {categories}")
+            return categorized
         except Exception as e:
             self.base_service.logger.error(f"Categorization failed: {str(e)}")
+            self.base_service.logger.error(f"[CATEGORIZE] Returning original functions unchanged")
             return functions
     
     def _assign_priorities(self, functions: List[Dict], context: Dict) -> List[Dict]:
@@ -944,14 +996,23 @@ class FunctionStructuringAgent:
         return """
         あなたは機能構造化のエキスパートです。
         プロジェクトの仕様書から機能要件を構造化して、カテゴリ分け、優先度付け、依存関係の分析を行います。
-        
+
         あなたの作業手順:
         1. まず、プロジェクトのコンテキスト情報を収集する
         2. 機能要件を抽出する
         3. 機能を構造化し、カテゴリ分けと優先度付けを行う
         4. 各ステップで品質をバリデーションする
         5. 最終的にデータベースに保存する
-        
+
+        【重要】ツール間のデータ受け渡しルール:
+        - ツールの出力には説明文とJSONデータの両方が含まれています
+        - 次のツールに渡す際は、「JSONデータ:」または「データ:」以降のJSON部分のみを抽出してください
+        - 説明文は人間向けの情報であり、ツールの入力には含めないでください
+
+        例:
+        ツール出力: "段階的機能抽出完了: 19個の新機能を抽出\n\nJSONデータ:\n[{...}]"
+        次のツールへの入力: "[{...}]" のみを渡す
+
         各ツールを適切に使用し、段階的に作業を進めてください。
         エラーが発生した場合は、適切にリトライや修正を行ってください。
         """
@@ -1116,21 +1177,27 @@ class FunctionStructuringAgent:
         
         def structure_functions(functions_json: str) -> str:
             """機能をカテゴリ分けと優先度付けで構造化
-            
+
             Args:
-                functions_json: 抽出された機能のJSON文字列
+                functions_json: 抽出された機能のJSON文字列（プレフィックス付きの場合もある）
             """
             try:
                 from database import get_db_session
-                
+
                 # project_idはインスタンス変数から取得
                 project_id = getattr(self, '_current_project_id', None)
                 if not project_id:
                     return "エラー: project_idが設定されていません"
-                
+
                 self.base_service.logger.info(f"[AGENT] Starting function structuring for project: {project_id}")
-                
-                functions = json.loads(functions_json)
+
+                # JSON部分を抽出（プレフィックスがある場合に対応）
+                json_text = functions_json
+                if "JSONデータ:" in functions_json:
+                    # "JSONデータ:"以降の部分を抽出
+                    json_text = functions_json.split("JSONデータ:", 1)[1].strip()
+
+                functions = json.loads(json_text)
                 self.base_service.logger.info(f"[AGENT] Structuring {len(functions)} functions")
                 
                 # 独立したDBセッションを使用（並列実行対応）
@@ -1187,19 +1254,35 @@ class FunctionStructuringAgent:
                         )
 
                     self.base_service.logger.info(f"[AGENT] Structuring complete: {len(prioritized)} functions, {len(dependencies)} dependencies")
-                    
+
                     # 後続ツールが使用できるようにJSONデータも含める
+                    self.base_service.logger.debug(f"[AGENT] prioritized type: {type(prioritized)}, first item: {prioritized[0] if prioritized else 'empty'}")
                     functions_output = json.dumps(prioritized, ensure_ascii=False, indent=2)
                     dependencies_output = json.dumps(dependencies, ensure_ascii=False, indent=2)
-                
+
+                    # 統計情報を生成（エラーハンドリング付き）
+                    try:
+                        category_stats = self._get_category_stats(prioritized)
+                        self.base_service.logger.debug(f"[AGENT] category_stats generated: {category_stats[:100]}")
+                    except Exception as stat_error:
+                        self.base_service.logger.error(f"[AGENT] Category stats generation failed: {stat_error}")
+                        category_stats = "統計生成エラー"
+
+                    try:
+                        priority_stats = self._get_priority_stats(prioritized)
+                        self.base_service.logger.debug(f"[AGENT] priority_stats generated: {priority_stats[:100]}")
+                    except Exception as stat_error:
+                        self.base_service.logger.error(f"[AGENT] Priority stats generation failed: {stat_error}")
+                        priority_stats = "統計生成エラー"
+
                 return f"""
 機能構造化完了: {len(prioritized)}個の機能を構造化しました
 
 【カテゴリ別集計】
-{self._get_category_stats(prioritized)}
+{category_stats}
 
 【優先度別集計】
-{self._get_priority_stats(prioritized)}
+{priority_stats}
 
 【構造化された機能】
 {functions_output}
@@ -1208,7 +1291,9 @@ class FunctionStructuringAgent:
 {dependencies_output}
 """
             except Exception as e:
+                import traceback
                 self.base_service.logger.error(f"[AGENT] Function structuring failed: {str(e)}")
+                self.base_service.logger.error(f"[AGENT] Traceback: {traceback.format_exc()}")
                 return f"機能構造化エラー: {str(e)}"
         
         return StructuredTool.from_function(

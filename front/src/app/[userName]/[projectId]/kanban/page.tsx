@@ -15,8 +15,10 @@ import {
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useTasksByProjectId, patchTask } from '@/libs/modelAPI/task';
 import { TaskType, TaskStatusEnum } from '@/types/modelTypes';
-import { startHandsOnGeneration } from '@/libs/service/taskHandsOnService';
+import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
+import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const triggeredHandsOnProjects = new Set<string>();
 
 type BoardState = Record<TaskStatusEnum, TaskType[]>;
@@ -441,10 +443,40 @@ export default function KanbanBoardPage() {
     if (!projectId || triggeredHandsOnProjects.has(projectId)) {
       return;
     }
-    triggeredHandsOnProjects.add(projectId);
-    startHandsOnGeneration({ project_id: projectId }).catch((error) => {
-      console.error('Failed to start hands-on generation job:', error);
-    });
+
+    const checkAndStartHandsOnGeneration = async () => {
+      try {
+        // Step 1: タスクを取得
+        const tasksResponse = await axios.get<TaskType[]>(`${API_URL}/task/project/${projectId}`);
+        const tasks = tasksResponse.data;
+
+        if (tasks.length === 0) {
+          console.log('[HandsOn] No tasks found, skipping hands-on generation');
+          return;
+        }
+
+        // Step 2: 最初のタスクのハンズオンが既に存在するかチェック
+        const firstTask = tasks[0];
+        const handsOnResponse = await fetchTaskHandsOn(firstTask.task_id!);
+
+        if (handsOnResponse.has_hands_on) {
+          console.log('[HandsOn] Hands-on already exists, skipping generation');
+          triggeredHandsOnProjects.add(projectId);
+          return;
+        }
+
+        // Step 3: ハンズオン生成を開始
+        console.log('[HandsOn] Starting hands-on generation for project:', projectId);
+        await startHandsOnGeneration({ project_id: projectId });
+        triggeredHandsOnProjects.add(projectId);
+      } catch (error) {
+        console.error('[HandsOn] Failed to check/start hands-on generation:', error);
+        // エラーが発生してもSetに追加して、無限ループを防ぐ
+        triggeredHandsOnProjects.add(projectId);
+      }
+    };
+
+    checkAndStartHandsOnGeneration();
   }, [projectId]);
 
   const handleCardDragStart = useCallback((taskId?: string) => {
