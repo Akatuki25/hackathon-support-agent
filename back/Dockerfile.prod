@@ -17,16 +17,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # アプリケーションコードのコピー
 COPY . .
 
+# Supervisor設定ファイルのコピー
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # ヘルスチェック用スクリプト
-RUN echo '#!/bin/sh\ncurl -f http://localhost:8000/ || exit 1' > /healthcheck.sh && \
+RUN echo '#!/bin/sh\ncurl -f http://localhost:${PORT:-8000}/ || exit 1' > /healthcheck.sh && \
     chmod +x /healthcheck.sh
 
 # 非rootユーザーで実行
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# ポート公開
+# ポート公開（Railwayが動的に設定）
 EXPOSE 8000
 
-# デフォルトコマンド（FastAPI）
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# デフォルトコマンド（Supervisor経由でFastAPI + Celery起動）
+CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

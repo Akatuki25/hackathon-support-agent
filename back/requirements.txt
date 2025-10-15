@@ -22,6 +22,7 @@ langgraph
 celery[redis]==5.3.4
 redis==4.6.0
 flower==2.0.1
+supervisor==4.2.5
 
 # Phase 3: WebSearch・ドキュメント取得
 beautifulsoup4==4.12.3
