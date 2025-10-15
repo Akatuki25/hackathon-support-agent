@@ -17,6 +17,9 @@ services:
       - ..:/workspaces/hackathon_support_agent:cached
     env_file:
       - ../back/.env
+    environment:
+      - DATABASE_URL=postgresql://hack_helper:hackathon@db/hackathon_support_agent
+      - REDIS_URL=redis://redis:6379/0
     working_dir: /workspaces/hackathon_support_agent/back
     depends_on:
       - db
@@ -31,6 +34,7 @@ services:
       - "3000:3000"
     volumes:
       - ..:/workspaces/hackathon_support_agent:cached
+      - /workspaces/hackathon_support_agent/front/node_modules
     env_file:
       - ../front/.env
     working_dir: /workspaces/hackathon_support_agent/front

@@ -1,5 +1,5 @@
 import { google } from "@ai-sdk/google";
-import { convertToModelMessages, streamText } from "ai";
+import { convertToModelMessages, streamText, type CoreMessage } from "ai";
 import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
 
     // Gemini APIの制約: system messagesは会話の最初にのみ配置可能
     // BlockNoteから送られるメッセージを並び替えて、systemメッセージを先頭に移動
-    const systemMessages = messages.filter((m: any) => m.role === "system");
-    const otherMessages = messages.filter((m: any) => m.role !== "system");
+    const systemMessages = messages.filter((m: CoreMessage) => m.role === "system");
+    const otherMessages = messages.filter((m: CoreMessage) => m.role !== "system");
     const reorderedMessages = [...systemMessages, ...otherMessages];
 
     console.log(
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       model: google("gemini-2.0-flash-exp"),
       messages: convertToModelMessages(reorderedMessages),
       temperature: 0.7,
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     });
 
     console.log("✅ Streaming response started");
