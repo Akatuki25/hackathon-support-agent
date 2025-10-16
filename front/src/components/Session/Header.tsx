@@ -32,17 +32,25 @@ export default function CyberHeader() {
   const getProjectIdFromPath = (path: string): string | null => {
     const segments = path.split("/").filter(Boolean);
 
-    // プロジェクト関連のパスかチェック
-    // 例: /hackSetUp/[ProjectId]/*, /projects/[ProjectId]/* など
+    // UUIDまたは数字のみのIDかチェック
+    // UUIDパターン: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const numberPattern = /^\d+$/;
+
+    // パターン1: /hackSetUp/[ProjectId]/*, /projects/[ProjectId]/* など
     const projectPaths = ["hackSetUp", "projects", "project"];
 
     if (segments.length >= 2 && projectPaths.includes(segments[0])) {
       const potentialId = segments[1];
-      // UUIDまたは数字のみのIDかチェック（必要に応じて調整）
-      // UUIDパターン: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const numberPattern = /^\d+$/;
+      if (uuidPattern.test(potentialId) || numberPattern.test(potentialId)) {
+        return potentialId;
+      }
+    }
 
+    // パターン2: /[userName]/[projectId]/*, /[userName]/[projectId]/kanban など
+    // 2つ目のセグメントがUUIDまたは数字の場合
+    if (segments.length >= 2) {
+      const potentialId = segments[1];
       if (uuidPattern.test(potentialId) || numberPattern.test(potentialId)) {
         return potentialId;
       }
@@ -175,7 +183,7 @@ export default function CyberHeader() {
 
   return (
     <>
-      <header className="absolute z-100 w-full">
+      <header className="fixed top-0 left-0 right-0 z-[100] w-full">
         {/* Cyber glow effect */}
         <div className={`absolute inset-0 `}></div>
 
@@ -724,8 +732,14 @@ const ProjectMemberForm = ({
   const removeExistingMember = async (projectMemberId: string) => {
     try {
       const { deleteProjectMember } = await import("@/libs/modelAPI/project_member");
+      const { mutate } = await import("swr");
+
       await deleteProjectMember(projectMemberId);
       setExistingMembers(existingMembers.filter(m => m.project_member_id !== projectMemberId));
+
+      // SWRキャッシュを更新してカンバンページに反映
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await mutate(`${apiUrl}/project_member/project/${projectId}`);
     } catch (error) {
       console.error("メンバー削除エラー:", error);
       alert("メンバーの削除に失敗しました");
@@ -829,6 +843,7 @@ const ProjectMemberForm = ({
         // 既存メンバーリストを更新
         const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
         const { listMembers } = await import("@/libs/modelAPI/member");
+        const { mutate } = await import("swr");
 
         try {
           const projectMembers = await getProjectMembersByProjectId(projectId);
@@ -844,6 +859,10 @@ const ProjectMemberForm = ({
             })
           );
           setExistingMembers(membersWithGithub);
+
+          // SWRキャッシュを更新してカンバンページに反映
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          await mutate(`${apiUrl}/project_member/project/${projectId}`);
         } catch (error) {
           console.error("プロジェクトメンバー再取得エラー:", error);
         }

@@ -1,7 +1,16 @@
 import axios from 'axios';
+import useSWR from 'swr';
 import { ProjectMemberType, ProjectMemberResponseType, ProjectMemberPatch } from '@/types/modelTypes';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+  return response.json();
+};
 
 // --- GET Project Member by ID ---
 export const getProjectMember = async (projectMemberId: string): Promise<ProjectMemberType> => {
@@ -37,4 +46,21 @@ export const patchProjectMember = async (projectMemberId: string, projectMemberP
 export const deleteProjectMember = async (projectMemberId: string): Promise<{ message: string }> => {
   const response = await axios.delete(`${API_URL}/project_member/member/${projectMemberId}`);
   return response.data;
+};
+
+// --- SWR Hooks ---
+
+/**
+ * Get project members by project ID using SWR
+ * @param projectId - The project ID
+ * @returns Object containing members array, loading state, and error state
+ */
+export const useProjectMembers = (projectId?: string) => {
+  const key = projectId ? `${API_URL}/project_member/project/${projectId}` : null;
+  const { data, error } = useSWR<ProjectMemberType[]>(key, fetcher);
+  return {
+    members: data,
+    isLoading: !!key && !error && !data,
+    isError: error,
+  };
 };

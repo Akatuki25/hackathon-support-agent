@@ -10,34 +10,29 @@ import {
   useState,
   type DragEvent,
   type KeyboardEventHandler,
-  type ReactNode,
 } from 'react';
 import { useDarkMode } from '@/hooks/useDarkMode';
-import { useTasksByProjectId, patchTask } from '@/libs/modelAPI/task';
-import { TaskType, TaskStatusEnum } from '@/types/modelTypes';
+import { patchTask } from '@/libs/modelAPI/task';
+import { TaskType } from '@/types/modelTypes';
 import { startHandsOnGeneration } from '@/libs/service/taskHandsOnService';
+import {
+  useKanbanData,
+  buildMemberBoard,
+  buildColumnDefinitions,
+  moveTaskToMember,
+  type ColumnDefinition,
+} from '@/hooks/useKanbanData';
+import CyberHeader from '@/components/Session/Header';
+import { mutate } from 'swr';
 
 const triggeredHandsOnProjects = new Set<string>();
-
-type BoardState = Record<TaskStatusEnum, TaskType[]>;
-
-type MoveResult = {
-  board: BoardState;
-  moved: boolean;
-};
-
-const STATUS_LIST: ReadonlyArray<{ key: TaskStatusEnum; label: string }> = [
-  { key: 'TODO', label: 'TODO' },
-  { key: 'DOING', label: 'DOING' },
-  { key: 'DONE', label: 'DONE' },
-] as const;
 
 type ThemeVariant = {
   light: string;
   dark: string;
 };
 
-type StatusTheme = {
+type ColumnTheme = {
   column: ThemeVariant;
   label: ThemeVariant;
   count: ThemeVariant;
@@ -49,124 +44,46 @@ type StatusTheme = {
   empty: ThemeVariant;
 };
 
-const STATUS_THEME: Record<TaskStatusEnum, StatusTheme> = {
-  TODO: {
-    column: {
-      light: 'border-gray-200 bg-gray-50 shadow-sm',
-      dark: 'border-pink-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(236,72,153,0.2)]',
-    },
-    label: {
-      light: 'text-gray-700',
-      dark: 'text-pink-200',
-    },
-    count: {
-      light: 'bg-white text-gray-500',
-      dark: 'border border-pink-500/40 bg-slate-900/80 text-pink-200',
-    },
-    card: {
-      light: 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md',
-      dark: 'border-pink-500/30 bg-slate-900/80 hover:border-pink-400/60 shadow-[0_0_16px_rgba(236,72,153,0.25)]',
-    },
-    title: {
-      light: 'text-gray-800',
-      dark: 'text-slate-100',
-    },
-    description: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    meta: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    priority: {
-      light: 'bg-gray-100 text-gray-600',
-      dark: 'border border-pink-400/50 bg-pink-500/10 text-pink-200',
-    },
-    empty: {
-      light: 'text-gray-400',
-      dark: 'text-slate-500',
-    },
+const MEMBER_THEME: ColumnTheme = {
+  column: {
+    light: 'border-gray-200 bg-gray-50 shadow-sm',
+    dark: 'border-purple-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(168,85,247,0.2)]',
   },
-  DOING: {
-    column: {
-      light: 'border-blue-200 bg-blue-50 shadow-sm',
-      dark: 'border-cyan-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(6,182,212,0.2)]',
-    },
-    label: {
-      light: 'text-blue-700',
-      dark: 'text-cyan-200',
-    },
-    count: {
-      light: 'bg-white text-blue-600',
-      dark: 'border border-cyan-500/40 bg-slate-900/80 text-cyan-200',
-    },
-    card: {
-      light: 'border-blue-200 bg-white hover:border-blue-300 hover:shadow-md',
-      dark: 'border-cyan-500/30 bg-slate-900/80 hover:border-cyan-400/60 shadow-[0_0_16px_rgba(6,182,212,0.25)]',
-    },
-    title: {
-      light: 'text-gray-800',
-      dark: 'text-slate-100',
-    },
-    description: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    meta: {
-      light: 'text-blue-600/80',
-      dark: 'text-cyan-200',
-    },
-    priority: {
-      light: 'bg-blue-100 text-blue-600',
-      dark: 'border border-cyan-400/50 bg-cyan-500/10 text-cyan-200',
-    },
-    empty: {
-      light: 'text-blue-400',
-      dark: 'text-cyan-300',
-    },
+  label: {
+    light: 'text-gray-700',
+    dark: 'text-purple-200',
   },
-  DONE: {
-    column: {
-      light: 'border-emerald-200 bg-emerald-50 shadow-sm',
-      dark: 'border-emerald-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(16,185,129,0.2)]',
-    },
-    label: {
-      light: 'text-emerald-700',
-      dark: 'text-emerald-200',
-    },
-    count: {
-      light: 'bg-white text-emerald-600',
-      dark: 'border border-emerald-500/40 bg-slate-900/80 text-emerald-200',
-    },
-    card: {
-      light: 'border-emerald-200 bg-white hover:border-emerald-300 hover:shadow-md',
-      dark: 'border-emerald-500/30 bg-slate-900/80 hover:border-emerald-400/60 shadow-[0_0_16px_rgba(16,185,129,0.25)]',
-    },
-    title: {
-      light: 'text-gray-800',
-      dark: 'text-slate-100',
-    },
-    description: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    meta: {
-      light: 'text-emerald-600/80',
-      dark: 'text-emerald-200',
-    },
-    priority: {
-      light: 'bg-emerald-100 text-emerald-700',
-      dark: 'border border-emerald-400/50 bg-emerald-500/10 text-emerald-200',
-    },
-    empty: {
-      light: 'text-emerald-400',
-      dark: 'text-emerald-300',
-    },
+  count: {
+    light: 'bg-white text-gray-500',
+    dark: 'border border-purple-500/40 bg-slate-900/80 text-purple-200',
+  },
+  card: {
+    light: 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md',
+    dark: 'border-purple-500/30 bg-slate-900/80 hover:border-purple-400/60 shadow-[0_0_16px_rgba(168,85,247,0.25)]',
+  },
+  title: {
+    light: 'text-gray-800',
+    dark: 'text-slate-100',
+  },
+  description: {
+    light: 'text-gray-500',
+    dark: 'text-slate-300',
+  },
+  meta: {
+    light: 'text-gray-500',
+    dark: 'text-slate-300',
+  },
+  priority: {
+    light: 'bg-gray-100 text-gray-600',
+    dark: 'border border-purple-400/50 bg-purple-500/10 text-purple-200',
+  },
+  empty: {
+    light: 'text-gray-400',
+    dark: 'text-slate-500',
   },
 };
 
-type ComputedStatusStyle = {
+type ComputedColumnStyle = {
   column: string;
   label: string;
   count: string;
@@ -181,131 +98,55 @@ type ComputedStatusStyle = {
 const pickVariant = (variant: ThemeVariant, darkMode: boolean) =>
   darkMode ? variant.dark : variant.light;
 
-type HeaderProps = {
-  containerClass: string;
-  headerClass: string;
-  titleClass: string;
-  projectId?: string;
-  projectIdClass: string;
-  isUpdating: boolean;
-  updatingClass: string;
-  primaryButtonClass: string;
-  primaryButtonHoverClass: string;
-  kanbanButtonClass: string;
-  kanbanButtonHoverClass: string;
-  overviewHref: string;
-  children: ReactNode;
+type CompletionBarProps = {
+  tasks: TaskType[];
+  darkMode: boolean;
 };
 
-function Header({
-  containerClass,
-  headerClass,
-  titleClass,
-  projectId,
-  projectIdClass,
-  isUpdating,
-  updatingClass,
-  primaryButtonClass,
-  primaryButtonHoverClass,
-  kanbanButtonClass,
-  kanbanButtonHoverClass,
-  overviewHref,
-  children,
-}: HeaderProps) {
+function CompletionBar({ tasks, darkMode }: CompletionBarProps) {
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.completed).length;
+  const completionRate = totalTasks > 0
+    ? Math.round((completedTasks / totalTasks) * 100)
+    : 0;
+
+  if (completionRate === 0) return null;
+
   return (
-    <div className={containerClass}>
-      <header className={`${headerClass} flex items-center justify-between gap-4`}
-      >
-        <div>
-          <h1 className={titleClass}>Kanban Board</h1>
-          {projectId && (
-            <p className={projectIdClass}>
-              Project ID: <span className="font-mono">{projectId}</span>
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href={overviewHref}
-            className={`${primaryButtonClass} ${primaryButtonHoverClass} inline-flex items-center gap-2 rounded px-3 py-1 text-xs font-semibold transition`}
-          >
-            プロジェクト概要
-          </Link>
-          <Link
-            href="./kanban"
-            className={`${kanbanButtonClass} ${kanbanButtonHoverClass} inline-flex items-center gap-2 rounded px-3 py-1 text-xs font-semibold transition`}
-          >
-            カンバン
-          </Link>
-        </div>
-      </header>
-
-      {isUpdating && <p className={updatingClass}>更新中...</p>}
-
-      {children}
+    <div className="mt-2">
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className={darkMode ? 'text-slate-400' : 'text-gray-500'}>
+          完了: {completedTasks}/{totalTasks}
+        </span>
+        <span className={darkMode ? 'text-purple-300' : 'text-purple-600'}>
+          {completionRate}%
+        </span>
+      </div>
+      <div className={`w-full h-1.5 rounded-full ${
+        darkMode ? 'bg-slate-800' : 'bg-gray-200'
+      }`}>
+        <div
+          className={`h-1.5 rounded-full transition-all duration-300 ${
+            darkMode ? 'bg-purple-500' : 'bg-purple-500'
+          }`}
+          style={{ width: `${completionRate}%` }}
+        />
+      </div>
     </div>
   );
 }
 
-const createEmptyBoard = (): BoardState => ({
-  TODO: [],
-  DOING: [],
-  DONE: [],
-});
-
-const buildBoardFromTasks = (tasks?: TaskType[]): BoardState => {
-  const board = createEmptyBoard();
-  tasks?.forEach((task) => {
-    const status: TaskStatusEnum = task.status ?? 'TODO';
-    board[status].push(task);
-  });
-  return board;
-};
-
-const moveTaskToStatus = (
-  state: BoardState,
-  taskId: string,
-  newStatus: TaskStatusEnum,
-): MoveResult => {
-  const next: BoardState = {
-    TODO: [...state.TODO],
-    DOING: [...state.DOING],
-    DONE: [...state.DONE],
-  };
-
-  let sourceStatus: TaskStatusEnum | null = null;
-  let task: TaskType | undefined;
-
-  for (const { key } of STATUS_LIST) {
-    const index = next[key].findIndex((item) => item.task_id === taskId);
-    if (index !== -1) {
-      sourceStatus = key;
-      task = next[key][index];
-      next[key].splice(index, 1);
-      break;
-    }
-  }
-
-  if (!task || sourceStatus === newStatus) {
-    return { board: state, moved: false };
-  }
-
-  const updatedTask: TaskType = { ...task, status: newStatus };
-  next[newStatus] = [updatedTask, ...next[newStatus]];
-
-  return { board: next, moved: true };
-};
-
 type TaskCardProps = {
   task: TaskType;
-  styles: ComputedStatusStyle;
+  styles: ComputedColumnStyle;
+  darkMode: boolean;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
+  onToggleComplete: (taskId: string, completed: boolean) => void;
 };
 
-function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardProps) {
+function TaskCard({ task, styles, darkMode, onDragStart, onDragEnd, onSelect, onToggleComplete }: TaskCardProps) {
   const canDrag = Boolean(task.task_id);
 
   const handleDragStart = () => {
@@ -314,7 +155,11 @@ function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardPr
     }
   };
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    // チェックボックスのクリックは無視
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
     if (canDrag) {
       onSelect(task.task_id);
     }
@@ -330,9 +175,18 @@ function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardPr
     }
   };
 
+  const handleToggleComplete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.task_id) {
+      onToggleComplete(task.task_id, !task.completed);
+    }
+  };
+
   return (
     <article
-      className={`rounded border p-3 text-sm shadow-sm transition ${styles.card}`}
+      className={`rounded border p-3 text-sm shadow-sm transition cursor-pointer relative ${styles.card} ${
+        task.completed ? 'opacity-60' : ''
+      }`}
       draggable={canDrag}
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
@@ -341,9 +195,32 @@ function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardPr
       role="button"
       tabIndex={canDrag ? 0 : -1}
     >
-      <h3 className={`font-semibold ${styles.title}`}>{task.title}</h3>
+      {/* 完了チェックボタン */}
+      <button
+        onClick={handleToggleComplete}
+        className={`absolute top-2 right-2 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
+          task.completed
+            ? darkMode
+              ? 'bg-green-500/20 border-green-500 text-green-400'
+              : 'bg-green-500/20 border-green-500 text-green-600'
+            : darkMode
+            ? 'border-purple-500/40 hover:border-purple-400 hover:bg-purple-500/10'
+            : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+        }`}
+        title={task.completed ? '完了を解除' : '完了にする'}
+      >
+        {task.completed && (
+          <span className="text-xs font-bold">✓</span>
+        )}
+      </button>
+
+      <h3 className={`font-semibold pr-6 ${styles.title} ${task.completed ? 'line-through' : ''}`}>
+        {task.title}
+      </h3>
       {task.description && (
-        <p className={`mt-2 text-xs ${styles.description}`}>{task.description}</p>
+        <p className={`mt-2 text-xs ${styles.description} ${task.completed ? 'line-through' : ''}`}>
+          {task.description}
+        </p>
       )}
       <div className={`mt-2 flex items-center gap-2 text-xs ${styles.meta}`}>
         {task.priority && (
@@ -355,46 +232,86 @@ function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardPr
   );
 }
 
-type TaskColumnProps = {
-  status: TaskStatusEnum;
-  label: string;
+type KanbanColumnProps = {
+  column: ColumnDefinition;
   tasks: TaskType[];
-  styles: ComputedStatusStyle;
+  styles: ComputedColumnStyle;
+  darkMode: boolean;
   onDrop: (event: DragEvent<HTMLDivElement>) => void;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
+  onToggleComplete: (taskId: string, completed: boolean) => void;
 };
 
-function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragEnd, onSelect }: TaskColumnProps) {
+function KanbanColumn({
+  column,
+  tasks,
+  styles,
+  darkMode,
+  onDrop,
+  onDragStart,
+  onDragEnd,
+  onSelect,
+  onToggleComplete,
+}: KanbanColumnProps) {
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
 
   return (
     <section
-      aria-label={`${label} column`}
-      className={`flex min-w-[220px] flex-1 flex-col gap-3 rounded border p-4 transition backdrop-blur-sm ${styles.column}`}
-      data-status={status}
+      className={`min-w-[280px] flex-shrink-0 flex flex-col rounded border h-full ${styles.column}`}
+      data-column-id={column.key}
       onDragOver={handleDragOver}
       onDrop={onDrop}
     >
-      <header className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}>
-        <span>{label}</span>
-        <span className={`rounded px-2 py-0.5 text-[10px] ${styles.count}`}>{tasks.length}</span>
-      </header>
-      <div className="flex flex-col gap-3">
+      {/* カラムヘッダー - sticky固定 */}
+      <div className={`sticky top-0 z-10 px-4 py-3 border-b backdrop-blur-sm ${
+        darkMode ? 'bg-slate-950/90 border-purple-500/20' : 'bg-white/90 border-gray-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {/* メンバーアバター（メンバーカラムの場合） */}
+            {column.memberInfo && (
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-500/20 text-purple-700'
+              }`}>
+                {column.label.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className={`font-semibold text-sm ${styles.label}`}>
+              {column.label}
+            </span>
+          </div>
+          <span className={`text-xs px-2 py-0.5 rounded ${styles.count}`}>
+            {tasks.length}
+          </span>
+        </div>
+
+        {/* 完了率バー */}
+        {tasks.length > 0 && (
+          <CompletionBar tasks={tasks} darkMode={darkMode} />
+        )}
+      </div>
+
+      {/* タスクリスト - スクロール可能 */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin">
         {tasks.length === 0 ? (
-          <p className={`mt-8 text-center text-xs ${styles.empty}`}>タスクなし</p>
+          <div className={`text-center py-8 text-xs ${styles.empty}`}>
+            タスクなし
+          </div>
         ) : (
-          tasks.map((task, index) => (
+          tasks.map((task) => (
             <TaskCard
-              key={task.task_id ?? `${status}-${index}`}
+              key={task.task_id}
               task={task}
               styles={styles}
+              darkMode={darkMode}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
               onSelect={onSelect}
+              onToggleComplete={onToggleComplete}
             />
           ))
         )}
@@ -410,40 +327,51 @@ export default function KanbanBoardPage() {
   const userName = params?.userName as string | undefined;
   const { darkMode } = useDarkMode();
 
-  const { tasks, isLoading, isError } = useTasksByProjectId(projectId);
-  const [board, setBoard] = useState<BoardState>(() => createEmptyBoard());
+  const { tasks, members, isLoading, isError } = useKanbanData(projectId);
   const [isUpdating, setIsUpdating] = useState(false);
   const draggingTaskIdRef = useRef<string | null>(null);
 
-  const statusStyles = useMemo(() => {
-    return STATUS_LIST.reduce((acc, { key }) => {
-      const theme = STATUS_THEME[key];
-      acc[key] = {
-        column: pickVariant(theme.column, darkMode),
-        label: pickVariant(theme.label, darkMode),
-        count: pickVariant(theme.count, darkMode),
-        card: pickVariant(theme.card, darkMode),
-        title: pickVariant(theme.title, darkMode),
-        description: pickVariant(theme.description, darkMode),
-        meta: pickVariant(theme.meta, darkMode),
-        priority: pickVariant(theme.priority, darkMode),
-        empty: pickVariant(theme.empty, darkMode),
-      };
-      return acc;
-    }, {} as Record<TaskStatusEnum, ComputedStatusStyle>);
-  }, [darkMode]);
+  // tasksとmembersが変更された時のみボードとカラムを再構築
+  const board = useMemo(() => {
+    if (tasks.length === 0 && members.length === 0) {
+      return {};
+    }
+    return buildMemberBoard(tasks, members);
+  }, [tasks, members]);
 
-  useEffect(() => {
-    setBoard(buildBoardFromTasks(tasks));
-  }, [tasks]);
+  const columns = useMemo(() => {
+    if (members.length === 0) {
+      return [];
+    }
+    return buildColumnDefinitions(members);
+  }, [members]);
+
+  const columnStyles = useMemo(() => {
+    const theme = MEMBER_THEME;
+    return {
+      column: pickVariant(theme.column, darkMode),
+      label: pickVariant(theme.label, darkMode),
+      count: pickVariant(theme.count, darkMode),
+      card: pickVariant(theme.card, darkMode),
+      title: pickVariant(theme.title, darkMode),
+      description: pickVariant(theme.description, darkMode),
+      meta: pickVariant(theme.meta, darkMode),
+      priority: pickVariant(theme.priority, darkMode),
+      empty: pickVariant(theme.empty, darkMode),
+    };
+  }, [darkMode]);
 
   useEffect(() => {
     if (!projectId || triggeredHandsOnProjects.has(projectId)) {
       return;
     }
     triggeredHandsOnProjects.add(projectId);
+    // Hands-on generation is optional - silently fail if Redis/Celery is unavailable
     startHandsOnGeneration({ project_id: projectId }).catch((error) => {
-      console.error('Failed to start hands-on generation job:', error);
+      // Only log if it's not a connection error (development environment may not have Redis)
+      if (!error?.response?.data?.detail?.includes('connecting to')) {
+        console.error('Failed to start hands-on generation job:', error);
+      }
     });
   }, [projectId]);
 
@@ -458,40 +386,59 @@ export default function KanbanBoardPage() {
   }, []);
 
   const handleColumnDrop = useCallback(
-    (newStatus: TaskStatusEnum) => async (event: DragEvent<HTMLDivElement>) => {
+    (newMemberId: string) => async (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       const taskId = draggingTaskIdRef.current;
       if (!taskId) {
         return;
       }
 
-      const snapshot: BoardState = {
-        TODO: [...board.TODO],
-        DOING: [...board.DOING],
-        DONE: [...board.DONE],
-      };
-
-      const { board: nextBoard, moved } = moveTaskToStatus(board, taskId, newStatus);
-      if (!moved) {
+      const { moved, task } = moveTaskToMember(board, taskId, newMemberId);
+      if (!moved || !task) {
         draggingTaskIdRef.current = null;
         return;
       }
 
-      setBoard(nextBoard);
+      // 楽観的更新: tasksを直接更新してUIを即座に更新
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const tasksCacheKey = `${apiUrl}/task/project/${projectId}`;
+
       setIsUpdating(true);
 
       try {
-        await patchTask(taskId, { status: newStatus });
+        // 楽観的更新: キャッシュを即座に更新
+        await mutate(
+          tasksCacheKey,
+          async (currentTasks: TaskType[] | undefined) => {
+            if (!currentTasks) return currentTasks;
+
+            return currentTasks.map(t =>
+              t.task_id === taskId
+                ? { ...t, assignee: newMemberId === 'unassigned' ? undefined : newMemberId }
+                : t
+            );
+          },
+          false // 再検証しない（楽観的更新）
+        );
+
+        // バックエンドを更新
+        await patchTask(taskId, {
+          assignee: newMemberId === 'unassigned' ? undefined : newMemberId,
+        });
+
+        // 成功したら再検証
+        await mutate(tasksCacheKey);
       } catch (error) {
-        console.error('Failed to update task status:', error);
-        setBoard(snapshot);
+        console.error('Failed to update task assignee:', error);
+        // エラーの場合はロールバック（再検証）
+        await mutate(tasksCacheKey);
         alert('タスクの更新に失敗しました');
       } finally {
         setIsUpdating(false);
         draggingTaskIdRef.current = null;
       }
     },
-    [board],
+    [board, projectId],
   );
 
   const handleTaskSelect = useCallback(
@@ -505,6 +452,46 @@ export default function KanbanBoardPage() {
       router.push(`/${userName}/${projectId}/${taskId}`);
     },
     [router, userName, projectId],
+  );
+
+  const handleToggleComplete = useCallback(
+    async (taskId: string, completed: boolean) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const tasksCacheKey = `${apiUrl}/task/project/${projectId}`;
+
+      setIsUpdating(true);
+
+      try {
+        // 楽観的更新: キャッシュを即座に更新
+        await mutate(
+          tasksCacheKey,
+          async (currentTasks: TaskType[] | undefined) => {
+            if (!currentTasks) return currentTasks;
+
+            return currentTasks.map(t =>
+              t.task_id === taskId
+                ? { ...t, completed }
+                : t
+            );
+          },
+          false // 再検証しない（楽観的更新）
+        );
+
+        // バックエンドを更新
+        await patchTask(taskId, { completed });
+
+        // 成功したら再検証
+        await mutate(tasksCacheKey);
+      } catch (error) {
+        console.error('Failed to update task completion:', error);
+        // エラーの場合はロールバック（再検証）
+        await mutate(tasksCacheKey);
+        alert('タスクの更新に失敗しました');
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [projectId],
   );
 
   const loadingContainerClass = darkMode
@@ -526,66 +513,98 @@ export default function KanbanBoardPage() {
   if (isError) {
     return (
       <div className={loadingContainerClass}>
-        <p className={errorTextClass}>タスクの取得に失敗しました</p>
+        <p className={errorTextClass}>データの取得に失敗しました</p>
       </div>
     );
   }
 
-  const pageBackgroundClass = darkMode
-    ? 'min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-6'
-    : 'min-h-screen bg-gray-100 p-6';
-
-  const panelClass = darkMode
-    ? 'mx-auto flex max-w-5xl flex-col gap-4 rounded-lg border border-cyan-500/20 bg-slate-950/60 p-4 shadow-[0_0_40px_rgba(6,182,212,0.12)] backdrop-blur'
-    : 'mx-auto flex max-w-5xl flex-col gap-4 rounded-lg border border-transparent bg-white/70 p-4 shadow-sm backdrop-blur';
-
-  const headerClass = darkMode ? 'space-y-1 text-slate-100' : 'space-y-1 text-gray-800';
-  const titleClass = darkMode ? 'text-2xl font-bold tracking-wide text-cyan-200' : 'text-2xl font-bold text-gray-800';
-  const projectIdClass = darkMode ? 'text-xs text-slate-300' : 'text-xs text-gray-500';
-  const updatingClass = darkMode ? 'text-xs text-cyan-300' : 'text-xs text-blue-600';
-  const primaryButtonClass = darkMode
-    ? 'border border-cyan-500/40 bg-slate-950/60 text-cyan-200 shadow-[0_0_16px_rgba(6,182,212,0.35)]'
-    : 'border border-blue-200 bg-white/80 text-blue-600 shadow-sm';
-  const primaryButtonHoverClass = darkMode ? 'hover:border-cyan-300/60 hover:text-cyan-100' : 'hover:border-blue-400 hover:text-blue-700';
-  const kanbanButtonClass = darkMode
-    ? 'border border-fuchsia-500/40 bg-slate-950/60 text-fuchsia-200 shadow-[0_0_16px_rgba(217,70,239,0.35)]'
-    : 'border border-purple-200 bg-white/80 text-purple-600 shadow-sm';
-  const kanbanButtonHoverClass = darkMode ? 'hover:border-fuchsia-300/60 hover:text-fuchsia-100' : 'hover:border-purple-400 hover:text-purple-700';
-
   const overviewHref = projectId ? `../${projectId}` : '..';
 
   return (
-    <div className={pageBackgroundClass}>
-      <Header
-        containerClass={panelClass}
-        headerClass={headerClass}
-        titleClass={titleClass}
-        projectId={projectId}
-        projectIdClass={projectIdClass}
-        isUpdating={isUpdating}
-        updatingClass={updatingClass}
-        primaryButtonClass={primaryButtonClass}
-        primaryButtonHoverClass={primaryButtonHoverClass}
-        kanbanButtonClass={kanbanButtonClass}
-        kanbanButtonHoverClass={kanbanButtonHoverClass}
-        overviewHref={overviewHref}
-      >
-        <div className="flex gap-4 overflow-x-auto">
-          {STATUS_LIST.map(({ key, label }) => (
-            <TaskColumn
-              key={key}
-              status={key}
-              label={label}
-              tasks={board[key]}
-              styles={statusStyles[key]}
-              onDrop={handleColumnDrop(key)}
-              onDragStart={handleCardDragStart}
-              onDragEnd={handleCardDragEnd}
-              onSelect={handleTaskSelect}
-            />
-          ))}
-        </div>
-      </Header>
-    </div>
+    <>
+      {/* 固定ヘッダー */}
+      <CyberHeader />
+
+      {/* メインコンテンツ - Headerの高さ分のpadding */}
+      <div className={`min-h-screen pt-20 ${
+        darkMode
+          ? 'bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900'
+          : 'bg-gray-100'
+      }`}>
+        <main className="h-[calc(100vh-80px)] flex flex-col overflow-hidden">
+          {/* カンバンヘッダー */}
+          <div className={`px-6 py-4 border-b ${
+            darkMode ? 'border-purple-500/20' : 'border-gray-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className={`text-2xl font-bold tracking-wide ${
+                  darkMode ? 'text-purple-200' : 'text-gray-800'
+                }`}>
+                  Kanban Board
+                </h1>
+                {projectId && (
+                  <p className={`text-xs ${
+                    darkMode ? 'text-slate-300' : 'text-gray-500'
+                  }`}>
+                    Project ID: <span className="font-mono">{projectId}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* ナビゲーションボタン */}
+              <div className="flex items-center gap-2">
+                <Link
+                  href={overviewHref}
+                  className={`inline-flex items-center gap-2 rounded px-3 py-1 text-xs font-semibold transition ${
+                    darkMode
+                      ? 'border border-cyan-500/40 bg-slate-950/60 text-cyan-200 shadow-[0_0_16px_rgba(6,182,212,0.35)] hover:border-cyan-300/60 hover:text-cyan-100'
+                      : 'border border-blue-200 bg-white/80 text-blue-600 shadow-sm hover:border-blue-400 hover:text-blue-700'
+                  }`}
+                >
+                  プロジェクト概要
+                </Link>
+                <Link
+                  href="./kanban"
+                  className={`inline-flex items-center gap-2 rounded px-3 py-1 text-xs font-semibold transition ${
+                    darkMode
+                      ? 'border border-purple-500/40 bg-slate-950/60 text-purple-200 shadow-[0_0_16px_rgba(168,85,247,0.35)] hover:border-purple-300/60 hover:text-purple-100'
+                      : 'border border-purple-200 bg-white/80 text-purple-600 shadow-sm hover:border-purple-400 hover:text-purple-700'
+                  }`}
+                >
+                  カンバン
+                </Link>
+              </div>
+            </div>
+
+            {isUpdating && (
+              <p className={`text-xs mt-2 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
+                更新中...
+              </p>
+            )}
+          </div>
+
+          {/* カラムコンテナ - 横スクロール改善 */}
+          <div className="flex-1 overflow-hidden px-6 py-4">
+            <div className="flex gap-4 overflow-x-auto overflow-y-hidden h-full scrollbar-thin pb-2" style={{ scrollBehavior: 'smooth' }}>
+              {columns.map(column => (
+                <KanbanColumn
+                  key={column.key}
+                  column={column}
+                  tasks={board[column.key] || []}
+                  styles={columnStyles}
+                  darkMode={darkMode}
+                  onDrop={handleColumnDrop(column.key)}
+                  onDragStart={handleCardDragStart}
+                  onDragEnd={handleCardDragEnd}
+                  onSelect={handleTaskSelect}
+                  onToggleComplete={handleToggleComplete}
+                />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
