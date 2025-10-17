@@ -367,13 +367,13 @@ class FunctionStructuringPipeline:
         
         prompt = ChatPromptTemplate.from_template("""
         以下の機能を適切なカテゴリに分類してください。
-        
+
         機能リスト:
         {functions}
-        
+
         技術制約:
         {tech_constraints}
-        
+
         カテゴリ定義:
         - auth: 認証、ログイン、権限管理
         - data: データベース操作、CRUD、データ永続化
@@ -381,8 +381,40 @@ class FunctionStructuringPipeline:
         - ui: フロントエンド、画面、ユーザーインターフェース
         - api: 外部API連携、通信、データ取得
         - deployment: デプロイ設定、環境構築、インフラ
-        
-        各機能に確定的なカテゴリを割り当てて出力してください（JSON配列のみ）。
+
+        出力形式（JSON配列のみ、元の機能情報を保持したまま category フィールドを追加）:
+        [
+          {{
+            "function_name": "ユーザー登録API",
+            "description": "メールアドレスとパスワードでユーザーを新規登録する...",
+            "category": "auth",
+            "estimated_category": "auth",
+            "text_position": 1
+          }},
+          {{
+            "function_name": "商品一覧画面",
+            "description": "商品の一覧を表示する画面コンポーネント...",
+            "category": "ui",
+            "estimated_category": "ui",
+            "text_position": 2
+          }},
+          {{
+            "function_name": "在庫計算ロジック",
+            "description": "商品の在庫数を計算するビジネスロジック...",
+            "category": "logic",
+            "estimated_category": "logic",
+            "text_position": 3
+          }},
+          {{
+            "function_name": "データベースマイグレーション",
+            "description": "初期テーブル作成とスキーマ設定...",
+            "category": "data",
+            "estimated_category": "data",
+            "text_position": 4
+          }}
+        ]
+
+        各機能に確定的なカテゴリを割り当てて、元のフィールドを全て保持したまま出力してください（JSON配列のみ）。
         """)
         
         chain = prompt | self.llm_pro | StrOutputParser()
