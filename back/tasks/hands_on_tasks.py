@@ -91,15 +91,80 @@ def generate_single_task_hands_on(
 
 
 @celery_app.task
+def update_batch_progress(results, job_id, project_id, batch_id, total_tasks):
+    """
+    バッチ完了時のコールバック（進捗更新）
+
+    Args:
+        results: groupまたはchainの結果リスト
+        job_id: ジョブID（str）
+        project_id: プロジェクトID（str）
+        batch_id: バッチID（int）
+        total_tasks: プロジェクト全体のタスク数（int）
+    """
+    db = SessionLocal()
+    try:
+        job = db.query(HandsOnGenerationJob).filter_by(job_id=UUID(job_id)).first()
+        if not job:
+            return results  # chord では結果を次に渡す必要がある
+
+        # 進捗更新
+        total_completed = db.query(TaskHandsOn).join(Task).filter(
+            Task.project_id == UUID(project_id)
+        ).count()
+
+        job.completed_tasks = total_completed
+        job.current_processing = []
+        db.commit()
+
+        print(f"[Celery] バッチ {batch_id} 完了 ({total_completed}/{total_tasks})")
+
+        return results  # 次のタスクに結果を渡す
+
+    finally:
+        db.close()
+
+
+@celery_app.task
+def finalize_generation_job(previous_results, job_id):
+    """
+    ジョブ全体の完了処理
+
+    Args:
+        previous_results: 前のタスクからの結果（chain経由）
+        job_id: ジョブID（str）
+    """
+    db = SessionLocal()
+    try:
+        job = db.query(HandsOnGenerationJob).filter_by(job_id=UUID(job_id)).first()
+        if not job:
+            return
+
+        job.status = "completed"
+        job.completed_at = datetime.now()
+        db.commit()
+
+        print(f"[Celery] プロジェクト全体のハンズオン生成完了: {job.project_id}")
+
+    finally:
+        db.close()
+
+
+@celery_app.task
 def generate_all_hands_on(job_id: str, project_id: str, config: Dict = None):
     """
     プロジェクト全体のハンズオン生成（メインCeleryタスク）
+
+    Celeryのchord機能を使い、ビジーウェイトを排除
+    各バッチをchordで管理し、完了時にコールバックで進捗更新
 
     Args:
         job_id: HandsOnGenerationJob ID
         project_id: プロジェクトID
         config: 生成設定
     """
+    from celery import chord
+
     db = SessionLocal()
 
     try:
@@ -132,65 +197,59 @@ def generate_all_hands_on(job_id: str, project_id: str, config: Dict = None):
 
         print(f"[Celery] バッチ数: {len(batches)}, バッチサイズ: {batch_size}")
 
+        # 全バッチをchordで連結（各バッチ完了時にコールバック）
+        # シグネチャとして保持し、最後に一度だけ実行する
+        batch_chord_signatures = []
+
         for batch in batches:
-            print(f"[Celery] バッチ {batch['batch_id']} 処理開始 ({len(batch['tasks'])} タスク)")
+            print(f"[Celery] バッチ {batch['batch_id']} 準備 ({len(batch['tasks'])} タスク)")
 
             # 現在処理中のタスクIDを記録
             job.current_processing = [t["task_id"] for t in batch["tasks"]]
             db.commit()
 
+            # タスクグループ作成
+            task_signatures = [
+                generate_single_task_hands_on.s(
+                    t["task_id"],
+                    project_context,
+                    config
+                )
+                for t in batch["tasks"]
+            ]
+
             if batch["has_dependencies"]:
                 # 依存関係あり → chain で順次実行
-                task_chain = chain([
-                    generate_single_task_hands_on.s(
-                        t["task_id"],
-                        project_context,
-                        config
-                    )
-                    for t in batch["tasks"]
-                ])
-                task_chain.apply_async()
+                batch_workflow = chain(*task_signatures)
             else:
                 # 依存関係なし → group で並列実行
-                task_group = group([
-                    generate_single_task_hands_on.s(
-                        t["task_id"],
-                        project_context,
-                        config
-                    )
-                    for t in batch["tasks"]
-                ])
-                task_group.apply_async()
+                batch_workflow = group(*task_signatures)
 
-            # バッチ完了待機（簡易実装：ポーリング）
-            import time
-            while True:
-                completed_count = db.query(TaskHandsOn).join(Task).filter(
-                    Task.task_id.in_([UUID(t["task_id"]) for t in batch["tasks"]])
-                ).count()
+            # バッチ完了時のコールバックシグネチャを作成（まだ実行しない）
+            batch_chord_sig = chord(batch_workflow)(
+                update_batch_progress.s(
+                    job_id=job_id,
+                    project_id=project_id,
+                    batch_id=batch["batch_id"],
+                    total_tasks=len(tasks)
+                )
+            )
 
-                if completed_count >= len(batch["tasks"]):
-                    break
+            batch_chord_signatures.append(batch_chord_sig)
 
-                time.sleep(2)  # 2秒ごとにチェック
+        # 全バッチ完了時の最終コールバック
+        # すべてのバッチchordを並列実行し、全完了後にfinalizeを呼ぶ
+        if batch_chord_signatures:
+            # すべてのバッチchordをgroupで並列実行 → 全完了後にfinalize
+            final_workflow = chord(group(*batch_chord_signatures))(
+                finalize_generation_job.s(job_id)
+            )
+            final_workflow.apply_async()
+        else:
+            # タスクがない場合は即座に完了
+            finalize_generation_job.apply_async(args=[None, job_id])
 
-            # 進捗更新
-            total_completed = db.query(TaskHandsOn).join(Task).filter(
-                Task.project_id == UUID(project_id)
-            ).count()
-
-            job.completed_tasks = total_completed
-            job.current_processing = []
-            db.commit()
-
-            print(f"[Celery] バッチ {batch['batch_id']} 完了 ({total_completed}/{job.total_tasks})")
-
-        # 完了
-        job.status = "completed"
-        job.completed_at = datetime.now()
-        db.commit()
-
-        print(f"[Celery] プロジェクト全体のハンズオン生成完了: {project_id}")
+        print(f"[Celery] 全バッチワークフロー起動完了")
 
     except Exception as e:
         job.status = "failed"
