@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info } from 'lucide-react';
+import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info, LayoutGrid } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 
 import { TextUpdaterNode } from './CustomNode';
@@ -38,6 +39,7 @@ const formatTime = (minutes: number): string => {
 // Removed unused function addMinutesToTime
 
 export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesChange }: TaskFlowProps) {
+  const pathname = usePathname();
   const [nodes, setNodes, onNodesStateChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesStateChange] = useEdgesState(initialEdges);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -361,9 +363,20 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
           </div>
         </Panel>
 
-        {/* Enhanced Action Buttons */}
-        <Panel position="bottom-right" className="space-y-2">
+        {/* Kanban Board Navigation Button */}
+        <Panel position="bottom-left" className="space-y-2">
           <div className="flex flex-col gap-2">
+            <button
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/kanban`;
+              }}
+              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 hover:from-cyan-400/40 hover:to-purple-400/40 border-2 border-cyan-400/60 text-cyan-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
+            >
+              <LayoutGrid size={18} />
+              📋 カンバンボード
+            </button>
             <button
               onClick={calculateTaskTimes}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 hover:from-blue-400/40 hover:to-indigo-400/40 border-2 border-blue-400/60 text-blue-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
