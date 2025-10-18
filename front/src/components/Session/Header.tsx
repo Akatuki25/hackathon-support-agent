@@ -787,6 +787,8 @@ const ProjectMemberForm = ({
       const failedMembers: string[] = [];
       const successMembers: string[] = [];
 
+      console.log(`[メンバー追加] プロジェクトID: ${projectId}, 追加予定: ${githubNames.join(', ')}`);
+
       // 各GitHubネームごとにメンバーを追加
       for (const githubName of githubNames) {
         try {
@@ -795,9 +797,11 @@ const ProjectMemberForm = ({
           // 既存メンバーを検索
           try {
             member = await getMemberByGithubName(githubName);
+            console.log(`[メンバー検索成功] ${githubName} -> member_id: ${member.member_id}`);
           } catch (error) {
             // 404エラーの場合は、そのユーザーにGitHubログインを促す必要がある
             if (axios.isAxiosError(error) && error.response?.status === 404) {
+              console.warn(`[メンバー未登録] ${githubName} はシステムに未登録です`);
               failedMembers.push(`${githubName} (未登録ユーザー - GitHubログインが必要)`);
               continue;
             } else {
@@ -805,18 +809,48 @@ const ProjectMemberForm = ({
             }
           }
 
+          // 重複チェック（既にプロジェクトメンバーに含まれているか）
+          const isDuplicate = existingMembers.some(
+            existing => existing.github_name === githubName || existing.member_name === member.member_name
+          );
+
+          if (isDuplicate) {
+            console.warn(`[重複検出] ${githubName} は既にプロジェクトメンバーです`);
+            failedMembers.push(`${githubName} (既にメンバーです)`);
+            continue;
+          }
+
           // プロジェクトメンバーに追加
-          await postProjectMember({
+          console.log(`[DB登録開始] project_id: ${projectId}, member_id: ${member.member_id}, member_name: ${member.member_name}`);
+
+          const projectMemberData = {
             project_id: projectId,
             member_id: member.member_id,
             member_name: member.member_name,
-          });
+          };
+
+          const projectMemberId = await postProjectMember(projectMemberData);
+          console.log(`[DB登録成功] project_member_id: ${projectMemberId}, GitHubユーザー: ${githubName}`);
+
           successMembers.push(githubName);
         } catch (error) {
-          console.error(`メンバー ${githubName} の追加エラー:`, error);
-          failedMembers.push(`${githubName} (追加失敗)`);
+          console.error(`[メンバー追加エラー] ${githubName}:`, error);
+
+          // エラー詳細を取得
+          let errorDetail = "追加失敗";
+          if (axios.isAxiosError(error)) {
+            if (error.response?.status === 409) {
+              errorDetail = "既に登録済み";
+            } else if (error.response?.data?.detail) {
+              errorDetail = error.response.data.detail;
+            }
+          }
+
+          failedMembers.push(`${githubName} (${errorDetail})`);
         }
       }
+
+      console.log(`[追加処理完了] 成功: ${successMembers.length}件, 失敗: ${failedMembers.length}件`);
 
       // 結果を表示
       if (failedMembers.length > 0) {
@@ -831,8 +865,10 @@ const ProjectMemberForm = ({
         const { listMembers } = await import("@/libs/modelAPI/member");
 
         try {
+          console.log(`[メンバーリスト再取得開始] プロジェクトID: ${projectId}`);
           const projectMembers = await getProjectMembersByProjectId(projectId);
           const members = await listMembers();
+
           const membersWithGithub = await Promise.all(
             projectMembers.map(async (pm) => {
               const member = members.find(m => m.member_id === pm.member_id);
@@ -843,9 +879,11 @@ const ProjectMemberForm = ({
               };
             })
           );
+
+          console.log(`[メンバーリスト更新] 現在のメンバー数: ${membersWithGithub.length}`);
           setExistingMembers(membersWithGithub);
         } catch (error) {
-          console.error("プロジェクトメンバー再取得エラー:", error);
+          console.error("[メンバーリスト再取得エラー]", error);
         }
 
         setShowSuccessMessage(true);
@@ -853,9 +891,12 @@ const ProjectMemberForm = ({
           setShowSuccessMessage(false);
           setGithubNames([]);
         }, 2000);
+      } else if (failedMembers.length > 0) {
+        // 全て失敗した場合
+        setGithubNames([]);
       }
     } catch (error) {
-      console.error("プロジェクトメンバー追加エラー:", error);
+      console.error("[プロジェクトメンバー追加 全体エラー]", error);
       alert("プロジェクトメンバーの追加に失敗しました");
     } finally {
       setLoading(false);
