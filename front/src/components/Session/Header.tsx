@@ -17,6 +17,9 @@ import {
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { Session } from "next-auth";
 import { useRouter, usePathname } from "next/navigation";
+import { listMembers, getMemberByGithubName, patchMemberById } from "@/libs/modelAPI/member";
+import { getProjectMembersByProjectId, postProjectMember, deleteProjectMember } from "@/libs/modelAPI/project_member";
+import axios from "axios";
 
 export default function CyberHeader() {
   const { darkMode } = useDarkMode();
@@ -680,9 +683,6 @@ const ProjectMemberForm = ({
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const { listMembers } = await import("@/libs/modelAPI/member");
-        const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
-
         const members = await listMembers();
         setAllMembers(members.map(m => m.github_name));
 
@@ -702,7 +702,6 @@ const ProjectMemberForm = ({
           );
           setExistingMembers(membersWithGithub);
         } catch (error) {
-          const axios = (await import("axios")).default;
           // 404エラーの場合は空配列（メンバーがいない）
           if (axios.isAxiosError(error) && error.response?.status === 404) {
             setExistingMembers([]);
@@ -723,7 +722,6 @@ const ProjectMemberForm = ({
   // 既存メンバーを削除
   const removeExistingMember = async (projectMemberId: string) => {
     try {
-      const { deleteProjectMember } = await import("@/libs/modelAPI/project_member");
       await deleteProjectMember(projectMemberId);
       setExistingMembers(existingMembers.filter(m => m.project_member_id !== projectMemberId));
     } catch (error) {
@@ -780,10 +778,6 @@ const ProjectMemberForm = ({
     setLoading(true);
 
     try {
-      const { postProjectMember } = await import("@/libs/modelAPI/project_member");
-      const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
-      const axios = (await import("axios")).default;
-
       const failedMembers: string[] = [];
       const successMembers: string[] = [];
 
@@ -861,9 +855,6 @@ const ProjectMemberForm = ({
 
       if (successMembers.length > 0) {
         // 既存メンバーリストを更新
-        const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
-        const { listMembers } = await import("@/libs/modelAPI/member");
-
         try {
           console.log(`[メンバーリスト再取得開始] プロジェクトID: ${projectId}`);
           const projectMembers = await getProjectMembersByProjectId(projectId);
@@ -1107,14 +1098,12 @@ const MemberEditForm = ({
       if (!session?.user?.name) return;
 
       try {
-        const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
         const member = await getMemberByGithubName(session.user.name);
         setMemberName(member.member_name);
         setMemberSkill(member.member_skill);
         setMemberId(member.member_id);
       } catch (error) {
         console.error("メンバー情報取得エラー:", error);
-        const axios = (await import("axios")).default;
 
         // 404エラーの場合は再ログインを促す
         if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -1138,8 +1127,6 @@ const MemberEditForm = ({
     setLoading(true);
 
     try {
-      const { patchMemberById } = await import("@/libs/modelAPI/member");
-
       await patchMemberById(memberId, {
         member_name: memberName,
         member_skill: memberSkill,
