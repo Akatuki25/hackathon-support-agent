@@ -558,23 +558,54 @@ export default function FunctionStructuring() {
 
           {/* 処理中の表示 */}
           {(processingState === 'structuring' || setupPhase === 'structuring-functions') && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+            <div className={`backdrop-blur-md rounded-xl p-8 shadow-2xl border transition-all mb-8 relative overflow-hidden ${
               darkMode
-                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
+                ? "bg-blue-900/10 border-blue-400/40 shadow-[0_0_60px_rgba(59,130,246,0.4)]"
                 : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
             }`}>
-              <div className="text-center">
-                <Bot size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
-                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+              {/* Animated background gradient */}
+              {darkMode && (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-cyan-500/5 to-blue-600/5 animate-pulse" />
+                  <div className="absolute top-0 left-1/4 w-48 h-48 bg-blue-500/10 rounded-full blur-[80px] animate-pulse" style={{animationDelay: '0.5s'}} />
+                  <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-cyan-500/10 rounded-full blur-[80px] animate-pulse" style={{animationDelay: '1s'}} />
+                </>
+              )}
+
+              <div className="text-center relative z-10">
+                {/* Glowing Bot Icon */}
+                <div className="relative inline-block mb-4">
+                  <div className={`absolute inset-0 ${darkMode ? "bg-blue-500/20" : "bg-purple-500/20"} rounded-full blur-xl animate-pulse`} />
+                  <Bot size={48} className={`relative mx-auto ${darkMode ? "text-blue-400 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)]" : "text-purple-600"}`} />
+                </div>
+
+                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-blue-300 drop-shadow-[0_0_10px_rgba(59,130,246,0.6)]" : "text-purple-700"}`}>
                   AI機能構造化エージェント実行中
                 </h2>
+
+                {/* Animated loader with glow */}
                 <div className="flex items-center justify-center mb-4">
-                  <Loader2 className="animate-spin mr-2" size={20} />
-                  <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
+                  <div className="relative">
+                    <div className={`absolute inset-0 ${darkMode ? "bg-cyan-400/20" : "bg-purple-400/20"} rounded-full blur-md`} />
+                    <Loader2 className={`relative animate-spin mr-2 ${darkMode ? "text-cyan-400" : "text-purple-600"}`} size={20} />
+                  </div>
+                  <span className={darkMode ? "text-blue-200" : "text-gray-700"}>
                     {agentProgress}
                   </span>
                 </div>
-                <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+
+                {/* Progress bar */}
+                <div className={`w-full max-w-md mx-auto mb-4 h-1 rounded-full overflow-hidden ${
+                  darkMode ? "bg-blue-900/30" : "bg-gray-200"
+                }`}>
+                  <div className={`h-full rounded-full animate-pulse ${
+                    darkMode
+                      ? "bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                      : "bg-gradient-to-r from-purple-400 to-blue-500"
+                  }`} style={{width: '70%', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'}} />
+                </div>
+
+                <div className={`text-sm ${darkMode ? "text-blue-300/80" : "text-gray-600"}`}>
                   複数段階のバリデーションにより高品質な構造化を実行中...
                 </div>
               </div>
