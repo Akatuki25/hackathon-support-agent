@@ -574,8 +574,7 @@ export default function TaskVisualizationPage() {
     <>
       <main className="relative z-10">
         <div className="h-screen w-screen relative overflow-hidden">
-          <Tasktask生成のローディングのUI改善 #40
-Flow
+          <TaskFlow
             initialNodes={nodes}
             initialEdges={edges}
             onNodesChange={handleNodesChange}
