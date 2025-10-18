@@ -51,9 +51,14 @@ celery_app.conf.update(
     # Redisポーリング間隔の調整
     broker_transport_options={
         'visibility_timeout': 43200,  # 12時間（長時間タスク対応）
+        'polling_interval': 60,  # 🔧 BRPOPタイムアウト: 1秒 → 60秒（Redis READ 98%削減）
         'fanout_prefix': True,
         'fanout_patterns': True,
     },
+
+    # 🔧 Worker heartbeat/events 最適化（Redis READ削減）
+    worker_send_task_events=False,  # タスクイベント送信無効化（Flower不使用）
+    broker_heartbeat=None,  # ハートビート無効化
 
     # タスク自動検出（tasksディレクトリ配下）
     imports=[
