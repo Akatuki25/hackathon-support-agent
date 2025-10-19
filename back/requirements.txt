@@ -24,6 +24,7 @@ markdown-it-py
 
 # Phase 3: Celery非同期処理
 celery[redis]==5.3.4
+kombu>=5.6.0  # 🔧 polling_interval サポートのため（Kombu 5.6.0+で追加）
 redis==4.6.0
 flower==2.0.1
 supervisor==4.2.5
