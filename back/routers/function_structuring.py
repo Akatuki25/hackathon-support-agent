@@ -5,6 +5,7 @@ from database import get_db
 from services.function_structuring_service import FunctionStructuringAgent
 from typing import Union, List, Dict, Any, Optional
 import uuid
+from utils.phase_manager import PhaseManager
 
 router = APIRouter()
 
@@ -158,8 +159,18 @@ def structure_functions(request: ProjectIdRequest, db: Session = Depends(get_db)
         # FunctionStructuringAgent を初期化して実行
         agent = FunctionStructuringAgent(db)
         result = agent.process_project(project_id_str)
-        
+
         if result["success"]:
+            # ✅ 機能構造化成功後、フェーズを function_structuring に更新
+            try:
+                PhaseManager.update_phase(
+                    db=db,
+                    project_id=project_id_str,
+                    new_phase="function_structuring"
+                )
+            except Exception as e:
+                print(f"⚠️  Failed to update phase: {e}")
+
             return {
                 "message": "Function structuring completed successfully",
                 "project_id": project_id_str,

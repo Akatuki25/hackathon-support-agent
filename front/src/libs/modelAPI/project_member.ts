@@ -38,3 +38,9 @@ export const deleteProjectMember = async (projectMemberId: string): Promise<{ me
   const response = await axios.delete(`${API_URL}/project_member/member/${projectMemberId}`);
   return response.data;
 };
+
+// --- GET Project Members by Member ID (逆引き) ---
+export const getProjectsByMemberId = async (memberId: string): Promise<ProjectMemberType[]> => {
+  const response = await axios.get<ProjectMemberType[]>(`${API_URL}/project_member/member_projects/${memberId}`);
+  return response.data;
+};

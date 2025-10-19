@@ -9,6 +9,20 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 # =====================================================================
+# Phase Management Enum
+# =====================================================================
+ProjectPhaseEnum = Enum(
+    "initial",               # プロジェクト作成直後
+    "qa_editing",            # Q&A編集中
+    "summary_review",        # 要約レビュー中
+    "framework_selection",   # フレームワーク選択中
+    "function_review",       # 機能レビュー中
+    "function_structuring",  # 機能構造化中
+    "task_management",       # タスク管理（完了）
+    name="project_phase_enum"
+)
+
+# =====================================================================
 # 既存：Member / ProjectBase / ProjectMember
 # =====================================================================
 
@@ -42,6 +56,27 @@ class ProjectBase(Base):
     idea       = Column(String, nullable=False)
     start_date = Column(Date,  nullable=False)
     end_date   = Column(DateTime, nullable=False)
+
+    # Phase Management
+    current_phase = Column(
+        ProjectPhaseEnum,
+        nullable=False,
+        default="initial",
+        index=True,
+        comment="現在のプロジェクトフェーズ"
+    )
+    phase_updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        comment="フェーズ最終更新日時"
+    )
+    phase_history = Column(
+        JSON,
+        nullable=True,
+        comment="フェーズ遷移履歴 [{from_phase: string, to_phase: string, timestamp: string}]"
+    )
 
     # Relations
     document = relationship(

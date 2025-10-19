@@ -104,3 +104,16 @@ async def get_project_members_by_project_id(project_id: uuid.UUID, db: Session =
     if not db_project_members:
         raise HTTPException(status_code=404, detail="Project members not found")
     return db_project_members
+
+# メンバーIDから参加しているプロジェクトメンバー情報を取得（逆引き）
+@router.get("/project_member/member_projects/{member_id}", summary="メンバーIDから参加プロジェクト取得")
+async def get_projects_by_member_id(member_id: uuid.UUID, db: Session = Depends(get_db)):
+    """指定されたメンバーが参加しているプロジェクトメンバー情報を取得"""
+    db_project_members = db.query(ProjectMember).filter(
+        ProjectMember.member_id == member_id
+    ).all()
+
+    if not db_project_members:
+        return []  # 404ではなく空配列を返す
+
+    return db_project_members

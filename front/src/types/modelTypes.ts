@@ -24,6 +24,10 @@ export type ProjectType = {
   idea: string;
   start_date: string; // date from FastAPI is string (YYYY-MM-DD)
   end_date: string; // datetime from FastAPI is string (ISO 8601)
+  // Phase information (new)
+  current_phase?: string;
+  phase_updated_at?: string;
+  phase_progress_percentage?: number;
 };
 
 export type ProjectResponseType = {

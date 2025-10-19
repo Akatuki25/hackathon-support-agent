@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from database import get_db
 from services.integrated_task_service import IntegratedTaskService
+from utils.phase_manager import PhaseManager
 
 
 router = APIRouter()
@@ -52,7 +53,18 @@ async def generate_complete_task_set(
     try:
         service = IntegratedTaskService(db)
         result = await service.generate_complete_task_set(request.project_id)
-        
+
+        # ✅ タスク生成成功後、フェーズを task_management に更新
+        if result["success"]:
+            try:
+                PhaseManager.update_phase(
+                    db=db,
+                    project_id=request.project_id,
+                    new_phase="task_management"
+                )
+            except Exception as e:
+                print(f"⚠️  Failed to update phase: {e}")
+
         return CompleteTaskGenerationResponse(
             success=result["success"],
             message=f"Successfully generated complete task set with {result['total_tasks']} tasks and {result['total_dependencies']} dependencies",

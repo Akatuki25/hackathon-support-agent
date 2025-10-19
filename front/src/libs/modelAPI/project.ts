@@ -38,3 +38,15 @@ export const deleteProject = async (projectId: string): Promise<{ message: strin
   const response = await axios.delete(`${API_URL}/project/${projectId}`);
   return response.data;
 };
+
+// --- GET All Projects with Phase Information ---
+export const getAllProjectsWithPhase = async (): Promise<ProjectType[]> => {
+  const response = await axios.get<ProjectType[]>(`${API_URL}/projectsAll`);
+  return response.data;
+};
+
+// --- GET Projects by Member ID ---
+export const getProjectsByMemberId = async (memberId: string): Promise<ProjectType[]> => {
+  const response = await axios.get<ProjectType[]>(`${API_URL}/projects/member/${memberId}`);
+  return response.data;
+};

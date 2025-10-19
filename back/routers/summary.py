@@ -7,6 +7,7 @@ from typing import Union, List
 from models.project_base import ProjectDocument
 import uuid
 from services.mvp_judge_service import MVPJudgeService
+from utils.phase_manager import PhaseManager
 router = APIRouter()
 
 class ProjectIdRequest(BaseModel):
@@ -37,6 +38,17 @@ def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
             project_id_str = str(request.project_id)
 
         result = summary_service.generate_summary(project_id=project_id_str)
+
+        # ✅ 要約生成成功後、フェーズを summary_review に更新
+        try:
+            PhaseManager.update_phase(
+                db=db,
+                project_id=project_id_str,
+                new_phase="summary_review"
+            )
+        except Exception as e:
+            print(f"⚠️  Failed to update phase: {e}")
+
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

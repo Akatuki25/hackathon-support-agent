@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 # APIルーターのインポート
-from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
+from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document, project_phase
 from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency
 
 # データベース初期化
@@ -48,6 +48,7 @@ app.include_router(project_qa.router)
 app.include_router(project_member.router)
 app.include_router(project_ai_document.router, prefix="/project", tags=["Project-AIDocument"])
 app.include_router(task.router)
+app.include_router(project_phase.router)
 
 
 

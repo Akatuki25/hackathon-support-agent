@@ -6,6 +6,7 @@ import uuid
 
 from database import get_db
 from services.question_service import QuestionService
+from utils.phase_manager import PhaseManager
 
 router = APIRouter()  # 例: app.include_router(router, prefix="/api/question")
 
@@ -61,11 +62,22 @@ def generate_question(
     """
     qanda_service = QuestionService(db=db)
     # <- ここでサービスの返却も { "QA": [...] } になるように統一する
-    
+
     result = qanda_service.generate_question(idea_prompt.Prompt, project_id=project_id)
+
+    # ✅ Q&A生成成功後、フェーズを qa_editing に更新
+    try:
+        PhaseManager.update_phase(
+            db=db,
+            project_id=str(project_id),
+            new_phase="qa_editing"
+        )
+    except Exception as e:
+        print(f"⚠️  Failed to update phase: {e}")
+        # フェーズ更新失敗してもQ&Aは返す
 
     # サービスが list[QABase/Dict] を返すなら包む
     if isinstance(result, dict) and "QA" in result:
         return result
-    
+
     return {"QA": result}
