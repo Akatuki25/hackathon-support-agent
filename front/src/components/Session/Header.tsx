@@ -17,6 +17,9 @@ import {
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { Session } from "next-auth";
 import { useRouter, usePathname } from "next/navigation";
+import { listMembers, getMemberByGithubName, patchMemberById } from "@/libs/modelAPI/member";
+import { getProjectMembersByProjectId, postProjectMember, deleteProjectMember } from "@/libs/modelAPI/project_member";
+import axios from "axios";
 
 export default function CyberHeader() {
   const { darkMode } = useDarkMode();
@@ -680,9 +683,6 @@ const ProjectMemberForm = ({
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const { listMembers } = await import("@/libs/modelAPI/member");
-        const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
-
         const members = await listMembers();
         setAllMembers(members.map(m => m.github_name));
 
@@ -702,7 +702,6 @@ const ProjectMemberForm = ({
           );
           setExistingMembers(membersWithGithub);
         } catch (error) {
-          const axios = (await import("axios")).default;
           // 404エラーの場合は空配列（メンバーがいない）
           if (axios.isAxiosError(error) && error.response?.status === 404) {
             setExistingMembers([]);
@@ -723,7 +722,6 @@ const ProjectMemberForm = ({
   // 既存メンバーを削除
   const removeExistingMember = async (projectMemberId: string) => {
     try {
-      const { deleteProjectMember } = await import("@/libs/modelAPI/project_member");
       await deleteProjectMember(projectMemberId);
       setExistingMembers(existingMembers.filter(m => m.project_member_id !== projectMemberId));
     } catch (error) {
@@ -780,12 +778,10 @@ const ProjectMemberForm = ({
     setLoading(true);
 
     try {
-      const { postProjectMember } = await import("@/libs/modelAPI/project_member");
-      const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
-      const axios = (await import("axios")).default;
-
       const failedMembers: string[] = [];
       const successMembers: string[] = [];
+
+      console.log(`[メンバー追加] プロジェクトID: ${projectId}, 追加予定: ${githubNames.join(', ')}`);
 
       // 各GitHubネームごとにメンバーを追加
       for (const githubName of githubNames) {
@@ -795,9 +791,11 @@ const ProjectMemberForm = ({
           // 既存メンバーを検索
           try {
             member = await getMemberByGithubName(githubName);
+            console.log(`[メンバー検索成功] ${githubName} -> member_id: ${member.member_id}`);
           } catch (error) {
             // 404エラーの場合は、そのユーザーにGitHubログインを促す必要がある
             if (axios.isAxiosError(error) && error.response?.status === 404) {
+              console.warn(`[メンバー未登録] ${githubName} はシステムに未登録です`);
               failedMembers.push(`${githubName} (未登録ユーザー - GitHubログインが必要)`);
               continue;
             } else {
@@ -805,18 +803,48 @@ const ProjectMemberForm = ({
             }
           }
 
+          // 重複チェック（既にプロジェクトメンバーに含まれているか）
+          const isDuplicate = existingMembers.some(
+            existing => existing.github_name === githubName || existing.member_name === member.member_name
+          );
+
+          if (isDuplicate) {
+            console.warn(`[重複検出] ${githubName} は既にプロジェクトメンバーです`);
+            failedMembers.push(`${githubName} (既にメンバーです)`);
+            continue;
+          }
+
           // プロジェクトメンバーに追加
-          await postProjectMember({
+          console.log(`[DB登録開始] project_id: ${projectId}, member_id: ${member.member_id}, member_name: ${member.member_name}`);
+
+          const projectMemberData = {
             project_id: projectId,
             member_id: member.member_id,
             member_name: member.member_name,
-          });
+          };
+
+          const projectMemberId = await postProjectMember(projectMemberData);
+          console.log(`[DB登録成功] project_member_id: ${projectMemberId}, GitHubユーザー: ${githubName}`);
+
           successMembers.push(githubName);
         } catch (error) {
-          console.error(`メンバー ${githubName} の追加エラー:`, error);
-          failedMembers.push(`${githubName} (追加失敗)`);
+          console.error(`[メンバー追加エラー] ${githubName}:`, error);
+
+          // エラー詳細を取得
+          let errorDetail = "追加失敗";
+          if (axios.isAxiosError(error)) {
+            if (error.response?.status === 409) {
+              errorDetail = "既に登録済み";
+            } else if (error.response?.data?.detail) {
+              errorDetail = error.response.data.detail;
+            }
+          }
+
+          failedMembers.push(`${githubName} (${errorDetail})`);
         }
       }
+
+      console.log(`[追加処理完了] 成功: ${successMembers.length}件, 失敗: ${failedMembers.length}件`);
 
       // 結果を表示
       if (failedMembers.length > 0) {
@@ -827,12 +855,11 @@ const ProjectMemberForm = ({
 
       if (successMembers.length > 0) {
         // 既存メンバーリストを更新
-        const { getProjectMembersByProjectId } = await import("@/libs/modelAPI/project_member");
-        const { listMembers } = await import("@/libs/modelAPI/member");
-
         try {
+          console.log(`[メンバーリスト再取得開始] プロジェクトID: ${projectId}`);
           const projectMembers = await getProjectMembersByProjectId(projectId);
           const members = await listMembers();
+
           const membersWithGithub = await Promise.all(
             projectMembers.map(async (pm) => {
               const member = members.find(m => m.member_id === pm.member_id);
@@ -843,9 +870,11 @@ const ProjectMemberForm = ({
               };
             })
           );
+
+          console.log(`[メンバーリスト更新] 現在のメンバー数: ${membersWithGithub.length}`);
           setExistingMembers(membersWithGithub);
         } catch (error) {
-          console.error("プロジェクトメンバー再取得エラー:", error);
+          console.error("[メンバーリスト再取得エラー]", error);
         }
 
         setShowSuccessMessage(true);
@@ -853,9 +882,12 @@ const ProjectMemberForm = ({
           setShowSuccessMessage(false);
           setGithubNames([]);
         }, 2000);
+      } else if (failedMembers.length > 0) {
+        // 全て失敗した場合
+        setGithubNames([]);
       }
     } catch (error) {
-      console.error("プロジェクトメンバー追加エラー:", error);
+      console.error("[プロジェクトメンバー追加 全体エラー]", error);
       alert("プロジェクトメンバーの追加に失敗しました");
     } finally {
       setLoading(false);
@@ -1066,14 +1098,12 @@ const MemberEditForm = ({
       if (!session?.user?.name) return;
 
       try {
-        const { getMemberByGithubName } = await import("@/libs/modelAPI/member");
         const member = await getMemberByGithubName(session.user.name);
         setMemberName(member.member_name);
         setMemberSkill(member.member_skill);
         setMemberId(member.member_id);
       } catch (error) {
         console.error("メンバー情報取得エラー:", error);
-        const axios = (await import("axios")).default;
 
         // 404エラーの場合は再ログインを促す
         if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -1097,8 +1127,6 @@ const MemberEditForm = ({
     setLoading(true);
 
     try {
-      const { patchMemberById } = await import("@/libs/modelAPI/member");
-
       await patchMemberById(memberId, {
         member_name: memberName,
         member_skill: memberSkill,
