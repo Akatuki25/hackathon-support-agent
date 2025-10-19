@@ -394,7 +394,7 @@ export default function FunctionSummary() {
       </div>
 
       <main className="relative z-10">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-[2000px] mx-auto px-8 py-8">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4 mt-5">
               <Terminal
@@ -416,9 +416,9 @@ export default function FunctionSummary() {
             </p>
           </div>
 
-          <div className="flex gap-6 min-h-[80vh]">
+          <div className="flex gap-6 min-h-[85vh]">
             {/* 確信度評価部分 */}
-            <div className="flex-shrink-0" style={{ flexBasis: '15%' }}>
+            <div className="flex-shrink-0" style={{ flexBasis: '18%' }}>
               {confidenceFeedback && (
                 <div className={`rounded-xl border-2 overflow-hidden ${
                   darkMode
@@ -509,7 +509,7 @@ export default function FunctionSummary() {
             </div>
 
             {/* 機能要件編集部分 */}
-            <div className="flex-1" style={{ flexBasis: '72%' }}>
+            <div className="flex-1" style={{ flexBasis: '57%' }}>
               <FunctionEditor
                 projectId={projectId}
                 functionDocument={functionDocument}
@@ -523,7 +523,7 @@ export default function FunctionSummary() {
             </div>
 
             {/* Q&A部分 */}
-            <div className="flex-shrink-0" style={{ flexBasis: '20%' }}>
+            <div className="flex-shrink-0" style={{ flexBasis: '25%' }}>
               <QASection
                 projectId={projectId}
                 questions={qaList}
