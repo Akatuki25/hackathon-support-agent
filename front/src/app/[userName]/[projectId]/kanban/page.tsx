@@ -454,7 +454,7 @@ export default function KanbanBoardPage() {
           console.log('[HandsOn] No tasks found, skipping hands-on generation');
           return;
         }
-
+        
         // Step 2: 最初のタスクのハンズオンが既に存在するかチェック
         const firstTask = tasks[0];
         const handsOnResponse = await fetchTaskHandsOn(firstTask.task_id!);
