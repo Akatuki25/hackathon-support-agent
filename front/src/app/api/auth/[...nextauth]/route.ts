@@ -4,7 +4,8 @@ import GitHub from "next-auth/providers/github";
 import type { NextAuthOptions } from "next-auth";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Use API_URL for server-side (Docker), fallback to NEXT_PUBLIC_API_URL for local development
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
 
 const authOptions: NextAuthOptions = {
   providers: [
