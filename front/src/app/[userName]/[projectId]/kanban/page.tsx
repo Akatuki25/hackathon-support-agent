@@ -14,32 +14,29 @@ import {
 } from 'react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useTasksByProjectId, patchTask } from '@/libs/modelAPI/task';
-import { TaskType, TaskStatusEnum } from '@/types/modelTypes';
+import { TaskType } from '@/types/modelTypes';
 import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
+import { useProjectMembers } from '@/hooks/useProjectMembers';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const triggeredHandsOnProjects = new Set<string>();
 
-type BoardState = Record<TaskStatusEnum, TaskType[]>;
+type BoardState = Record<string, TaskType[]>; // key = member_name or 'unassigned'
 
 type MoveResult = {
   board: BoardState;
   moved: boolean;
 };
 
-const STATUS_LIST: ReadonlyArray<{ key: TaskStatusEnum; label: string }> = [
-  { key: 'TODO', label: 'TODO' },
-  { key: 'DOING', label: 'DOING' },
-  { key: 'DONE', label: 'DONE' },
-] as const;
+const UNASSIGNED_KEY = 'unassigned' as const;
 
 type ThemeVariant = {
   light: string;
   dark: string;
 };
 
-type StatusTheme = {
+type ColumnTheme = {
   column: ThemeVariant;
   label: ThemeVariant;
   count: ThemeVariant;
@@ -51,124 +48,87 @@ type StatusTheme = {
   empty: ThemeVariant;
 };
 
-const STATUS_THEME: Record<TaskStatusEnum, StatusTheme> = {
-  TODO: {
-    column: {
-      light: 'border-gray-200 bg-gray-50 shadow-sm',
-      dark: 'border-pink-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(236,72,153,0.2)]',
-    },
-    label: {
-      light: 'text-gray-700',
-      dark: 'text-pink-200',
-    },
-    count: {
-      light: 'bg-white text-gray-500',
-      dark: 'border border-pink-500/40 bg-slate-900/80 text-pink-200',
-    },
-    card: {
-      light: 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md',
-      dark: 'border-pink-500/30 bg-slate-900/80 hover:border-pink-400/60 shadow-[0_0_16px_rgba(236,72,153,0.25)]',
-    },
-    title: {
-      light: 'text-gray-800',
-      dark: 'text-slate-100',
-    },
-    description: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    meta: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    priority: {
-      light: 'bg-gray-100 text-gray-600',
-      dark: 'border border-pink-400/50 bg-pink-500/10 text-pink-200',
-    },
-    empty: {
-      light: 'text-gray-400',
-      dark: 'text-slate-500',
-    },
+// Unified theme for member columns
+const MEMBER_COLUMN_THEME: ColumnTheme = {
+  column: {
+    light: 'border-gray-200 bg-gray-50 shadow-sm',
+    dark: 'border-cyan-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(6,182,212,0.2)]',
   },
-  DOING: {
-    column: {
-      light: 'border-blue-200 bg-blue-50 shadow-sm',
-      dark: 'border-cyan-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(6,182,212,0.2)]',
-    },
-    label: {
-      light: 'text-blue-700',
-      dark: 'text-cyan-200',
-    },
-    count: {
-      light: 'bg-white text-blue-600',
-      dark: 'border border-cyan-500/40 bg-slate-900/80 text-cyan-200',
-    },
-    card: {
-      light: 'border-blue-200 bg-white hover:border-blue-300 hover:shadow-md',
-      dark: 'border-cyan-500/30 bg-slate-900/80 hover:border-cyan-400/60 shadow-[0_0_16px_rgba(6,182,212,0.25)]',
-    },
-    title: {
-      light: 'text-gray-800',
-      dark: 'text-slate-100',
-    },
-    description: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    meta: {
-      light: 'text-blue-600/80',
-      dark: 'text-cyan-200',
-    },
-    priority: {
-      light: 'bg-blue-100 text-blue-600',
-      dark: 'border border-cyan-400/50 bg-cyan-500/10 text-cyan-200',
-    },
-    empty: {
-      light: 'text-blue-400',
-      dark: 'text-cyan-300',
-    },
+  label: {
+    light: 'text-gray-700',
+    dark: 'text-cyan-200',
   },
-  DONE: {
-    column: {
-      light: 'border-emerald-200 bg-emerald-50 shadow-sm',
-      dark: 'border-emerald-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(16,185,129,0.2)]',
-    },
-    label: {
-      light: 'text-emerald-700',
-      dark: 'text-emerald-200',
-    },
-    count: {
-      light: 'bg-white text-emerald-600',
-      dark: 'border border-emerald-500/40 bg-slate-900/80 text-emerald-200',
-    },
-    card: {
-      light: 'border-emerald-200 bg-white hover:border-emerald-300 hover:shadow-md',
-      dark: 'border-emerald-500/30 bg-slate-900/80 hover:border-emerald-400/60 shadow-[0_0_16px_rgba(16,185,129,0.25)]',
-    },
-    title: {
-      light: 'text-gray-800',
-      dark: 'text-slate-100',
-    },
-    description: {
-      light: 'text-gray-500',
-      dark: 'text-slate-300',
-    },
-    meta: {
-      light: 'text-emerald-600/80',
-      dark: 'text-emerald-200',
-    },
-    priority: {
-      light: 'bg-emerald-100 text-emerald-700',
-      dark: 'border border-emerald-400/50 bg-emerald-500/10 text-emerald-200',
-    },
-    empty: {
-      light: 'text-emerald-400',
-      dark: 'text-emerald-300',
-    },
+  count: {
+    light: 'bg-white text-gray-500',
+    dark: 'border border-cyan-500/40 bg-slate-900/80 text-cyan-200',
+  },
+  card: {
+    light: 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md',
+    dark: 'border-cyan-500/30 bg-slate-900/80 hover:border-cyan-400/60 shadow-[0_0_16px_rgba(6,182,212,0.25)]',
+  },
+  title: {
+    light: 'text-gray-800',
+    dark: 'text-slate-100',
+  },
+  description: {
+    light: 'text-gray-500',
+    dark: 'text-slate-300',
+  },
+  meta: {
+    light: 'text-gray-500',
+    dark: 'text-slate-300',
+  },
+  priority: {
+    light: 'bg-gray-100 text-gray-600',
+    dark: 'border border-cyan-400/50 bg-cyan-500/10 text-cyan-200',
+  },
+  empty: {
+    light: 'text-gray-400',
+    dark: 'text-slate-500',
   },
 };
 
-type ComputedStatusStyle = {
+// Theme for unassigned column
+const UNASSIGNED_COLUMN_THEME: ColumnTheme = {
+  column: {
+    light: 'border-amber-200 bg-amber-50 shadow-sm',
+    dark: 'border-amber-500/40 bg-slate-950/70 shadow-[0_0_18px_rgba(245,158,11,0.2)]',
+  },
+  label: {
+    light: 'text-amber-700',
+    dark: 'text-amber-200',
+  },
+  count: {
+    light: 'bg-white text-amber-600',
+    dark: 'border border-amber-500/40 bg-slate-900/80 text-amber-200',
+  },
+  card: {
+    light: 'border-amber-200 bg-white hover:border-amber-300 hover:shadow-md',
+    dark: 'border-amber-500/30 bg-slate-900/80 hover:border-amber-400/60 shadow-[0_0_16px_rgba(245,158,11,0.25)]',
+  },
+  title: {
+    light: 'text-gray-800',
+    dark: 'text-slate-100',
+  },
+  description: {
+    light: 'text-gray-500',
+    dark: 'text-slate-300',
+  },
+  meta: {
+    light: 'text-amber-600/80',
+    dark: 'text-amber-200',
+  },
+  priority: {
+    light: 'bg-amber-100 text-amber-700',
+    dark: 'border border-amber-400/50 bg-amber-500/10 text-amber-200',
+  },
+  empty: {
+    light: 'text-amber-400',
+    dark: 'text-amber-300',
+  },
+};
+
+type ComputedColumnStyle = {
   column: string;
   label: string;
   count: string;
@@ -182,6 +142,18 @@ type ComputedStatusStyle = {
 
 const pickVariant = (variant: ThemeVariant, darkMode: boolean) =>
   darkMode ? variant.dark : variant.light;
+
+const computeColumnStyle = (theme: ColumnTheme, darkMode: boolean): ComputedColumnStyle => ({
+  column: pickVariant(theme.column, darkMode),
+  label: pickVariant(theme.label, darkMode),
+  count: pickVariant(theme.count, darkMode),
+  card: pickVariant(theme.card, darkMode),
+  title: pickVariant(theme.title, darkMode),
+  description: pickVariant(theme.description, darkMode),
+  meta: pickVariant(theme.meta, darkMode),
+  priority: pickVariant(theme.priority, darkMode),
+  empty: pickVariant(theme.empty, darkMode),
+});
 
 type HeaderProps = {
   containerClass: string;
@@ -250,64 +222,75 @@ function Header({
   );
 }
 
-const createEmptyBoard = (): BoardState => ({
-  TODO: [],
-  DOING: [],
-  DONE: [],
-});
+const createEmptyBoard = (memberNames: string[]): BoardState => {
+  const board: BoardState = {};
+  memberNames.forEach(name => {
+    board[name] = [];
+  });
+  board[UNASSIGNED_KEY] = [];
+  return board;
+};
 
-const buildBoardFromTasks = (tasks?: TaskType[]): BoardState => {
-  const board = createEmptyBoard();
+const buildBoardFromTasks = (tasks?: TaskType[], memberNames: string[] = []): BoardState => {
+  const board = createEmptyBoard(memberNames);
   tasks?.forEach((task) => {
-    const status: TaskStatusEnum = task.status ?? 'TODO';
-    board[status].push(task);
+    const assignee = task.assignee || UNASSIGNED_KEY;
+    if (board[assignee]) {
+      board[assignee].push(task);
+    } else {
+      // If assignee doesn't match any member, put in unassigned
+      board[UNASSIGNED_KEY].push(task);
+    }
   });
   return board;
 };
 
-const moveTaskToStatus = (
+const moveTaskToMember = (
   state: BoardState,
   taskId: string,
-  newStatus: TaskStatusEnum,
+  newAssignee: string,
 ): MoveResult => {
-  const next: BoardState = {
-    TODO: [...state.TODO],
-    DOING: [...state.DOING],
-    DONE: [...state.DONE],
-  };
+  const next: BoardState = {};
+  for (const key in state) {
+    next[key] = [...state[key]];
+  }
 
-  let sourceStatus: TaskStatusEnum | null = null;
+  let sourceAssignee: string | null = null;
   let task: TaskType | undefined;
 
-  for (const { key } of STATUS_LIST) {
-    const index = next[key].findIndex((item) => item.task_id === taskId);
+  for (const assignee in next) {
+    const index = next[assignee].findIndex((item) => item.task_id === taskId);
     if (index !== -1) {
-      sourceStatus = key;
-      task = next[key][index];
-      next[key].splice(index, 1);
+      sourceAssignee = assignee;
+      task = next[assignee][index];
+      next[assignee].splice(index, 1);
       break;
     }
   }
 
-  if (!task || sourceStatus === newStatus) {
+  if (!task || sourceAssignee === newAssignee) {
     return { board: state, moved: false };
   }
 
-  const updatedTask: TaskType = { ...task, status: newStatus };
-  next[newStatus] = [updatedTask, ...next[newStatus]];
+  const updatedTask: TaskType = {
+    ...task,
+    assignee: newAssignee === UNASSIGNED_KEY ? undefined : newAssignee
+  };
+  next[newAssignee] = [updatedTask, ...next[newAssignee]];
 
   return { board: next, moved: true };
 };
 
 type TaskCardProps = {
   task: TaskType;
-  styles: ComputedStatusStyle;
+  styles: ComputedColumnStyle;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
+  onToggleComplete: (taskId?: string) => void;
 };
 
-function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardProps) {
+function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect, onToggleComplete }: TaskCardProps) {
   const canDrag = Boolean(task.task_id);
 
   const handleDragStart = () => {
@@ -332,6 +315,15 @@ function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardPr
     }
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    onToggleComplete(task.task_id);
+  };
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <article
       className={`rounded border p-3 text-sm shadow-sm transition ${styles.card}`}
@@ -343,32 +335,52 @@ function TaskCard({ task, styles, onDragStart, onDragEnd, onSelect }: TaskCardPr
       role="button"
       tabIndex={canDrag ? 0 : -1}
     >
-      <h3 className={`font-semibold ${styles.title}`}>{task.title}</h3>
-      {task.description && (
-        <p className={`mt-2 text-xs ${styles.description}`}>{task.description}</p>
-      )}
-      <div className={`mt-2 flex items-center gap-2 text-xs ${styles.meta}`}>
-        {task.priority && (
-          <span className={`rounded px-2 py-0.5 ${styles.priority}`}>{task.priority}</span>
-        )}
-        {task.assignee && <span>👤 {task.assignee}</span>}
+      <div className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          checked={task.completed ?? false}
+          onChange={handleCheckboxChange}
+          onClick={handleCheckboxClick}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
+        />
+        <div className="flex-1">
+          <h3 className={`font-semibold ${task.completed ? 'line-through opacity-60' : ''} ${styles.title}`}>
+            {task.title}
+          </h3>
+          {task.description && (
+            <p className={`mt-2 text-xs ${task.completed ? 'opacity-60' : ''} ${styles.description}`}>
+              {task.description}
+            </p>
+          )}
+          <div className={`mt-2 flex items-center gap-2 text-xs ${styles.meta}`}>
+            {task.priority && (
+              <span className={`rounded px-2 py-0.5 ${styles.priority}`}>{task.priority}</span>
+            )}
+            {task.status && (
+              <span className="rounded bg-slate-200 px-2 py-0.5 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                {task.status}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </article>
   );
 }
 
 type TaskColumnProps = {
-  status: TaskStatusEnum;
+  memberKey: string;
   label: string;
   tasks: TaskType[];
-  styles: ComputedStatusStyle;
+  styles: ComputedColumnStyle;
   onDrop: (event: DragEvent<HTMLDivElement>) => void;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
+  onToggleComplete: (taskId?: string) => void;
 };
 
-function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragEnd, onSelect }: TaskColumnProps) {
+function TaskColumn({ memberKey, label, tasks, styles, onDrop, onDragStart, onDragEnd, onSelect, onToggleComplete }: TaskColumnProps) {
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
@@ -377,7 +389,7 @@ function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragE
     <section
       aria-label={`${label} column`}
       className={`flex min-w-[220px] flex-1 flex-col gap-3 rounded border p-4 transition backdrop-blur-sm ${styles.column}`}
-      data-status={status}
+      data-member={memberKey}
       onDragOver={handleDragOver}
       onDrop={onDrop}
     >
@@ -391,12 +403,13 @@ function TaskColumn({ status, label, tasks, styles, onDrop, onDragStart, onDragE
         ) : (
           tasks.map((task, index) => (
             <TaskCard
-              key={task.task_id ?? `${status}-${index}`}
+              key={task.task_id ?? `${memberKey}-${index}`}
               task={task}
               styles={styles}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
               onSelect={onSelect}
+              onToggleComplete={onToggleComplete}
             />
           ))
         )}
@@ -413,31 +426,35 @@ export default function KanbanBoardPage() {
   const { darkMode } = useDarkMode();
 
   const { tasks, isLoading, isError } = useTasksByProjectId(projectId);
-  const [board, setBoard] = useState<BoardState>(() => createEmptyBoard());
+  const { members, isLoading: membersLoading, isError: membersError } = useProjectMembers(projectId);
+  const [board, setBoard] = useState<BoardState>(() => ({}));
   const [isUpdating, setIsUpdating] = useState(false);
   const draggingTaskIdRef = useRef<string | null>(null);
 
-  const statusStyles = useMemo(() => {
-    return STATUS_LIST.reduce((acc, { key }) => {
-      const theme = STATUS_THEME[key];
-      acc[key] = {
-        column: pickVariant(theme.column, darkMode),
-        label: pickVariant(theme.label, darkMode),
-        count: pickVariant(theme.count, darkMode),
-        card: pickVariant(theme.card, darkMode),
-        title: pickVariant(theme.title, darkMode),
-        description: pickVariant(theme.description, darkMode),
-        meta: pickVariant(theme.meta, darkMode),
-        priority: pickVariant(theme.priority, darkMode),
-        empty: pickVariant(theme.empty, darkMode),
-      };
-      return acc;
-    }, {} as Record<TaskStatusEnum, ComputedStatusStyle>);
-  }, [darkMode]);
+  const memberNames = useMemo(() => {
+    return members?.map(m => m.member_name) ?? [];
+  }, [members]);
+
+  const memberColumns = useMemo(() => {
+    const columns = memberNames.map(name => ({ key: name, label: name }));
+    columns.push({ key: UNASSIGNED_KEY, label: '未割り当て' });
+    return columns;
+  }, [memberNames]);
+
+  const columnStyles = useMemo(() => {
+    const styles: Record<string, ComputedColumnStyle> = {};
+    memberNames.forEach(name => {
+      styles[name] = computeColumnStyle(MEMBER_COLUMN_THEME, darkMode);
+    });
+    styles[UNASSIGNED_KEY] = computeColumnStyle(UNASSIGNED_COLUMN_THEME, darkMode);
+    return styles;
+  }, [memberNames, darkMode]);
 
   useEffect(() => {
-    setBoard(buildBoardFromTasks(tasks));
-  }, [tasks]);
+    if (tasks && members) {
+      setBoard(buildBoardFromTasks(tasks, memberNames));
+    }
+  }, [tasks, members, memberNames]);
 
   useEffect(() => {
     if (!projectId || triggeredHandsOnProjects.has(projectId)) {
@@ -490,20 +507,19 @@ export default function KanbanBoardPage() {
   }, []);
 
   const handleColumnDrop = useCallback(
-    (newStatus: TaskStatusEnum) => async (event: DragEvent<HTMLDivElement>) => {
+    (newAssignee: string) => async (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       const taskId = draggingTaskIdRef.current;
       if (!taskId) {
         return;
       }
 
-      const snapshot: BoardState = {
-        TODO: [...board.TODO],
-        DOING: [...board.DOING],
-        DONE: [...board.DONE],
-      };
+      const snapshot: BoardState = {};
+      for (const key in board) {
+        snapshot[key] = [...board[key]];
+      }
 
-      const { board: nextBoard, moved } = moveTaskToStatus(board, taskId, newStatus);
+      const { board: nextBoard, moved } = moveTaskToMember(board, taskId, newAssignee);
       if (!moved) {
         draggingTaskIdRef.current = null;
         return;
@@ -513,9 +529,10 @@ export default function KanbanBoardPage() {
       setIsUpdating(true);
 
       try {
-        await patchTask(taskId, { status: newStatus });
+        const assigneeValue = newAssignee === UNASSIGNED_KEY ? null : newAssignee;
+        await patchTask(taskId, { assignee: assigneeValue ?? undefined });
       } catch (error) {
-        console.error('Failed to update task status:', error);
+        console.error('Failed to update task assignee:', error);
         setBoard(snapshot);
         alert('タスクの更新に失敗しました');
       } finally {
@@ -524,6 +541,47 @@ export default function KanbanBoardPage() {
       }
     },
     [board],
+  );
+
+  const handleToggleComplete = useCallback(
+    async (taskId?: string) => {
+      if (!taskId) return;
+
+      const task = Object.values(board)
+        .flat()
+        .find(t => t.task_id === taskId);
+
+      if (!task) return;
+
+      const newCompletedState = !task.completed;
+
+      setBoard((prevBoard) => {
+        const nextBoard: BoardState = {};
+        for (const memberName in prevBoard) {
+          nextBoard[memberName] = prevBoard[memberName].map(t =>
+            t.task_id === taskId ? { ...t, completed: newCompletedState } : t
+          );
+        }
+        return nextBoard;
+      });
+
+      try {
+        await patchTask(taskId, { completed: newCompletedState });
+      } catch (error) {
+        console.error('Failed to update task completion:', error);
+        setBoard((prevBoard) => {
+          const nextBoard: BoardState = {};
+          for (const memberName in prevBoard) {
+            nextBoard[memberName] = prevBoard[memberName].map(t =>
+              t.task_id === taskId ? { ...t, completed: !newCompletedState } : t
+            );
+          }
+          return nextBoard;
+        });
+        alert('タスクの完了状態の更新に失敗しました');
+      }
+    },
+    [board]
   );
 
   const handleTaskSelect = useCallback(
@@ -547,7 +605,7 @@ export default function KanbanBoardPage() {
 
   const errorTextClass = darkMode ? 'text-sm text-rose-300' : 'text-sm text-red-600';
 
-  if (isLoading) {
+  if (isLoading || membersLoading) {
     return (
       <div className={loadingContainerClass}>
         <p className={loadingTextClass}>読み込み中...</p>
@@ -559,6 +617,14 @@ export default function KanbanBoardPage() {
     return (
       <div className={loadingContainerClass}>
         <p className={errorTextClass}>タスクの取得に失敗しました</p>
+      </div>
+    );
+  }
+
+  if (membersError) {
+    return (
+      <div className={loadingContainerClass}>
+        <p className={errorTextClass}>メンバー情報の取得に失敗しました</p>
       </div>
     );
   }
@@ -603,17 +669,18 @@ export default function KanbanBoardPage() {
         overviewHref={overviewHref}
       >
         <div className="flex gap-4 overflow-x-auto">
-          {STATUS_LIST.map(({ key, label }) => (
+          {memberColumns.map(({ key, label }) => (
             <TaskColumn
               key={key}
-              status={key}
+              memberKey={key}
               label={label}
-              tasks={board[key]}
-              styles={statusStyles[key]}
+              tasks={board[key] ?? []}
+              styles={columnStyles[key] ?? columnStyles[UNASSIGNED_KEY]}
               onDrop={handleColumnDrop(key)}
               onDragStart={handleCardDragStart}
               onDragEnd={handleCardDragEnd}
               onSelect={handleTaskSelect}
+              onToggleComplete={handleToggleComplete}
             />
           ))}
         </div>

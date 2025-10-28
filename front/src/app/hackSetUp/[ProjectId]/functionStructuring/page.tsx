@@ -57,38 +57,38 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string; glow: string }> = {
   auth: {
-    bg: 'bg-red-500/10 dark:bg-red-500/5',
-    border: 'border-red-500/30 dark:border-red-400/50',
+    bg: 'bg-red-500/5 dark:bg-red-500/3',
+    border: 'border-red-500/20 dark:border-red-400/30',
     text: 'text-red-600 dark:text-red-400',
     glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(248,113,113,0.4)]'
   },
   data: {
-    bg: 'bg-blue-500/10 dark:bg-blue-500/5',
-    border: 'border-blue-500/30 dark:border-blue-400/50',
+    bg: 'bg-blue-500/5 dark:bg-blue-500/3',
+    border: 'border-blue-500/20 dark:border-blue-400/30',
     text: 'text-blue-600 dark:text-blue-400',
     glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(96,165,250,0.4)]'
   },
   logic: {
-    bg: 'bg-green-500/10 dark:bg-green-500/5',
-    border: 'border-green-500/30 dark:border-green-400/50',
+    bg: 'bg-green-500/5 dark:bg-green-500/3',
+    border: 'border-green-500/20 dark:border-green-400/30',
     text: 'text-green-600 dark:text-green-400',
     glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(74,222,128,0.4)]'
   },
   ui: {
-    bg: 'bg-purple-500/10 dark:bg-purple-500/5',
-    border: 'border-purple-500/30 dark:border-purple-400/50',
+    bg: 'bg-purple-500/5 dark:bg-purple-500/3',
+    border: 'border-purple-500/20 dark:border-purple-400/30',
     text: 'text-purple-600 dark:text-purple-400',
     glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(192,132,252,0.4)]'
   },
   api: {
-    bg: 'bg-orange-500/10 dark:bg-orange-500/5',
-    border: 'border-orange-500/30 dark:border-orange-400/50',
+    bg: 'bg-orange-500/5 dark:bg-orange-500/3',
+    border: 'border-orange-500/20 dark:border-orange-400/30',
     text: 'text-orange-600 dark:text-orange-400',
     glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(251,146,60,0.4)]'
   },
   deployment: {
-    bg: 'bg-gray-500/10 dark:bg-gray-500/5',
-    border: 'border-gray-500/30 dark:border-gray-400/50',
+    bg: 'bg-gray-500/5 dark:bg-gray-500/3',
+    border: 'border-gray-500/20 dark:border-gray-400/30',
     text: 'text-gray-600 dark:text-gray-400',
     glow: 'shadow-lg dark:shadow-[0_0_30px_rgba(156,163,175,0.4)]'
   }
@@ -101,11 +101,31 @@ const PRIORITY_LABELS: Record<string, string> = {
   Wont: '将来'
 };
 
-const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {
-  Must: { bg: 'bg-red-500', text: 'text-white' },
-  Should: { bg: 'bg-yellow-500', text: 'text-white' },
-  Could: { bg: 'bg-blue-500', text: 'text-white' },
-  Wont: { bg: 'bg-gray-500', text: 'text-white' }
+const PRIORITY_COLORS: Record<string, { bg: string; text: string; border: string; shadow: string }> = {
+  Must: {
+    bg: 'bg-red-500/20 dark:bg-red-500/10',
+    text: 'text-red-600 dark:text-red-400',
+    border: 'border border-red-500/40 dark:border-red-400/50',
+    shadow: 'shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+  },
+  Should: {
+    bg: 'bg-yellow-500/20 dark:bg-yellow-500/10',
+    text: 'text-yellow-600 dark:text-yellow-400',
+    border: 'border border-yellow-500/40 dark:border-yellow-400/50',
+    shadow: 'shadow-[0_0_15px_rgba(234,179,8,0.3)]'
+  },
+  Could: {
+    bg: 'bg-blue-500/20 dark:bg-blue-500/10',
+    text: 'text-blue-600 dark:text-blue-400',
+    border: 'border border-blue-500/40 dark:border-blue-400/50',
+    shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+  },
+  Wont: {
+    bg: 'bg-gray-500/20 dark:bg-gray-500/10',
+    text: 'text-gray-600 dark:text-gray-400',
+    border: 'border border-gray-500/40 dark:border-gray-400/50',
+    shadow: 'shadow-[0_0_15px_rgba(107,114,128,0.3)]'
+  }
 };
 
 export default function FunctionStructuring() {
@@ -117,7 +137,14 @@ export default function FunctionStructuring() {
   const { data: session, status } = useSession();
 
   // セットアップフェーズ関連の状態
-  const [setupPhase, setSetupPhase] = useState<SetupPhase>('initializing');
+  const [setupPhase, setSetupPhase] = useState<SetupPhase>(() => {
+    // localStorageから状態を復元（タブ切り替え時の不具合対策）
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`setupPhase_${projectId}`);
+      return (saved as SetupPhase) || 'initializing';
+    }
+    return 'initializing';
+  });
   const [setupError, setSetupError] = useState<SetupError | null>(null);
   const [frameworkData, setFrameworkData] = useState<FrameworkSelectionData | null>(null);
 
@@ -289,17 +316,27 @@ export default function FunctionStructuring() {
   // 機能の編集を保存
   const handleSaveFunction = async (functionId: string) => {
     try {
-      const updatedFunction = await updateFunction(functionId, editingValues);
+      await updateFunction(functionId, editingValues);
 
-      if (structuringResult) {
-        const updatedFunctions = structuringResult.functions.map(func =>
-          func.function_id === functionId ? updatedFunction : func
-        );
-        setStructuringResult({
-          ...structuringResult,
-          functions: updatedFunctions
-        });
+      // 更新後、サーバーから最新のデータを再取得
+      try {
+        const updatedData = await getStructuredFunctions(projectId);
+        setStructuringResult(updatedData);
+      } catch (fetchError) {
+        console.warn('最新データの取得に失敗、手動で更新します:', fetchError);
+        // フォールバック: 手動で更新
+        const updatedFunction = await updateFunction(functionId, editingValues);
+        if (structuringResult) {
+          const updatedFunctions = structuringResult.functions.map(func =>
+            func.function_id === functionId ? { ...func, ...updatedFunction } : func
+          );
+          setStructuringResult({
+            ...structuringResult,
+            functions: updatedFunctions
+          });
+        }
       }
+
       setEditingFunction(null);
       setEditingValues({});
     } catch (error) {
@@ -321,13 +358,21 @@ export default function FunctionStructuring() {
     try {
       await deleteFunction(functionId);
 
-      if (structuringResult) {
-        const updatedFunctions = structuringResult.functions.filter(func => func.function_id !== functionId);
-        setStructuringResult({
-          ...structuringResult,
-          functions: updatedFunctions,
-          total_functions: updatedFunctions.length
-        });
+      // 削除後、サーバーから最新のデータを再取得
+      try {
+        const updatedData = await getStructuredFunctions(projectId);
+        setStructuringResult(updatedData);
+      } catch (fetchError) {
+        console.warn('最新データの取得に失敗、手動で削除します:', fetchError);
+        // フォールバック: 手動で削除
+        if (structuringResult) {
+          const updatedFunctions = structuringResult.functions.filter(func => func.function_id !== functionId);
+          setStructuringResult({
+            ...structuringResult,
+            functions: updatedFunctions,
+            total_functions: updatedFunctions.length
+          });
+        }
       }
     } catch (error) {
       console.error('機能の削除に失敗:', error);
@@ -357,13 +402,31 @@ export default function FunctionStructuring() {
     try {
       const createdFunction = await createFunction(newFunctionData);
 
-      if (structuringResult) {
-        setStructuringResult({
-          ...structuringResult,
-          functions: [...structuringResult.functions, createdFunction],
-          total_functions: structuringResult.total_functions + 1
-        });
+      // 作成後、サーバーから最新のデータを再取得
+      try {
+        const updatedData = await getStructuredFunctions(projectId);
+        setStructuringResult(updatedData);
+      } catch (fetchError) {
+        console.warn('最新データの取得に失敗、手動で追加します:', fetchError);
+        // フォールバック: 手動で追加（依存関係などのデフォルト値を設定）
+        const functionWithDefaults = {
+          ...createdFunction,
+          dependencies: createdFunction.dependencies || { incoming: [], outgoing: [] },
+          extraction_confidence: createdFunction.extraction_confidence || 1.0,
+          implementation_order: createdFunction.implementation_order || structuringResult!.total_functions + 1,
+          estimated_effort: createdFunction.estimated_effort || 'medium',
+          function_code: createdFunction.function_code || `F${structuringResult!.total_functions + 1}`
+        };
+
+        if (structuringResult) {
+          setStructuringResult({
+            ...structuringResult,
+            functions: [...structuringResult.functions, functionWithDefaults],
+            total_functions: structuringResult.total_functions + 1
+          });
+        }
       }
+
       setIsAddingFunction(false);
     } catch (error) {
       console.error('機能の追加に失敗:', error);
@@ -381,6 +444,13 @@ export default function FunctionStructuring() {
     router.push(`/${githubName}/${projectId}`);
   };
 
+  // setupPhaseをlocalStorageに保存（タブ切り替え時の状態保持）
+  useEffect(() => {
+    if (typeof window !== 'undefined' && projectId) {
+      localStorage.setItem(`setupPhase_${projectId}`, setupPhase);
+    }
+  }, [setupPhase, projectId]);
+
   // 認証とデータ初期化
   useEffect(() => {
     if (status === "loading") return;
@@ -392,6 +462,24 @@ export default function FunctionStructuring() {
 
     const initializeAndStructure = async () => {
       try {
+        // 既に完了している場合は何もしない（タブ切り替え時の再実行防止）
+        const currentPhase = localStorage.getItem(`setupPhase_${projectId}`);
+        if (currentPhase === 'completed') {
+          // 既存結果を読み込むだけ
+          try {
+            const data = await getStructuredFunctions(projectId);
+            if (data.total_functions > 0) {
+              setStructuringResult(data);
+              setProcessingState('completed');
+              setSetupPhase('completed');
+              return;
+            }
+          } catch {
+            // データがない場合は初期化フェーズに戻す
+            setSetupPhase('initializing');
+          }
+        }
+
         // Step 1: URLパラメータからフレームワーク選択データを取得
         const technologies = searchParams.get('technologies');
         const platform = searchParams.get('platform');
@@ -453,7 +541,7 @@ export default function FunctionStructuring() {
       initializeAndStructure();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, session, status, router]);
+  }, [projectId, session, status]);
 
   if (status === "loading" || setupPhase === 'initializing') {
     return <Loading />;
@@ -470,12 +558,12 @@ export default function FunctionStructuring() {
       </div>
 
       <main className={`relative z-10 min-h-screen`}>
-        {/* サイバーグリッド背景 */}
+        {/* サイバー背景 */}
         {darkMode && (
           <>
-            <div className="-z-10 absolute inset-0 bg-[linear-gradient(to_right,#4f46e520_1px,transparent_1px),linear-gradient(to_bottom,#4f46e520_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-            <div className="-z-10 absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
-            <div className="-z-10 absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '1s'}} />
+            <div className="-z-10 absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/20 rounded-full blur-[150px] animate-pulse" />
+            <div className="-z-10 absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[150px] animate-pulse" style={{animationDelay: '1s'}} />
+            <div className="-z-10 absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[140px] animate-pulse" style={{animationDelay: '2s'}} />
           </>
         )}
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -501,11 +589,11 @@ export default function FunctionStructuring() {
           </div>
 
           {/* フレームワーク選択保存中 */}
-          {setupPhase === 'saving-framework' && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+          {setupPhase === 'saving-framework' && processingState !== 'completed' && (
+            <div className={`backdrop-blur-[2px] rounded-2xl p-8 shadow-2xl border transition-all duration-500 mb-8 animate-pulse-slow ${
               darkMode
-                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
-                : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
+                ? "bg-slate-900/[0.02] border-cyan-400/20 shadow-[0_0_80px_rgba(34,211,238,0.3)]"
+                : "bg-white/10 border-purple-500/30 shadow-purple-300/20"
             }`}>
               <div className="text-center">
                 <Terminal size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
@@ -528,11 +616,11 @@ export default function FunctionStructuring() {
           )}
 
           {/* AI仕様書生成中 */}
-          {setupPhase === 'generating-document' && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+          {setupPhase === 'generating-document' && processingState !== 'completed' && (
+            <div className={`backdrop-blur-[2px] rounded-2xl p-8 shadow-2xl border transition-all duration-500 mb-8 animate-pulse-slow ${
               darkMode
-                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
-                : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
+                ? "bg-slate-900/[0.02] border-cyan-400/20 shadow-[0_0_80px_rgba(34,211,238,0.3)]"
+                : "bg-white/10 border-purple-500/30 shadow-purple-300/20"
             }`}>
               <div className="text-center">
                 <Bot size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
@@ -553,11 +641,11 @@ export default function FunctionStructuring() {
           )}
 
           {/* 処理中の表示 */}
-          {(processingState === 'structuring' || setupPhase === 'structuring-functions') && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+          {(processingState === 'structuring' || (setupPhase === 'structuring-functions' && processingState !== 'completed')) && (
+            <div className={`backdrop-blur-[2px] rounded-2xl p-8 shadow-2xl border transition-all duration-500 mb-8 animate-pulse-slow ${
               darkMode
-                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
-                : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
+                ? "bg-slate-900/[0.02] border-cyan-400/20 shadow-[0_0_80px_rgba(34,211,238,0.3)]"
+                : "bg-white/10 border-purple-500/30 shadow-purple-300/20"
             }`}>
               <div className="text-center">
                 <Bot size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
@@ -579,10 +667,10 @@ export default function FunctionStructuring() {
 
           {/* エラー表示 */}
           {processingState === 'error' && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+            <div className={`backdrop-blur-[2px] rounded-2xl p-8 shadow-2xl border transition-all duration-500 mb-8 ${
               darkMode
-                ? "bg-red-900/10 border-red-400/50 shadow-[0_0_50px_rgba(248,113,113,0.3)]"
-                : "bg-red-50/80 border-red-300 shadow-red-200"
+                ? "bg-red-950/[0.05] border-red-500/20 shadow-[0_0_80px_rgba(248,113,113,0.4)]"
+                : "bg-red-50/20 border-red-400/30 shadow-red-200/30"
             }`}>
               <div className="text-center">
                 <AlertCircle size={48} className="mx-auto mb-4 text-red-500" />
@@ -608,10 +696,10 @@ export default function FunctionStructuring() {
 
           {/* セットアップエラー/警告表示 */}
           {setupError && setupError.canContinue && (
-            <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
+            <div className={`backdrop-blur-[2px] rounded-2xl p-6 shadow-xl border transition-all duration-500 mb-6 ${
               darkMode
-                ? "bg-yellow-900/10 border-yellow-400/50 shadow-[0_0_50px_rgba(251,191,36,0.3)]"
-                : "bg-yellow-50/80 border-yellow-300 shadow-yellow-200"
+                ? "bg-yellow-950/[0.05] border-yellow-500/20 shadow-[0_0_80px_rgba(251,191,36,0.4)]"
+                : "bg-yellow-50/20 border-yellow-400/30 shadow-yellow-200/30"
             }`}>
               <div className="flex items-start">
                 <AlertCircle size={24} className={`mr-3 mt-1 flex-shrink-0 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`} />
@@ -635,10 +723,10 @@ export default function FunctionStructuring() {
             <>
               {/* 部分的成功の警告 */}
               {error && (
-                <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
+                <div className={`backdrop-blur-[2px] rounded-2xl p-6 shadow-xl border transition-all duration-500 mb-6 ${
                   darkMode
-                    ? "bg-yellow-900/10 border-yellow-400/50 shadow-[0_0_50px_rgba(251,191,36,0.3)]"
-                    : "bg-yellow-50/80 border-yellow-300 shadow-yellow-200"
+                    ? "bg-yellow-950/[0.05] border-yellow-500/20 shadow-[0_0_80px_rgba(251,191,36,0.4)]"
+                    : "bg-yellow-50/20 border-yellow-400/30 shadow-yellow-200/30"
                 }`}>
                   <div className="flex items-start">
                     <AlertCircle size={24} className={`mr-3 mt-1 flex-shrink-0 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`} />
@@ -654,10 +742,10 @@ export default function FunctionStructuring() {
                 </div>
               )}
 
-              <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+              <div className={`backdrop-blur-[2px] rounded-2xl p-8 shadow-2xl border transition-all duration-500 mb-8 ${
                 darkMode
-                  ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
-                  : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
+                  ? "bg-slate-900/[0.02] border-cyan-400/20 shadow-[0_0_80px_rgba(34,211,238,0.3)]"
+                  : "bg-white/5 border-purple-500/20 shadow-purple-300/20"
               }`}>
                 <div className="text-center mb-6">
                   <CheckCircle size={48} className={`mx-auto mb-4 ${darkMode ? "text-green-400 drop-shadow-[0_0_12px_rgba(74,222,128,0.6)]" : "text-green-600"}`} />
@@ -674,10 +762,10 @@ export default function FunctionStructuring() {
                 <div className="flex justify-end mb-4">
                   <button
                     onClick={handleOpenAddFunction}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                    className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-300 backdrop-blur-md ${
                       darkMode
-                        ? "bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/50 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]"
-                        : "bg-purple-100 hover:bg-purple-200 border border-purple-300 text-purple-700"
+                        ? "bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 text-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.4)] hover:shadow-[0_0_40px_rgba(34,211,238,0.6)] hover:scale-105"
+                        : "bg-purple-100/50 hover:bg-purple-200/60 border border-purple-300/40 text-purple-700 hover:scale-105"
                     }`}
                   >
                     <Plus size={18} />
@@ -697,7 +785,7 @@ export default function FunctionStructuring() {
                     return (
                       <div
                         key={category}
-                        className={`rounded-xl p-4 border backdrop-blur-md ${colors.bg} ${colors.border} shadow-lg ${colors.glow}`}
+                        className={`rounded-2xl p-4 border backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] ${colors.bg} ${colors.border} shadow-lg ${colors.glow}`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h3 className={`text-lg font-bold ${colors.text}`}>
@@ -717,10 +805,14 @@ export default function FunctionStructuring() {
                               return (
                                 <div
                                   key={func.function_id}
-                                  className={`p-3 rounded-lg border backdrop-blur-sm transition-all ${
-                                    darkMode
-                                      ? "bg-slate-800/40 border-slate-600/50 hover:bg-slate-700/50"
-                                      : "bg-white/70 border-gray-200"
+                                  className={`p-3 rounded-xl border backdrop-blur-sm transition-all duration-300 ${
+                                    editingFunction === func.function_id
+                                      ? darkMode
+                                        ? "bg-slate-800/40 border-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.4)]"
+                                        : "bg-white/60 border-purple-400/50"
+                                      : darkMode
+                                      ? "bg-slate-800/10 border-slate-600/20 hover:bg-slate-700/20 hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(100,116,139,0.3)]"
+                                      : "bg-white/20 border-gray-200/30 hover:bg-white/40 hover:scale-[1.01]"
                                   }`}
                                 >
                                   {editingFunction === func.function_id ? (
@@ -731,24 +823,26 @@ export default function FunctionStructuring() {
                                           type="text"
                                           value={editingValues.function_name || ''}
                                           onChange={(e) => setEditingValues({...editingValues, function_name: e.target.value})}
-                                          className={`text-sm font-semibold bg-transparent border-b border-dashed outline-none flex-1 mr-2 ${
-                                            darkMode ? "text-gray-100 border-gray-400" : "text-gray-900 border-gray-500"
+                                          className={`text-sm font-semibold border-b border-dashed outline-none flex-1 mr-2 px-2 py-1 ${
+                                            darkMode ? "bg-slate-700/50 text-gray-100 border-cyan-400/50" : "bg-white/80 text-gray-900 border-purple-500/50"
                                           }`}
                                         />
                                         <div className="flex space-x-1">
                                           <button
                                             onClick={() => handleSaveFunction(func.function_id)}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-green-700 text-green-400" : "hover:bg-green-100 text-green-600"
+                                            className={`p-1.5 rounded-lg transition-all ${
+                                              darkMode ? "bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/40" : "bg-green-100 hover:bg-green-200 text-green-600 border border-green-300"
                                             }`}
+                                            title="保存"
                                           >
                                             <Save size={14} />
                                           </button>
                                           <button
                                             onClick={handleCancelEdit}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-200 text-gray-600"
+                                            className={`p-1.5 rounded-lg transition-all ${
+                                              darkMode ? "bg-gray-500/20 hover:bg-gray-500/30 text-gray-400 border border-gray-500/40" : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-300"
                                             }`}
+                                            title="キャンセル"
                                           >
                                             <X size={14} />
                                           </button>
@@ -758,8 +852,8 @@ export default function FunctionStructuring() {
                                       <textarea
                                         value={editingValues.description || ''}
                                         onChange={(e) => setEditingValues({...editingValues, description: e.target.value})}
-                                        className={`w-full text-xs bg-transparent border border-dashed rounded p-2 outline-none resize-none ${
-                                          darkMode ? "text-gray-400 border-gray-400" : "text-gray-600 border-gray-500"
+                                        className={`w-full text-xs border border-dashed rounded p-2 outline-none resize-none ${
+                                          darkMode ? "bg-slate-700/50 text-gray-200 border-cyan-400/50" : "bg-white/80 text-gray-700 border-purple-500/50"
                                         }`}
                                         rows={2}
                                       />
@@ -769,7 +863,7 @@ export default function FunctionStructuring() {
                                           value={editingValues.category || func.category}
                                           onChange={(e) => setEditingValues({...editingValues, category: e.target.value as StructuredFunction['category']})}
                                           className={`text-xs border rounded px-2 py-1 ${
-                                            darkMode ? "bg-gray-700 border-gray-600 text-gray-300" : "bg-white border-gray-300 text-gray-700"
+                                            darkMode ? "bg-slate-700/70 border-cyan-400/50 text-gray-200" : "bg-white/90 border-purple-500/50 text-gray-700"
                                           }`}
                                         >
                                           {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
@@ -781,7 +875,7 @@ export default function FunctionStructuring() {
                                           value={editingValues.priority || func.priority}
                                           onChange={(e) => setEditingValues({...editingValues, priority: e.target.value as StructuredFunction['priority']})}
                                           className={`text-xs border rounded px-2 py-1 ${
-                                            darkMode ? "bg-gray-700 border-gray-600 text-gray-300" : "bg-white border-gray-300 text-gray-700"
+                                            darkMode ? "bg-slate-700/70 border-cyan-400/50 text-gray-200" : "bg-white/90 border-purple-500/50 text-gray-700"
                                           }`}
                                         >
                                           {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
@@ -799,14 +893,14 @@ export default function FunctionStructuring() {
                                         }`}>
                                           {func.function_code}: {func.function_name}
                                         </h4>
-                                        <div className="flex items-center space-x-1">
-                                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColor.bg} ${priorityColor.text}`}>
+                                        <div className="flex items-center space-x-1 flex-shrink-0">
+                                          <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md whitespace-nowrap flex-shrink-0 ${priorityColor.bg} ${priorityColor.text} ${priorityColor.border} ${darkMode ? priorityColor.shadow : ''}`}>
                                             {PRIORITY_LABELS[func.priority]}
                                           </span>
                                           <button
                                             onClick={() => handleEditFunction(func)}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-200 text-gray-600"
+                                            className={`p-1 rounded-lg transition-all ${
+                                              darkMode ? "bg-slate-700/30 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "bg-gray-100 hover:bg-purple-100 text-purple-600 border border-purple-300"
                                             }`}
                                             title="編集"
                                           >
@@ -814,8 +908,8 @@ export default function FunctionStructuring() {
                                           </button>
                                           <button
                                             onClick={() => handleDeleteFunction(func.function_id)}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-red-700 text-red-400" : "hover:bg-red-100 text-red-600"
+                                            className={`p-1 rounded-lg transition-all ${
+                                              darkMode ? "bg-slate-700/30 hover:bg-red-500/20 text-red-400 border border-red-500/30" : "bg-red-50 hover:bg-red-100 text-red-600 border border-red-300"
                                             }`}
                                             title="削除"
                                           >
@@ -923,10 +1017,10 @@ export default function FunctionStructuring() {
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* 実装順序 */}
                   {structuringResult.implementation_order && structuringResult.implementation_order.length > 0 && (
-                    <div className={`p-4 rounded-lg border backdrop-blur-md ${
+                    <div className={`p-4 rounded-2xl border backdrop-blur-[2px] transition-all duration-300 ${
                       darkMode
-                        ? "bg-slate-800/30 border-slate-600/50"
-                        : "bg-gray-50/80 border-gray-200"
+                        ? "bg-slate-900/[0.02] border-slate-600/20 shadow-[0_0_30px_rgba(100,116,139,0.2)]"
+                        : "bg-gray-50/10 border-gray-200/20"
                     }`}>
                       <h3 className={`text-lg font-bold mb-3 flex items-center ${
                         darkMode ? "text-gray-100" : "text-gray-900"
@@ -938,14 +1032,14 @@ export default function FunctionStructuring() {
                         {structuringResult.implementation_order.slice(0, 5).map((item) => (
                           <div
                             key={item.function_id}
-                            className={`p-3 rounded-lg border backdrop-blur-sm ${
+                            className={`p-3 rounded-xl border backdrop-blur-sm transition-all duration-300 ${
                               item.can_start
                                 ? darkMode
-                                  ? "bg-green-900/20 border-green-600/50"
-                                  : "bg-green-50/80 border-green-200"
+                                  ? "bg-green-900/10 border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
+                                  : "bg-green-50/30 border-green-200/30"
                                 : darkMode
-                                  ? "bg-yellow-900/20 border-yellow-600/50"
-                                  : "bg-yellow-50/80 border-yellow-200"
+                                  ? "bg-yellow-900/10 border-yellow-500/20 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
+                                  : "bg-yellow-50/30 border-yellow-200/30"
                             }`}
                           >
                             <div className="flex items-center justify-between">
@@ -963,11 +1057,14 @@ export default function FunctionStructuring() {
                                   {item.function_code}: {item.function_name}
                                 </span>
                               </div>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                PRIORITY_COLORS[item.priority as keyof typeof PRIORITY_COLORS].bg
-                              } ${PRIORITY_COLORS[item.priority as keyof typeof PRIORITY_COLORS].text}`}>
-                                {PRIORITY_LABELS[item.priority]}
-                              </span>
+                              {(() => {
+                                const priorityColor = PRIORITY_COLORS[item.priority as keyof typeof PRIORITY_COLORS];
+                                return (
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md whitespace-nowrap flex-shrink-0 ${priorityColor.bg} ${priorityColor.text} ${priorityColor.border} ${darkMode ? priorityColor.shadow : ''}`}>
+                                    {PRIORITY_LABELS[item.priority]}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             {!item.can_start && item.blocked_by.length > 0 && (
                               <p className={`text-xs mt-1 ${
@@ -988,10 +1085,10 @@ export default function FunctionStructuring() {
                   )}
 
                   {/* サマリー情報 */}
-                  <div className={`p-4 rounded-lg border backdrop-blur-md ${
+                  <div className={`p-4 rounded-2xl border backdrop-blur-[2px] transition-all duration-300 ${
                     darkMode
-                      ? "bg-gray-800/40 border-gray-600/50"
-                      : "bg-gray-50/80 border-gray-200"
+                      ? "bg-slate-900/[0.02] border-slate-600/20 shadow-[0_0_30px_rgba(100,116,139,0.2)]"
+                      : "bg-gray-50/10 border-gray-200/20"
                   }`}>
                     <h3 className={`text-lg font-bold mb-3 flex items-center ${
                       darkMode ? "text-gray-100" : "text-gray-900"
@@ -1026,18 +1123,19 @@ export default function FunctionStructuring() {
                         優先度別分布
                       </h4>
                       <div className="space-y-1">
-                        {Object.entries(structuringResult.summary.priorities.counts).map(([priority, count]) => (
-                          <div key={priority} className="flex justify-between items-center">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              PRIORITY_COLORS[priority as keyof typeof PRIORITY_COLORS].bg
-                            } ${PRIORITY_COLORS[priority as keyof typeof PRIORITY_COLORS].text}`}>
-                              {PRIORITY_LABELS[priority]}
-                            </span>
-                            <span className={`text-xs ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                              {count}個
-                            </span>
-                          </div>
-                        ))}
+                        {Object.entries(structuringResult.summary.priorities.counts).map(([priority, count]) => {
+                          const priorityColor = PRIORITY_COLORS[priority as keyof typeof PRIORITY_COLORS];
+                          return (
+                            <div key={priority} className="flex justify-between items-center">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md whitespace-nowrap flex-shrink-0 ${priorityColor.bg} ${priorityColor.text} ${priorityColor.border} ${darkMode ? priorityColor.shadow : ''}`}>
+                                {PRIORITY_LABELS[priority]}
+                              </span>
+                              <span className={`text-xs ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                                {count}個
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -1062,10 +1160,10 @@ export default function FunctionStructuring() {
 
                 {/* 依存関係詳細 */}
                 {structuringResult.total_dependencies > 0 && (
-                  <div className={`mt-6 p-4 rounded-lg border backdrop-blur-md ${
+                  <div className={`mt-6 p-4 rounded-2xl border backdrop-blur-[2px] transition-all duration-300 ${
                     darkMode
-                      ? "bg-gray-800/40 border-gray-600/50"
-                      : "bg-gray-50/80 border-gray-200"
+                      ? "bg-slate-900/[0.02] border-slate-600/20 shadow-[0_0_30px_rgba(100,116,139,0.2)]"
+                      : "bg-gray-50/10 border-gray-200/20"
                   }`}>
                     <h3 className={`text-lg font-bold mb-3 flex items-center ${
                       darkMode ? "text-gray-100" : "text-gray-900"
@@ -1119,8 +1217,8 @@ export default function FunctionStructuring() {
                       </h4>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
                         {structuringResult.dependencies.slice(0, 10).map((dep) => (
-                          <div key={dep.dependency_id} className={`p-2 rounded text-xs backdrop-blur-sm ${
-                            darkMode ? "bg-gray-700/50" : "bg-gray-100/80"
+                          <div key={dep.dependency_id} className={`p-2 rounded-xl text-xs backdrop-blur-sm transition-all duration-200 ${
+                            darkMode ? "bg-slate-800/10 border border-slate-600/20" : "bg-gray-100/30 border border-gray-200/30"
                           }`}>
                             <div className="flex items-center justify-between">
                               <span className={`font-medium ${
@@ -1165,10 +1263,10 @@ export default function FunctionStructuring() {
               <div className="text-center">
                 <button
                   onClick={handleNext}
-                  className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
+                  className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition-all duration-300 hover:-translate-y-1 hover:scale-105 backdrop-blur-sm ${
                     darkMode
-                      ? "bg-cyan-500/80 hover:bg-cyan-500 text-gray-900 focus:ring-2 focus:ring-cyan-400 shadow-cyan-500/40"
-                      : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                      ? "bg-cyan-500/70 hover:bg-cyan-500/90 text-gray-900 focus:ring-2 focus:ring-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.5)]"
+                      : "bg-gradient-to-r from-purple-500/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
                   }`}
                 >
                   <span>タスク可視化へ</span>
@@ -1184,11 +1282,11 @@ export default function FunctionStructuring() {
 
       {/* 新規機能追加モーダル */}
       {isAddingFunction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className={`rounded-xl p-6 shadow-2xl border max-w-lg w-full mx-4 ${
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md animate-fadeIn">
+          <div className={`rounded-2xl p-6 shadow-2xl border max-w-lg w-full mx-4 backdrop-blur-xl transition-all duration-300 ${
             darkMode
-              ? "bg-gray-800/90 border-cyan-500/40"
-              : "bg-white/90 border-purple-500/30"
+              ? "bg-slate-900/80 border-cyan-500/40 shadow-[0_0_60px_rgba(34,211,238,0.3)]"
+              : "bg-white/80 border-purple-500/40 shadow-purple-300/40"
           }`}>
             <h3 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
               新しい機能を追加

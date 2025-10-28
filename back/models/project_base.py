@@ -689,3 +689,39 @@ class HandsOnGenerationJob(Base):
 
     def __repr__(self):
         return f"<HandsOnGenerationJob(job_id={self.job_id}, status={self.status}, progress={self.completed_tasks}/{self.total_tasks})>"
+
+
+class TaskGenerationJob(Base):
+    """タスク生成ジョブ管理テーブル"""
+    __tablename__ = "task_generation_job"
+
+    job_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projectBase.project_id"), nullable=False)
+
+    # ジョブステータス
+    status = Column(String, nullable=False, default="queued")  # queued, processing, completed, failed
+
+    # 進捗情報
+    total_tasks = Column(Integer, default=0)
+    completed_phases = Column(Integer, default=0)
+    total_phases = Column(Integer, default=5)  # 生成、評価、依存関係、座標、保存
+
+    # エラー情報
+    error_message = Column(String, nullable=True)
+
+    # タイムスタンプ
+    created_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+
+    # リレーション
+    # project = relationship("ProjectBase", back_populates="task_generation_jobs")
+
+    __table_args__ = (
+        Index("ix_task_gen_job_project_id", "project_id"),
+        Index("ix_task_gen_job_status", "status"),
+        Index("ix_task_gen_job_created_at", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<TaskGenerationJob(job_id={self.job_id}, status={self.status}, progress={self.completed_phases}/{self.total_phases})>"

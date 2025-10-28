@@ -63,6 +63,7 @@ celery_app.conf.update(
     # タスク自動検出（tasksディレクトリ配下）
     imports=[
         "tasks.hands_on_tasks",  # Phase 3: ハンズオン生成タスク
+        "tasks.task_generation_tasks",  # Phase 1: タスク生成タスク
     ],
 )
 

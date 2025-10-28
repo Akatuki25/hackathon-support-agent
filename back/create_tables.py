@@ -16,6 +16,8 @@ from models.project_base import (
     # Phase 3: タスクハンズオン生成
     TaskHandsOn,
     HandsOnGenerationJob,
+    # Phase 1: タスク生成
+    TaskGenerationJob,
 )
 
 def reset_db():

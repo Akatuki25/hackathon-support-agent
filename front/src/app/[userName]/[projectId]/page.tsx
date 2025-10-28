@@ -1,13 +1,12 @@
 "use client";
 import { useState, useCallback, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Node, Edge } from '@xyflow/react';
 import axios from 'axios';
 import '@xyflow/react/dist/style.css';
 import './cyber-flow.css';
 
 import { TaskFlow } from './TaskFlow';
-import { generateCompleteTaskSet } from '@/libs/service/completeTaskGenerationService';
 import { useDarkMode } from '@/hooks/useDarkMode';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -45,15 +44,16 @@ interface BackendTaskDependency {
 
 export default function TaskVisualizationPage() {
   const pathname = usePathname();
+  const router = useRouter();
   const { darkMode } = useDarkMode();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState<boolean>(false);
 
-  // Extract projectId from pathname: /[userName]/[projectId]
+  // Extract projectId and userName from pathname: /[userName]/[projectId]
   const projectId = pathname?.split('/')[2];
+  const userName = pathname?.split('/')[1];
 
   const handleNodesChange = useCallback((updatedNodes: Node[]) => {
     setNodes(updatedNodes);
@@ -123,8 +123,8 @@ export default function TaskVisualizationPage() {
       const dependencies = dependenciesResponse.data;
 
       if (!tasks || tasks.length === 0) {
-        // No tasks found - trigger generation
-        await generateTasks();
+        // タスクが存在しない場合は環境構築ページにリダイレクト
+        router.push(`/${userName}/${projectId}/env`);
         return;
       }
 
@@ -137,8 +137,8 @@ export default function TaskVisualizationPage() {
     } catch (err) {
       const error = err as { response?: { status?: number; data?: { detail?: string } }; message?: string };
       if (error.response?.status === 404 || error.response?.data?.detail?.includes('not found')) {
-        // No tasks found - trigger generation
-        await generateTasks();
+        // タスクが存在しない場合は環境構築ページにリダイレクト
+        router.push(`/${userName}/${projectId}/env`);
       } else {
         console.error('Error loading task data:', error);
         setError(
@@ -147,36 +147,6 @@ export default function TaskVisualizationPage() {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Generate complete task set
-  const generateTasks = async () => {
-    if (!projectId) {
-      setError('Project ID not found');
-      return;
-    }
-
-    try {
-      setGenerating(true);
-      setError(null);
-
-      const result = await generateCompleteTaskSet(projectId);
-
-      if (result.success) {
-        // Reload task data after successful generation
-        await loadTaskData();
-      } else {
-        setError(`タスク生成に失敗しました: ${result.error || result.message}`);
-      }
-    } catch (err) {
-      const error = err as { response?: { data?: { detail?: string } }; message?: string };
-      console.error('Error generating tasks:', error);
-      setError(
-        `タスク生成中にエラーが発生しました: ${error.response?.data?.detail || error.message}`
-      );
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -189,7 +159,7 @@ export default function TaskVisualizationPage() {
   }, [projectId]);
 
   // Render loading state - Cyber AI Agent Style
-  if (loading || generating) {
+  if (loading) {
     return (
       <main className={`relative z-10 flex items-center justify-center h-screen w-screen overflow-hidden ${
         darkMode
@@ -333,7 +303,7 @@ export default function TaskVisualizationPage() {
                 ? 'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400'
                 : 'bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600'
             }`} style={{ backgroundSize: '200% auto' }}>
-              {generating ? 'AI AGENT PROCESSING' : 'INITIALIZING SYSTEM'}
+              INITIALIZING SYSTEM
             </h2>
 
             <div className={`text-sm font-mono space-y-3 ${
@@ -343,25 +313,25 @@ export default function TaskVisualizationPage() {
                 <span className={`inline-block w-2 h-2 rounded-full ${
                   darkMode ? 'bg-cyan-400' : 'bg-purple-500'
                 } animate-ping`} />
-                <span>{generating ? '> Analyzing project structure and dependencies...' : '> Connecting to neural network...'}</span>
+                <span>&gt; Connecting to neural network...</span>
               </div>
               <div className="animate-pulse-text flex items-center justify-center gap-2" style={{ animationDelay: '0.3s' }}>
                 <span className={`inline-block w-2 h-2 rounded-full ${
                   darkMode ? 'bg-purple-400' : 'bg-blue-500'
                 } animate-ping`} style={{ animationDelay: '0.3s' }} />
-                <span>{generating ? '> Generating optimized task breakdown...' : '> Loading task database...'}</span>
+                <span>&gt; Loading task database...</span>
               </div>
               <div className="animate-pulse-text flex items-center justify-center gap-2" style={{ animationDelay: '0.6s' }}>
                 <span className={`inline-block w-2 h-2 rounded-full ${
                   darkMode ? 'bg-pink-400' : 'bg-indigo-500'
                 } animate-ping`} style={{ animationDelay: '0.6s' }} />
-                <span>{generating ? '> Building intelligent workflow graph...' : '> Preparing visualization matrix...'}</span>
+                <span>&gt; Preparing visualization matrix...</span>
               </div>
               <div className="animate-pulse-text flex items-center justify-center gap-2" style={{ animationDelay: '0.9s' }}>
                 <span className={`inline-block w-2 h-2 rounded-full ${
                   darkMode ? 'bg-cyan-300' : 'bg-purple-400'
                 } animate-ping`} style={{ animationDelay: '0.9s' }} />
-                <span>{generating ? '> Calculating task dependencies and timelines...' : '> Synchronizing data streams...'}</span>
+                <span>&gt; Synchronizing data streams...</span>
               </div>
             </div>
 
@@ -549,25 +519,7 @@ export default function TaskVisualizationPage() {
     );
   }
 
-  // Render empty state
-  if (nodes.length === 0) {
-    return (
-      <main className="relative z-10 flex items-center justify-center h-screen w-screen">
-        <div className="text-center">
-          <div className="text-2xl font-bold mb-4">タスクが見つかりません</div>
-          <div className="text-sm text-gray-600 mb-6">
-            プロジェクトにタスクが存在しないか、まだ生成されていません。
-          </div>
-          <button
-            onClick={generateTasks}
-            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            タスクを生成
-          </button>
-        </div>
-      </main>
-    );
-  }
+  // タスクがない場合は既にenvページにリダイレクトしているため、この状態は到達しない
 
   // Render TaskFlow
   return (
