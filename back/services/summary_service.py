@@ -10,8 +10,14 @@ import difflib
 import re
 import os
 import json
-from google import genai
-from google.genai import types
+try:
+    from google import genai
+    from google.genai import types
+    HAS_GENAI = True
+except ImportError:
+    HAS_GENAI = False
+    genai = None
+    types = None
 from models.project_base import QA, ProjectDocument
 from .mvp_judge_service import MVPJudgeService
 
@@ -48,16 +54,21 @@ class SummaryService(BaseService):
         super().__init__(db=db)
         self._cache = {}  # project_id -> (summary_snapshot, qa_snapshot, cache_name)
         # Google GenAI クライアント初期化
-        self.genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+        if HAS_GENAI:
+            self.genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+        else:
+            self.genai_client = None
+            self.logger.warning("Google GenAI SDK not installed. Context caching will be unavailable.")
 
-    def generate_summary_from_qa_list(self, question_answer: List[Union[dict, BaseModel]]) -> str:
+    async def generate_summary_from_qa_list(self, question_answer: List[Union[dict, BaseModel]]) -> str:
         """
         ユーザーのQ&A回答リストから要約を生成する（保存は行わない）。
         Pydanticモデルのリストと辞書のリストの両方に対応。
-        
+        非同期版に最適化
+
         Args:
             question_answer: Q&Aのリスト
-            
+
         Returns:
             str: 生成された要約文字列
         """
@@ -67,13 +78,13 @@ class SummaryService(BaseService):
                 data = item.dict()
             else:
                 data = item
-            
+
             q = data.get('Question') or data.get('question')
             a = data.get('Answer') or data.get('answer')
 
             if q and a:
                 question_answer_str += f"Q: {q}\nA: {a}\n"
-        
+
         question_answer_str = question_answer_str.strip()
 
         summary_system_prompt = ChatPromptTemplate.from_template(
@@ -81,13 +92,14 @@ class SummaryService(BaseService):
         )
 
         chain = summary_system_prompt | self.llm_pro | StrOutputParser()
-        summary = chain.invoke({"question_answer": question_answer_str})
+        summary = await chain.ainvoke({"question_answer": question_answer_str})
 
         return summary
     
-    def generate_summary(self,project_id:str):
+    async def generate_summary(self,project_id:str):
         """
         プロジェクトIDに紐づくQ&Aリストから要約を生成・保存する。
+        非同期版に最適化
 
         Args:
             project_id: プロジェクトID
@@ -101,14 +113,15 @@ class SummaryService(BaseService):
             raise ValueError(f"No Q&A records found for project_id: {project_id}")
 
         formatted_qa_list = [ {"question": qa.question, "answer": qa.answer} for qa in qa_list ]
-        summary = self.generate_summary_from_qa_list(formatted_qa_list)
+        summary = await self.generate_summary_from_qa_list(formatted_qa_list)
 
         return summary
 
-    def generate_summary_with_feedback(self, project_id: str) -> Dict[str, Any]:
+    async def generate_summary_with_feedback(self, project_id: str) -> Dict[str, Any]:
         """
         プロジェクトIDに紐づくQ&Aリストから要約を生成し、仕様書評価も同時に返す
         差分ベース：既存仕様書がある場合は、手動編集と新規Q&Aのみ反映
+        非同期版に最適化
 
         Args:
             project_id: プロジェクトID
@@ -136,21 +149,21 @@ class SummaryService(BaseService):
             if manual_diff or new_qa:
                 self.logger.info(f"差分検出: 手動編集={bool(manual_diff)}, 新規Q&A={len(new_qa)}件")
                 # キャッシュを使用した差分更新
-                summary = self.update_summary_with_diff_cached(project_id, manual_diff, new_qa)
+                summary = await self.update_summary_with_diff_cached(project_id, manual_diff, new_qa)
             else:
                 self.logger.info("差分なし。既存仕様書を使用します。")
                 summary = existing_doc.specification
         else:
             # 初回生成：全Q&Aから生成
             self.logger.info("初回生成：全Q&Aから仕様書を生成します。")
-            summary = self.generate_summary(project_id)
+            summary = await self.generate_summary(project_id)
 
         # 要約をDBに保存
         saved_doc = self.save_summary_to_project_document(project_uuid, summary)
 
         # 仕様書フィードバックを生成
         try:
-            specification_feedback = self.generate_confidence_feedback(project_id)
+            specification_feedback = await self.generate_confidence_feedback(project_id)
 
             # missing_infoを追加Q&Aに変換して保存
             if specification_feedback.get("missing_info"):
@@ -208,9 +221,10 @@ class SummaryService(BaseService):
             self.db.refresh(new_doc)
             return new_doc
 
-    def generate_confidence_feedback(self, project_id: str) -> Dict[str, Any]:
+    async def generate_confidence_feedback(self, project_id: str) -> Dict[str, Any]:
         """
         プロジェクトIDから仕様書とQ&Aを取得し、仕様書評価フィードバックを生成する（Pydantic版）
+        非同期版に最適化
 
         Args:
             project_id: プロジェクトID
@@ -242,7 +256,7 @@ class SummaryService(BaseService):
 
         chain = prompt_template | self.llm_flash_thinking.with_structured_output(SpecificationFeedback)
 
-        result: SpecificationFeedback = chain.invoke({
+        result: SpecificationFeedback = await chain.ainvoke({
             "specification": project_doc.specification,
             "question_answer": qa_context
         })
@@ -359,9 +373,10 @@ class SummaryService(BaseService):
 
         self.db.commit()
 
-    def update_summary_with_diff(self, project_id: str, manual_diff: Optional[str] = None, new_qa: Optional[List[QA]] = None) -> str:
+    async def update_summary_with_diff(self, project_id: str, manual_diff: Optional[str] = None, new_qa: Optional[List[QA]] = None) -> str:
         """
         差分情報（手動編集 + 新規Q&A）を使って仕様書を更新
+        非同期版に最適化
 
         Args:
             project_id: プロジェクトID
@@ -413,7 +428,7 @@ class SummaryService(BaseService):
         from langchain.prompts import ChatPromptTemplate
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
         chain = prompt_template | self.llm_pro | StrOutputParser()
-        updated_summary = chain.invoke({})
+        updated_summary = await chain.ainvoke({})
 
         # キャッシュを更新
         cache_key = str(project_uuid)
@@ -422,7 +437,7 @@ class SummaryService(BaseService):
         return updated_summary
 
 
-    def update_summary_with_diff_cached(
+    async def update_summary_with_diff_cached(
         self,
         project_id: str,
         manual_diff: Optional[str] = None,
@@ -430,6 +445,7 @@ class SummaryService(BaseService):
     ) -> str:
         """
         Google GenAI Context Cachingを使用した差分ベース更新
+        非同期版に最適化
 
         Args:
             project_id: プロジェクトID
@@ -528,4 +544,4 @@ class SummaryService(BaseService):
             self.logger.error(f"キャッシュ使用中にエラー: {e}")
             # フォールバック: キャッシュなしで生成
             self.logger.info("フォールバック: キャッシュなしで生成")
-            return self.update_summary_with_diff(project_id, manual_diff, new_qa)
+            return await self.update_summary_with_diff(project_id, manual_diff, new_qa)

@@ -31,9 +31,10 @@ class QuestionService(BaseService):
     def __init__(self, db: Session):
         super().__init__(db=db)
 
-    def generate_question(self, idea_prompt: str, project_id=None):
+    async def generate_question(self, idea_prompt: str, project_id=None):
         """
         Q&Aの質問と想定回答を生成するメソッド (Pydantic構造化出力版)
+        非同期版に最適化
         """
         self.logger.debug(f"Generating questions for project_id: {project_id} with idea_prompt: {idea_prompt}")
 
@@ -43,8 +44,8 @@ class QuestionService(BaseService):
         )
         chain = prompt_template | self.llm_flash_thinking.with_structured_output(QuestionOutput)
 
-        # LLM呼び出し
-        result: QuestionOutput = chain.invoke({"idea_prompt": idea_prompt})
+        # LLM呼び出し（非同期）
+        result: QuestionOutput = await chain.ainvoke({"idea_prompt": idea_prompt})
 
         # Pydanticモデルからdictに変換してDB保存用のメタデータを付与
         qa_list = []

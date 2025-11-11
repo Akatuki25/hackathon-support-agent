@@ -19,7 +19,6 @@ import {
   type CreateFunctionRequest,
 } from "@/libs/modelAPI/functionStructuringAPI";
 import { patchProjectDocument } from "@/libs/modelAPI/document";
-import { generateAIDocument } from "@/libs/service/aiDocumentService";
 
 // フレームワーク選択データの型定義
 interface FrameworkSelectionData {
@@ -32,7 +31,6 @@ interface FrameworkSelectionData {
 type SetupPhase =
   | 'initializing'           // 初期化中
   | 'saving-framework'       // フレームワーク選択を保存中
-  | 'generating-document'    // AI仕様書生成中
   | 'structuring-functions'  // 機能構造化中
   | 'completed'              // 完了
   | 'error';                 // エラー
@@ -168,15 +166,6 @@ export default function FunctionStructuring() {
           canContinue: true
         });
         console.warn('フレームワーク選択の保存に失敗しましたが、処理を続行します:', error);
-        break;
-
-      case 'generating-document':
-        setSetupError({
-          phase,
-          message: `仕様書生成に失敗しました: ${errorMessage}`,
-          canContinue: true
-        });
-        console.warn('仕様書生成に失敗しましたが、処理を続行します:', error);
         break;
 
       case 'structuring-functions':
@@ -397,7 +386,10 @@ export default function FunctionStructuring() {
         const platform = searchParams.get('platform');
         const aiRecommended = searchParams.get('aiRecommended');
 
-        if (technologies && technologies.length > 0) {
+        // フレームワーク選択ページから遷移してきたかどうかを判定
+        const isInitialTransition = technologies && technologies.length > 0;
+
+        if (isInitialTransition) {
           const data: FrameworkSelectionData = {
             selectedTechnologies: technologies.split(','),
             selectedPlatform: (platform || null) as 'web' | 'ios' | 'android' | null,
@@ -413,36 +405,58 @@ export default function FunctionStructuring() {
             handleSetupError('saving-framework', error);
             // エラーでも続行
           }
+        }
 
-          // Step 3: AI仕様書生成
-          setSetupPhase('generating-document');
+        // Step 3: 既存の機能構造化結果をチェック（ポーリング）
+        // selectFrameworkでバックグラウンド呼び出しが開始されているので、
+        // 結果が準備されるまで待つ
+        const checkResult = async () => {
           try {
-            await generateAIDocument(projectId);
-          } catch (error) {
-            handleSetupError('generating-document', error);
-            // エラーでも続行
+            const data = await getStructuredFunctions(projectId);
+            if (data.total_functions > 0) {
+              // 既存結果がある場合は表示のみ
+              setStructuringResult(data);
+              setProcessingState('completed');
+              setSetupPhase('completed');
+              return true;
+            }
+          } catch {
+            // まだ結果がない
           }
+          return false;
+        };
+
+        // 初回チェック
+        if (await checkResult()) {
+          return;
         }
 
-        // Step 4: 機能構造化（既存の処理）
-        setSetupPhase('structuring-functions');
+        // Step 4: 初回遷移の場合のみポーリング
+        if (isInitialTransition) {
+          setSetupPhase('structuring-functions');
+          setProcessingState('processing');
 
-        // 既存結果をチェック
-        try {
-          const data = await getStructuredFunctions(projectId);
-          if (data.total_functions > 0) {
-            setStructuringResult(data);
-            setProcessingState('completed');
-            setSetupPhase('completed');
-            return;
+          // 最大150秒間、5秒ごとにポーリング（バックグラウンド処理の完了を待つ）
+          let pollCount = 0;
+          const maxPolls = 30; // 150秒 (5秒 x 30回)
+          while (pollCount < maxPolls) {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            if (await checkResult()) {
+              return;
+            }
+            pollCount++;
           }
-        } catch {
-          console.log('既存結果なし、新規実行が必要');
-        }
 
-        // 新規実行
-        await handleStructureFunctions();
-        setSetupPhase('completed');
+          // ポーリングタイムアウト → 実行中 or 失敗
+          // 手動実行ボタンを表示
+          console.log('Background task timeout, showing manual execution button');
+          setProcessingState('idle');
+          setSetupPhase('completed');
+        } else {
+          // リロードやタブ切り替えの場合は idle 状態で待機
+          setProcessingState('idle');
+          setSetupPhase('completed');
+        }
 
       } catch (error) {
         handleSetupError(setupPhase, error);
@@ -453,7 +467,7 @@ export default function FunctionStructuring() {
       initializeAndStructure();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, session, status, router]);
+  }, [projectId, session, status]);
 
   if (status === "loading" || setupPhase === 'initializing') {
     return <Loading />;
@@ -523,31 +537,6 @@ export default function FunctionStructuring() {
                     選択技術: {frameworkData.selectedTechnologies.join(', ')}
                   </div>
                 )}
-              </div>
-            </div>
-          )}
-
-          {/* AI仕様書生成中 */}
-          {setupPhase === 'generating-document' && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
-              darkMode
-                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
-                : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
-            }`}>
-              <div className="text-center">
-                <Bot size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
-                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
-                  AI仕様書を生成中
-                </h2>
-                <div className="flex items-center justify-center mb-4">
-                  <Loader2 className="animate-spin mr-2" size={20} />
-                  <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
-                    プロジェクト要件を分析し、詳細な仕様書を作成しています...
-                  </span>
-                </div>
-                <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                  この処理には数十秒かかる場合があります
-                </div>
               </div>
             </div>
           )}
