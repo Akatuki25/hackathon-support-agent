@@ -207,18 +207,19 @@ export type MVPJudge = {
   qa: QAType[];
 };
 
-export type ConfidenceFeedback = {
-  overall_confidence: number; // 0.0-1.0
-  clarity_score: number; // 0.0-1.0
-  feasibility_score: number; // 0.0-1.0
-  scope_score: number; // 0.0-1.0
-  value_score: number; // 0.0-1.0
-  completeness_score: number; // 0.0-1.0
-  clarity_feedback: string;
-  feasibility_feedback: string;
-  scope_feedback: string;
-  value_feedback: string;
-  completeness_feedback: string;
-  improvement_suggestions: string[];
-  confidence_reason: string;
+export type MissingInformation = {
+  category: string;
+  question: string;
+  why_needed: string;
+  priority: "high" | "medium" | "low";
 };
+
+export type SpecificationFeedback = {
+  summary: string;
+  strengths: string[];
+  missing_info: MissingInformation[];
+  suggestions: string[];
+};
+
+// Legacy ConfidenceFeedback type - deprecated, use SpecificationFeedback instead
+export type ConfidenceFeedback = SpecificationFeedback;

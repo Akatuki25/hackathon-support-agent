@@ -3,14 +3,14 @@
 import { useCallback, useState } from "react";
 import { RefreshCcw, Loader2, FileText, TrendingUp } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { ConfidenceFeedback as ConfidenceFeedbackType } from "@/types/modelTypes";
-import ConfidenceFeedback from "@/components/ConfidenceFeedback/ConfidenceFeedback";
+import { SpecificationFeedback } from "@/types/modelTypes";
+import SpecificationFeedbackModal from "@/components/SpecificationFeedbackModal/SpecificationFeedbackModal";
 import {
   FunctionalRequirement,
   QAForRequirement,
   regenerateFunctionalRequirements,
   updateFunctionDocument,
-  getFunctionConfidenceFeedback
+  getFunctionSpecificationFeedback
 } from "@/libs/service/function";
 import { BaseEditor } from "@/components/BaseEditor";
 
@@ -48,9 +48,9 @@ export default function FunctionEditor({
   const { darkMode } = useDarkMode();
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
-  const [loadingConfidenceFeedback, setLoadingConfidenceFeedback] = useState(false);
-  const [confidenceFeedback, setConfidenceFeedback] = useState<ConfidenceFeedbackType | null>(null);
-  const [showConfidenceFeedback, setShowConfidenceFeedback] = useState(false);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [specificationFeedback, setSpecificationFeedback] = useState<SpecificationFeedback | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // 再生成
   const regenerateAndEvaluate = async () => {
@@ -80,18 +80,18 @@ export default function FunctionEditor({
     }
   };
 
-  // 確信度フィードバック取得
-  const handleGetConfidenceFeedback = async () => {
-    setLoadingConfidenceFeedback(true);
+  // 仕様書フィードバック取得
+  const handleGetFeedback = async () => {
+    setLoadingFeedback(true);
     try {
-      const feedback = await getFunctionConfidenceFeedback(projectId);
-      setConfidenceFeedback(feedback);
-      setShowConfidenceFeedback(true);
+      const feedback = await getFunctionSpecificationFeedback(projectId);
+      setSpecificationFeedback(feedback);
+      setShowFeedbackModal(true);
     } catch (error) {
-      console.error("確信度フィードバックの取得に失敗:", error);
-      alert("確信度フィードバックの取得に失敗しました");
+      console.error("仕様書フィードバックの取得に失敗:", error);
+      alert("仕様書フィードバックの取得に失敗しました");
     } finally {
-      setLoadingConfidenceFeedback(false);
+      setLoadingFeedback(false);
     }
   };
 
@@ -207,10 +207,10 @@ export default function FunctionEditor({
       </button>
 
       <button
-        onClick={handleGetConfidenceFeedback}
-        disabled={loadingConfidenceFeedback || !functionDocument}
+        onClick={handleGetFeedback}
+        disabled={loadingFeedback || !functionDocument}
         className={`px-6 py-2 flex items-center rounded-lg shadow focus:outline-none transform transition ${
-          loadingConfidenceFeedback || !functionDocument
+          loadingFeedback || !functionDocument
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
         } ${
@@ -218,10 +218,10 @@ export default function FunctionEditor({
             ? "bg-teal-500 hover:bg-teal-600 text-gray-900 focus:ring-2 focus:ring-teal-400"
             : "bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white focus:ring-2 focus:ring-teal-400"
         } ${
-          loadingConfidenceFeedback && (darkMode ? "bg-teal-600" : "from-teal-600 to-emerald-700")
+          loadingFeedback && (darkMode ? "bg-teal-600" : "from-teal-600 to-emerald-700")
         }`}
       >
-        {loadingConfidenceFeedback ? (
+        {loadingFeedback ? (
           <>
             <Loader2 size={16} className="mr-2 animate-spin" />
             分析中...
@@ -260,10 +260,10 @@ export default function FunctionEditor({
       />
 
       {/* Confidence Feedback Modal */}
-      {showConfidenceFeedback && confidenceFeedback && (
-        <ConfidenceFeedback
-          feedback={confidenceFeedback}
-          onClose={() => setShowConfidenceFeedback(false)}
+      {showFeedbackModal && specificationFeedback && (
+        <SpecificationFeedbackModal
+          feedback={specificationFeedback}
+          onClose={() => setShowFeedbackModal(false)}
         />
       )}
     </div>
