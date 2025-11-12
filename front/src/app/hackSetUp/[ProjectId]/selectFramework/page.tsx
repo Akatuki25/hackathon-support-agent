@@ -9,6 +9,7 @@ import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
 import { getProjectDocument } from "@/libs/modelAPI/frameworkService";
 import { getFrameworkRecommendations } from "@/libs/service/frameworkService";
+import { structureFunctions } from "@/libs/modelAPI/functionStructuringAPI";
 
 export interface TechnologyOption {
   name: string;
@@ -336,7 +337,7 @@ export default function SelectFramework() {
   const [projectSpecification, setProjectSpecification] = useState<string>("");
   const [useAIRecommendations, setUseAIRecommendations] = useState(false);
 
-  // 初期処理：プロジェクト仕様書を取得
+  // 初期処理：プロジェクト仕様書を取得 + バックグラウンドで機能構造化を開始
   useEffect(() => {
     const initializeFlow = async () => {
       if (!projectId) return;
@@ -345,6 +346,13 @@ export default function SelectFramework() {
         const doc = await getProjectDocument(projectId);
         setProjectSpecification(doc.function_doc || "");
         setFlowState('ready');
+
+        // バックグラウンドで機能構造化APIを呼び出し（時間稼ぎ）
+        // ユーザーが技術を選んでいる間に処理を進める
+        structureFunctions(projectId).catch((error) => {
+          console.log("Background function structuring failed (non-blocking):", error);
+          // エラーは無視（次のページで再試行される）
+        });
       } catch (error) {
         console.error("プロジェクト仕様書の取得に失敗:", error);
         // エラーが発生した場合でも空の仕様書で進める

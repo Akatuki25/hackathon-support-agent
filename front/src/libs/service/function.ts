@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ConfidenceFeedback } from '@/types/modelTypes';
+import { SpecificationFeedback } from '@/types/modelTypes';
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -160,14 +160,17 @@ export const regenerateFunctionalRequirements = async (
 };
 
 /**
- * 機能要件書の確信度フィードバックを取得する
+ * 機能要件書の仕様書フィードバックを取得する
  */
-export const getFunctionConfidenceFeedback = async (
+export const getFunctionSpecificationFeedback = async (
   projectId: string
-): Promise<ConfidenceFeedback> => {
-  const response = await axios.post<ConfidenceFeedback>(
+): Promise<SpecificationFeedback> => {
+  const response = await axios.post<SpecificationFeedback>(
     `${API_BASE_URL}/api/function_requirements/confidence-feedback`,
     { project_id: projectId }
   );
   return response.data;
 };
+
+// Legacy alias - deprecated, use getFunctionSpecificationFeedback instead
+export const getFunctionConfidenceFeedback = getFunctionSpecificationFeedback;
