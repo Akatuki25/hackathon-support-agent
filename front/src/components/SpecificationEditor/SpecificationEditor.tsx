@@ -54,6 +54,8 @@ export default function SpecificationEditor({
       }
     };
     loadInitialFeedback();
+    // specificationFeedbackを依存配列に含めると無限ループになるため除外
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectDocument?.specification, projectId]);
 
   // 再生成と評価

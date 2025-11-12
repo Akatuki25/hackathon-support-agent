@@ -434,7 +434,7 @@ export default function FunctionStructuring() {
         // Step 4: 初回遷移の場合のみポーリング
         if (isInitialTransition) {
           setSetupPhase('structuring-functions');
-          setProcessingState('processing');
+          setProcessingState('structuring');
 
           // 最大150秒間、5秒ごとにポーリング（バックグラウンド処理の完了を待つ）
           let pollCount = 0;
