@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {
   MVPJudge,
-  ConfidenceFeedback
+  SpecificationFeedback
 } from '@/types/modelTypes';
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
@@ -44,22 +44,25 @@ export const evaluateSummary = async (
   return response.data;
 }
 
-export const getConfidenceFeedback = async (
+export const getSpecificationFeedback = async (
   projectId: string
-): Promise<ConfidenceFeedback> => {
-  const response = await axios.post<ConfidenceFeedback>(
+): Promise<SpecificationFeedback> => {
+  const response = await axios.post<SpecificationFeedback>(
     `${API_BASE_URL}/api/summary/confidence-feedback`,
     { project_id: projectId }
   );
   return response.data;
 }
 
+// Legacy alias - deprecated, use getSpecificationFeedback instead
+export const getConfidenceFeedback = getSpecificationFeedback;
+
 export const generateSummaryWithFeedback = async (
   projectId: string
 ): Promise<{
   summary: string;
   doc_id: string;
-  confidence_feedback: ConfidenceFeedback;
+  specification_feedback: SpecificationFeedback;
 }> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/summary/generate-with-feedback`,

@@ -1,0 +1,103 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36" version="28.2.8">
+  <diagram id="hackathon-architecture" name="ハッカソンサポートエージェント アーキテクチャ">
+    <mxGraphModel dx="1293" dy="916" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="frontend-layer" value="Frontend Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="50" width="1300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="frontend-details" value="Next.js 15 + React 19 + Tailwind CSS&#xa;- プロジェクト管理UI&#xa;- Q&amp;A対話インターフェース&#xa;- タスク可視化（ReactFlow）" style="rounded=1;whiteSpace=wrap;html=1;align=left;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="70" y="80" width="1260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1" value="HTTP/REST API" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="frontend-layer" target="api-layer" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-layer" value="API Gateway Layer (FastAPI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="200" width="1300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="api-details" value="/api/question  /api/summary  /api/task_generation  /api/task_chat&#xa;/project/*     /member/*     /task/*               /api/complete_*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="70" y="230" width="1260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="api-layer" target="orchestration-layer" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestration-layer" value="Multi-Agent Orchestration Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="350" width="1300" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestration-details" value="IntegratedTaskService (統合オーケストレーター)&#xa;Pipeline: Generate → Evaluate → Dependency → Position → Save" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" parent="1" vertex="1">
+          <mxGeometry x="70" y="385" width="1260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="orchestration-layer" target="agent-layer" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="agent-layer" value="Specialized Agent Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="520" width="1300" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="doc-agents" value="Document Generation Agents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="80" y="560" width="380" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="doc-agents-list" value="• QuestionAgent&#xa;• SummaryAgent&#xa;• FrameworkAgent&#xa;• DirectoryAgent&#xa;• EnvironmentAgent" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="600" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="task-agents" value="Task Management Agents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="490" y="560" width="380" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="task-agents-list" value="• TaskGenerator&#xa;• QualityEvaluator&#xa;• DependencyAnalyzer&#xa;• PositionCalculator&#xa;• TaskDetailAgent" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="510" y="600" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="support-agents" value="Support Tools Agents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="900" y="560" width="380" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="support-agents-list" value="• TaskChat&#xa;• TaskHandsOn (ReAct)&#xa;• DurationCalc&#xa;• DeployAgent" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="920" y="600" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="agent-layer" target="infra-layer" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="infra-layer" value="Agent Infrastructure Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="820" width="1300" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="infra-base" value="BaseService (基底クラス)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="80" y="860" width="1220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-mgmt" value="LLM Management&#xa;• llm_pro&#xa;• llm_flash&#xa;• llm_thinking&#xa;• llm_lite" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="100" y="900" width="360" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="prompt-mgr" value="Prompt Manager&#xa;• prompts.toml&#xa;• get_prompt()&#xa;• TOML Parser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="490" y="900" width="360" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="logging-db" value="Logging &amp; DB Session&#xa;• Structured Logging&#xa;• DB Session Injection&#xa;• Error Handling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="880" y="900" width="360" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow5" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="infra-layer" target="external-layer" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="external-layer" value="External Services &amp; Tools Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="1050" width="1300" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-providers" value="LLM Providers&#xa;• Google Gemini (2.5 Flash)&#xa;• OpenAI GPT&#xa;• Anthropic Claude" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="80" y="1090" width="360" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="external-tools" value="External Tools&#xa;• Tavily Search&#xa;• BeautifulSoup&#xa;• NetworkX&#xa;• json-repair" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="470" y="1090" width="360" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="bg-workers" value="Background Workers&#xa;• Celery + Redis&#xa;  - Async Task Queue&#xa;  - Hands-on Generation&#xa;  - Batch Processing&#xa;• Flower (Monitoring)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="860" y="1090" width="410" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow6" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="external-layer" target="data-layer" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="data-layer" value="Data Persistence Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;fontSize=14;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="50" y="1280" width="1300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" value="PostgreSQL Database&#xa;(SQLAlchemy ORM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;verticalAlign=top;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="80" y="1320" width="1220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="db-tables" value="Projects | Tasks | Members | AI Documents | Documents | Dependencies | Q&amp;A | HandsOn Contents" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="100" y="1360" width="1180" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -9,8 +9,7 @@ import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
 import { getProjectDocument } from "@/libs/modelAPI/frameworkService";
 import { getFrameworkRecommendations } from "@/libs/service/frameworkService";
-import { patchProjectDocument } from "@/libs/modelAPI/document";
-import { generateAIDocument } from "@/libs/service/aiDocumentService";
+import { structureFunctions } from "@/libs/modelAPI/functionStructuringAPI";
 
 export interface TechnologyOption {
   name: string;
@@ -336,23 +335,9 @@ export default function SelectFramework() {
   const [aiRecommendations, setAiRecommendations] = useState<FrameworkRecommendationResponse | null>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [projectSpecification, setProjectSpecification] = useState<string>("");
-  const [processingNext, setProcessingNext] = useState(false);
   const [useAIRecommendations, setUseAIRecommendations] = useState(false);
 
-  // フレームワーク選択を保存
-  const saveFrameworkSelection = async (projectId: string, reason: string) => {
-    try {
-      // frame_work_docをpatchで更新
-      await patchProjectDocument(projectId, {
-        frame_work_doc: reason
-      });
-    } catch (error) {
-      console.error("フレームワーク選択の保存に失敗:", error);
-      throw error;
-    }
-  }
-
-  // 初期処理：プロジェクト仕様書を取得
+  // 初期処理：プロジェクト仕様書を取得 + バックグラウンドで機能構造化を開始
   useEffect(() => {
     const initializeFlow = async () => {
       if (!projectId) return;
@@ -361,6 +346,13 @@ export default function SelectFramework() {
         const doc = await getProjectDocument(projectId);
         setProjectSpecification(doc.function_doc || "");
         setFlowState('ready');
+
+        // バックグラウンドで機能構造化APIを呼び出し（時間稼ぎ）
+        // ユーザーが技術を選んでいる間に処理を進める
+        structureFunctions(projectId).catch((error) => {
+          console.log("Background function structuring failed (non-blocking):", error);
+          // エラーは無視（次のページで再試行される）
+        });
       } catch (error) {
         console.error("プロジェクト仕様書の取得に失敗:", error);
         // エラーが発生した場合でも空の仕様書で進める
@@ -431,34 +423,17 @@ export default function SelectFramework() {
   };
 
   // 次へ進む
-  const handleNext = async () => {
+  const handleNext = () => {
     if (selectedTechnologies.size === 0 || (!selectedPlatform && !useAIRecommendations)) return;
 
-    setProcessingNext(true);
-    try {
-      // 選択した技術スタックを保存
-      const reason = useAIRecommendations
-        ? `選択理由: AI推薦により${Array.from(selectedTechnologies).join(", ")}を使用`
-        : `選択理由: ${selectedPlatform}プラットフォームで${Array.from(selectedTechnologies).join(", ")}を使用`;
+    // 選択データを次ページへ渡して即座に遷移
+    const searchParams = new URLSearchParams({
+      technologies: Array.from(selectedTechnologies).join(','),
+      platform: selectedPlatform || '',
+      aiRecommended: useAIRecommendations.toString()
+    });
 
-      // frame_work_docを保存
-      await saveFrameworkSelection(projectId, reason);
-
-      // AIドキュメント生成を呼び出し
-      await generateAIDocument(projectId);
-
-      setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/functionStructuring`);
-      }, 1000);
-    } catch (error) {
-      console.error("フレームワーク選択の保存に失敗:", error);
-      // エラーでも次のページに進む
-      setTimeout(() => {
-        router.push(`/hackSetUp/${projectId}/functionStructuring`);
-      }, 1000);
-    } finally {
-      setProcessingNext(false);
-    }
+    router.push(`/hackSetUp/${projectId}/functionStructuring?${searchParams.toString()}`);
   };
 
   // 難易度の表示色
@@ -982,19 +957,9 @@ export default function SelectFramework() {
                         ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
                         : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
                     }`}
-                    disabled={processingNext}
                   >
-                    {processingNext ? (
-                      <div className="flex items-center">
-                        <Loader2 className="animate-spin mr-2" size={18} />
-                        処理中...
-                      </div>
-                    ) : (
-                      <>
-                        <span>セットアップ完了へ</span>
-                        <ChevronRight size={18} className="ml-2" />
-                      </>
-                    )}
+                    <span>次へ進む</span>
+                    <ChevronRight size={18} className="ml-2" />
                   </button>
                 </div>
               </div>

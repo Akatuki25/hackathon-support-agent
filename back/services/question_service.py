@@ -1,93 +1,73 @@
-from langchain.prompts import PromptTemplate, ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
-from langchain.schema.runnable import RunnableSequence
+from langchain.prompts import ChatPromptTemplate
 from .base_service import BaseService
-from json_repair import repair_json
 import uuid
 from models.project_base import QA
-import pydantic
-from pydantic import BaseModel
-
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-
 from typing import Any, Dict, Iterable, List, Sequence, Union
-from pydantic import BaseModel
-import uuid
-from sqlalchemy.orm import Session
+
+
+# ============================================================================
+# Pydantic Models for Structured Output
+# ============================================================================
+
+class QuestionItem(BaseModel):
+    """単一のQ&Aアイテム"""
+    question: str = Field(description="ユーザーへの質問文")
+    answer: str = Field(description="想定される回答例")
+    importance: int = Field(ge=1, le=5, description="重要度 (1-5)")
+
+
+class QuestionOutput(BaseModel):
+    """質問生成の出力"""
+    QA: List[QuestionItem] = Field(description="生成された質問リスト")
+
+
+# ============================================================================
+# Service
+# ============================================================================
 
 class QuestionService(BaseService):
     def __init__(self, db: Session):
         super().__init__(db=db)
 
-    def generate_question(self, idea_prompt: str, project_id=None):
+    async def generate_question(self, idea_prompt: str, project_id=None):
         """
-        Q&Aの質問と想定回答を生成するメソッド。
+        Q&Aの質問と想定回答を生成するメソッド (Pydantic構造化出力版)
+        非同期版に最適化
         """
         self.logger.debug(f"Generating questions for project_id: {project_id} with idea_prompt: {idea_prompt}")
-        response_schemas = [
-            ResponseSchema(
-                name="QA",
-                type="array(objects)",
-                description=(
-                    "リスト形式で、各要素が以下のフィールドを持つオブジェクトを生成してください。 "
-                    " - question: string (the question text)\n"
-                    " - answer: string (the answer text)\n"
-                    " - importance: integer (priority/vote)\n"
-                ),
-            )
-        ]
 
-        parser = StructuredOutputParser.from_response_schemas(response_schemas)
+        # Pydantic構造化出力を使用
         prompt_template = ChatPromptTemplate.from_template(
-            template=self.get_prompt("question_service", "generate_question"),
-            partial_variables={"format_instructions": parser.get_format_instructions()},
+            template=self.get_prompt("question_service", "generate_question")
         )
-        chain = prompt_template | self.llm_flash_thinking | parser
-        result = chain.invoke({"idea_prompt": idea_prompt})
-        # 想定されるQAフォーマットでない場合には修正を試みる
-        if not isinstance(result["QA"], list):
-            repaired = repair_json(
-                json_like_string=result["QA"],
-                array_root=True,
-            )
-            result["QA"] = repaired
-        
-        # SQLのためのバリデーションを行う is_aiとsource_doc_idとproject_idを追加する
-        validate_qa = []
-        try:
-            # QAについて必要なフィールドを使いする。
-            for qa in result["QA"]:
-                if not all(key in qa for key in ("question", "answer", "importance")):
-                    
-                    self.logger.error(f"Missing fields in QA item: {qa}")
-                    
-                    raise ValueError("Missing required fields in QA item")
-                if not isinstance(qa["importance"], int):
-                    self.logger.error(f"Missing fields in QA item: {qa}")
-                    
-                    raise ValueError("Importance must be an integer")
+        chain = prompt_template | self.llm_flash_thinking.with_structured_output(QuestionOutput)
 
-                # SQLのためのバリデーションを行う is_aiとsource_doc_idとproject_idを追加する
-                qa["is_ai"] = True
-                qa["source_doc_id"] = None
-                qa["project_id"] = project_id
+        # LLM呼び出し（非同期）
+        result: QuestionOutput = await chain.ainvoke({"idea_prompt": idea_prompt})
 
-                validate_qa.append(qa)
-            result["QA"] = validate_qa
+        # Pydanticモデルからdictに変換してDB保存用のメタデータを付与
+        qa_list = []
+        prev_qa_id = None
 
-        except Exception as e:
-            self.logger.exception("Validation failed for QA items")
-            raise e
-        
-        # qa_idの設定
-        for i in range(len(result["QA"])):
-            result["QA"][i]["qa_id"] = str(uuid.uuid4())
-        
-        # follows_qa_idを出力された順に設定する。
-        for i in range(1, len(result["QA"])):
-            result["QA"][i]["follows_qa_id"] = result["QA"][i-1]["qa_id"]
+        for qa_item in result.QA:
+            qa_id = str(uuid.uuid4())
+            qa_dict = {
+                "qa_id": qa_id,
+                "question": qa_item.question,
+                "answer": qa_item.answer,
+                "importance": qa_item.importance,
+                "is_ai": True,
+                "source_doc_id": None,
+                "project_id": project_id,
+                "follows_qa_id": prev_qa_id,
+            }
+            qa_list.append(qa_dict)
+            prev_qa_id = qa_id
 
-        return {"QA": result["QA"]}
+        self.logger.info(f"Generated {len(qa_list)} questions for project_id: {project_id}")
+        return {"QA": qa_list}
 
 
     def save_question(

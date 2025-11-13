@@ -11,6 +11,7 @@ langchain_openai==0.3.35
 langchain-google-genai==2.1.12
 langchain-text-splitters==0.3.11
 langchain_anthropic==0.3.22
+google-genai>=1.0.0
 langgraph==0.6.10
 langgraph-checkpoint==2.1.2
 langgraph-prebuilt==0.6.4

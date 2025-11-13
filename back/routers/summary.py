@@ -25,9 +25,10 @@ class QAUpdateRequest(BaseModel):
     qa_answers: List[QAAnswer]
 
 @router.post("/")
-def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
+async def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
     """
     Q&Aリストから要約を生成・保存し、評価を実行する
+    非同期版に最適化
     """
     summary_service = SummaryService(db=db)
     try:
@@ -36,7 +37,7 @@ def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
         else:
             project_id_str = str(request.project_id)
 
-        result = summary_service.generate_summary(project_id=project_id_str)
+        result = await summary_service.generate_summary(project_id=project_id_str)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -44,9 +45,10 @@ def generate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.post("/generate-with-feedback")
-def generate_summary_with_feedback(request: ProjectIdRequest, db: Session = Depends(get_db)):
+async def generate_summary_with_feedback(request: ProjectIdRequest, db: Session = Depends(get_db)):
     """
     Q&Aリストから要約を生成・保存し、確信度フィードバックも同時に返す
+    非同期版に最適化
     """
     summary_service = SummaryService(db=db)
     try:
@@ -55,7 +57,7 @@ def generate_summary_with_feedback(request: ProjectIdRequest, db: Session = Depe
         else:
             project_id_str = str(request.project_id)
 
-        result = summary_service.generate_summary_with_feedback(project_id_str)
+        result = await summary_service.generate_summary_with_feedback(project_id_str)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -132,9 +134,10 @@ def update_qa_and_regenerate(request: QAUpdateRequest, db: Session = Depends(get
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.post("/confidence-feedback")
-def get_confidence_feedback(request: ProjectIdRequest, db: Session = Depends(get_db)):
+async def get_confidence_feedback(request: ProjectIdRequest, db: Session = Depends(get_db)):
     """
     仕様書とQ&Aから確信度フィードバックを生成する
+    非同期版に最適化
     """
     summary_service = SummaryService(db=db)
     try:
@@ -149,7 +152,7 @@ def get_confidence_feedback(request: ProjectIdRequest, db: Session = Depends(get
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid project_id format: {project_id_str}")
 
-        result = summary_service.generate_confidence_feedback(project_id_str)
+        result = await summary_service.generate_confidence_feedback(project_id_str)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Validation error: {str(e)}")

@@ -56,16 +56,18 @@ class IntegratedTaskService(BaseService):
             
             print(f"  生成タスク数: {len(task_dicts)}")
             
-            # Step 2: 品質評価・改善（メモリ上）
-            print("Step 2: 品質評価・改善")
-            quality_result = await self.quality_evaluator.evaluate_tasks_in_memory(task_dicts, function_dicts)
-            
-            # 品質改善タスクを追加
-            improvement_tasks = quality_result.get("suggested_improvements", [])
-            all_tasks = task_dicts + improvement_tasks
-            
-            print(f"  品質スコア: {quality_result['overall_score']:.2f}")
-            print(f"  改善タスク追加: {len(improvement_tasks)}個")
+            # Step 2: 品質評価・改善（無効化）
+            # ナイーブなキーワードマッチングによる品質評価は重複タスクを生成するため無効化
+            print("Step 2: 品質評価・改善 (スキップ)")
+            quality_result = {
+                "overall_score": 1.0,
+                "is_acceptable": True,
+                "suggested_improvements": []
+            }
+            improvement_tasks = []
+            all_tasks = task_dicts
+
+            print(f"  品質評価: スキップ (重複タスク防止)")
             print(f"  総タスク数: {len(all_tasks)}")
             
             # Step 3: 依存関係生成（メモリ上）

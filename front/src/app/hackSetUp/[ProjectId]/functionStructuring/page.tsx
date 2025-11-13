@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Boxes, ChevronRight, Loader2, Bot, CheckCircle, AlertCircle, ArrowRight, Edit3, Save, Plus, Trash2, X } from "lucide-react";
+import { Boxes, ChevronRight, Loader2, Bot, CheckCircle, AlertCircle, ArrowRight, Edit3, Save, Plus, Trash2, X, Terminal } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
@@ -18,6 +18,29 @@ import {
   type StructuringResult,
   type CreateFunctionRequest,
 } from "@/libs/modelAPI/functionStructuringAPI";
+import { patchProjectDocument } from "@/libs/modelAPI/document";
+
+// フレームワーク選択データの型定義
+interface FrameworkSelectionData {
+  selectedTechnologies: string[];
+  selectedPlatform: 'web' | 'ios' | 'android' | null;
+  useAIRecommendations: boolean;
+}
+
+// セットアップフェーズの型定義
+type SetupPhase =
+  | 'initializing'           // 初期化中
+  | 'saving-framework'       // フレームワーク選択を保存中
+  | 'structuring-functions'  // 機能構造化中
+  | 'completed'              // 完了
+  | 'error';                 // エラー
+
+// セットアップエラーの型定義
+interface SetupError {
+  phase: SetupPhase;
+  message: string;
+  canContinue: boolean;
+}
 
 type ProcessingState = 'idle' | 'structuring' | 'completed' | 'error';
 
@@ -86,10 +109,17 @@ const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {
 export default function FunctionStructuring() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const projectId = pathname.split("/")[2];
   const { darkMode } = useDarkMode();
   const { data: session, status } = useSession();
 
+  // セットアップフェーズ関連の状態
+  const [setupPhase, setSetupPhase] = useState<SetupPhase>('initializing');
+  const [setupError, setSetupError] = useState<SetupError | null>(null);
+  const [frameworkData, setFrameworkData] = useState<FrameworkSelectionData | null>(null);
+
+  // 既存の状態
   const [processingState, setProcessingState] = useState<ProcessingState>('idle');
   const [structuringResult, setStructuringResult] = useState<StructuringResult | null>(null);
   const [error, setError] = useState<string>("");
@@ -104,6 +134,60 @@ export default function FunctionStructuring() {
     category: 'logic',
     priority: 'Should'
   });
+
+  // フレームワーク選択データから理由文字列を生成
+  const buildFrameworkReason = (data: FrameworkSelectionData): string => {
+    const technologies = data.selectedTechnologies.join(", ");
+
+    if (data.useAIRecommendations) {
+      return `選択理由: AI推薦により${technologies}を使用`;
+    } else {
+      return `選択理由: ${data.selectedPlatform}プラットフォームで${technologies}を使用`;
+    }
+  };
+
+  // フレームワーク選択を保存
+  const saveFrameworkSelection = async (data: FrameworkSelectionData) => {
+    const reason = buildFrameworkReason(data);
+    await patchProjectDocument(projectId, {
+      frame_work_doc: reason
+    });
+  };
+
+  // セットアップエラーをハンドリング
+  const handleSetupError = (phase: SetupPhase, error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+
+    switch (phase) {
+      case 'saving-framework':
+        setSetupError({
+          phase,
+          message: `フレームワーク選択の保存に失敗しました: ${errorMessage}`,
+          canContinue: true
+        });
+        console.warn('フレームワーク選択の保存に失敗しましたが、処理を続行します:', error);
+        break;
+
+      case 'structuring-functions':
+        setSetupError({
+          phase,
+          message: `機能構造化に失敗しました: ${errorMessage}`,
+          canContinue: false
+        });
+        setSetupPhase('error');
+        console.error('機能構造化に失敗しました:', error);
+        break;
+
+      default:
+        setSetupError({
+          phase,
+          message: errorMessage,
+          canContinue: false
+        });
+        setSetupPhase('error');
+        console.error('予期しないエラーが発生しました:', error);
+    }
+  };
 
   // 機能構造化を実行
   const handleStructureFunctions = async () => {
@@ -295,29 +379,97 @@ export default function FunctionStructuring() {
       return;
     }
 
-    const checkExistingResults = async () => {
+    const initializeAndStructure = async () => {
       try {
-        const data = await getStructuredFunctions(projectId);
-        if (data.total_functions > 0) {
-          setStructuringResult(data);
-          setProcessingState('completed');
+        // Step 1: URLパラメータからフレームワーク選択データを取得
+        const technologies = searchParams.get('technologies');
+        const platform = searchParams.get('platform');
+        const aiRecommended = searchParams.get('aiRecommended');
+
+        // フレームワーク選択ページから遷移してきたかどうかを判定
+        const isInitialTransition = technologies && technologies.length > 0;
+
+        if (isInitialTransition) {
+          const data: FrameworkSelectionData = {
+            selectedTechnologies: technologies.split(','),
+            selectedPlatform: (platform || null) as 'web' | 'ios' | 'android' | null,
+            useAIRecommendations: aiRecommended === 'true'
+          };
+          setFrameworkData(data);
+
+          // Step 2: フレームワーク選択を保存
+          setSetupPhase('saving-framework');
+          try {
+            await saveFrameworkSelection(data);
+          } catch (error) {
+            handleSetupError('saving-framework', error);
+            // エラーでも続行
+          }
+        }
+
+        // Step 3: 既存の機能構造化結果をチェック（ポーリング）
+        // selectFrameworkでバックグラウンド呼び出しが開始されているので、
+        // 結果が準備されるまで待つ
+        const checkResult = async () => {
+          try {
+            const data = await getStructuredFunctions(projectId);
+            if (data.total_functions > 0) {
+              // 既存結果がある場合は表示のみ
+              setStructuringResult(data);
+              setProcessingState('completed');
+              setSetupPhase('completed');
+              return true;
+            }
+          } catch {
+            // まだ結果がない
+          }
+          return false;
+        };
+
+        // 初回チェック
+        if (await checkResult()) {
           return;
         }
-      } catch {
-        console.log('既存結果なし、新規実行が必要');
-      }
 
-      // 新規実行が必要な場合のみ自動実行
-      handleStructureFunctions();
+        // Step 4: 初回遷移の場合のみポーリング
+        if (isInitialTransition) {
+          setSetupPhase('structuring-functions');
+          setProcessingState('structuring');
+
+          // 最大150秒間、5秒ごとにポーリング（バックグラウンド処理の完了を待つ）
+          let pollCount = 0;
+          const maxPolls = 30; // 150秒 (5秒 x 30回)
+          while (pollCount < maxPolls) {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            if (await checkResult()) {
+              return;
+            }
+            pollCount++;
+          }
+
+          // ポーリングタイムアウト → 実行中 or 失敗
+          // 手動実行ボタンを表示
+          console.log('Background task timeout, showing manual execution button');
+          setProcessingState('idle');
+          setSetupPhase('completed');
+        } else {
+          // リロードやタブ切り替えの場合は idle 状態で待機
+          setProcessingState('idle');
+          setSetupPhase('completed');
+        }
+
+      } catch (error) {
+        handleSetupError(setupPhase, error);
+      }
     };
 
     if (projectId) {
-      checkExistingResults();
+      initializeAndStructure();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, session, status, router]);
+  }, [projectId, session, status]);
 
-  if (status === "loading" || processingState === 'idle') {
+  if (status === "loading" || setupPhase === 'initializing') {
     return <Loading />;
   }
 
@@ -331,11 +483,7 @@ export default function FunctionStructuring() {
         <Header />
       </div>
 
-      <main className={`relative z-10 min-h-screen ${
-        darkMode
-          ? "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
-          : "bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200"
-      }`}>
+      <main className={`relative z-10 min-h-screen`}>
         {/* サイバーグリッド背景 */}
         {darkMode && (
           <>
@@ -366,8 +514,35 @@ export default function FunctionStructuring() {
             </p>
           </div>
 
+          {/* フレームワーク選択保存中 */}
+          {setupPhase === 'saving-framework' && (
+            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
+              darkMode
+                ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
+                : "bg-white/60 border-purple-500/30 shadow-purple-300/20"
+            }`}>
+              <div className="text-center">
+                <Terminal size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
+                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+                  フレームワーク選択を保存中
+                </h2>
+                <div className="flex items-center justify-center mb-4">
+                  <Loader2 className="animate-spin mr-2" size={20} />
+                  <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
+                    選択された技術スタックをデータベースに保存しています...
+                  </span>
+                </div>
+                {frameworkData && (
+                  <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    選択技術: {frameworkData.selectedTechnologies.join(', ')}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 処理中の表示 */}
-          {processingState === 'structuring' && (
+          {(processingState === 'structuring' || setupPhase === 'structuring-functions') && (
             <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
               darkMode
                 ? "bg-slate-800/20 border-cyan-400/50 shadow-[0_0_50px_rgba(34,211,238,0.3)]"
@@ -420,8 +595,32 @@ export default function FunctionStructuring() {
             </div>
           )}
 
+          {/* セットアップエラー/警告表示 */}
+          {setupError && setupError.canContinue && (
+            <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
+              darkMode
+                ? "bg-yellow-900/10 border-yellow-400/50 shadow-[0_0_50px_rgba(251,191,36,0.3)]"
+                : "bg-yellow-50/80 border-yellow-300 shadow-yellow-200"
+            }`}>
+              <div className="flex items-start">
+                <AlertCircle size={24} className={`mr-3 mt-1 flex-shrink-0 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`} />
+                <div className="flex-1">
+                  <h3 className={`text-lg font-bold mb-2 ${darkMode ? "text-yellow-400" : "text-yellow-700"}`}>
+                    警告: 一部の処理でエラーが発生しました
+                  </h3>
+                  <div className={`text-sm whitespace-pre-line ${darkMode ? "text-yellow-300" : "text-yellow-700"}`}>
+                    {setupError.message}
+                  </div>
+                  <div className={`text-sm mt-2 ${darkMode ? "text-yellow-200" : "text-yellow-600"}`}>
+                    処理を続行しています...
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 完了結果の表示 */}
-          {processingState === 'completed' && structuringResult && (
+          {(processingState === 'completed' || setupPhase === 'completed') && structuringResult && (
             <>
               {/* 部分的成功の警告 */}
               {error && (
