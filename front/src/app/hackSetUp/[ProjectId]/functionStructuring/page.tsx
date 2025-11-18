@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Boxes, ChevronRight, Loader2, Bot, CheckCircle, AlertCircle, ArrowRight, Edit3, Save, Plus, Trash2, X, Terminal } from "lucide-react";
+import { Boxes, ChevronRight, Loader2, Bot, CheckCircle, AlertCircle, ArrowRight, Edit3, Plus, Trash2, Terminal } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
@@ -127,6 +127,7 @@ export default function FunctionStructuring() {
   const [editingFunction, setEditingFunction] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState<Partial<StructuredFunction>>({});
   const [isAddingFunction, setIsAddingFunction] = useState(false);
+  const [isEditingModalOpen, setIsEditingModalOpen] = useState(false);
   const [newFunctionData, setNewFunctionData] = useState<CreateFunctionRequest>({
     project_id: projectId,
     function_name: '',
@@ -134,6 +135,32 @@ export default function FunctionStructuring() {
     category: 'logic',
     priority: 'Should'
   });
+
+  // Textarea の ref
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const newTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Textarea の高さを自動調整する関数
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement | null) => {
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  };
+
+  // 編集モーダルが開いたときに高さを調整
+  useEffect(() => {
+    if (isEditingModalOpen && editTextareaRef.current) {
+      adjustTextareaHeight(editTextareaRef.current);
+    }
+  }, [isEditingModalOpen, editingValues.description]);
+
+  // 新規追加モーダルが開いたときに高さを調整
+  useEffect(() => {
+    if (isAddingFunction && newTextareaRef.current) {
+      adjustTextareaHeight(newTextareaRef.current);
+    }
+  }, [isAddingFunction, newFunctionData.description]);
 
   // フレームワーク選択データから理由文字列を生成
   const buildFrameworkReason = (data: FrameworkSelectionData): string => {
@@ -264,7 +291,7 @@ export default function FunctionStructuring() {
     }
   };
 
-  // 機能の編集を開始
+  // 機能の編集を開始（モーダルを開く）
   const handleEditFunction = (func: StructuredFunction) => {
     setEditingFunction(func.function_id);
     setEditingValues({
@@ -273,27 +300,78 @@ export default function FunctionStructuring() {
       category: func.category,
       priority: func.priority
     });
+    setIsEditingModalOpen(true);
   };
 
   // 機能の編集を保存
   const handleSaveFunction = async (functionId: string) => {
+    if (!editingValues.function_name?.trim() || !editingValues.description?.trim()) {
+      alert('機能名と説明を入力してください');
+      return;
+    }
+
+    // 楽観的更新（Optimistic Update）：APIレスポンスを待たずにUIを即座に更新
+    if (structuringResult) {
+      const optimisticUpdatedFunctions = structuringResult.functions.map(func => {
+        if (func.function_id === functionId) {
+          return {
+            ...func,
+            function_name: editingValues.function_name || func.function_name,
+            description: editingValues.description || func.description,
+            category: editingValues.category || func.category,
+            priority: editingValues.priority || func.priority,
+          };
+        }
+        return func;
+      });
+
+      setStructuringResult({
+        ...structuringResult,
+        functions: optimisticUpdatedFunctions
+      });
+    }
+
+    // モーダルを即座に閉じる
+    setEditingFunction(null);
+    setEditingValues({});
+    setIsEditingModalOpen(false);
+
+    // バックグラウンドでAPIを呼び出して、サーバーと同期
     try {
       const updatedFunction = await updateFunction(functionId, editingValues);
 
+      // APIレスポンスで状態を更新（詳細情報を含む完全なデータ）
       if (structuringResult) {
-        const updatedFunctions = structuringResult.functions.map(func =>
-          func.function_id === functionId ? updatedFunction : func
-        );
+        const updatedFunctions = structuringResult.functions.map(func => {
+          if (func.function_id === functionId) {
+            return {
+              ...func,
+              ...updatedFunction,
+              dependencies: updatedFunction.dependencies || func.dependencies,
+              extraction_confidence: updatedFunction.extraction_confidence ?? func.extraction_confidence,
+              implementation_order: updatedFunction.implementation_order ?? func.implementation_order,
+              estimated_effort: updatedFunction.estimated_effort || func.estimated_effort,
+            };
+          }
+          return func;
+        });
+
         setStructuringResult({
           ...structuringResult,
           functions: updatedFunctions
         });
       }
-      setEditingFunction(null);
-      setEditingValues({});
     } catch (error) {
       console.error('機能の更新に失敗:', error);
-      alert('機能の更新に失敗しました');
+      alert('機能の更新に失敗しました。変更を元に戻しています...');
+
+      // エラーが発生した場合は、最新のデータを再取得
+      try {
+        const freshData = await getStructuredFunctions(projectId);
+        setStructuringResult(freshData);
+      } catch (fetchError) {
+        console.error('データの再取得に失敗:', fetchError);
+      }
     }
   };
 
@@ -301,6 +379,7 @@ export default function FunctionStructuring() {
   const handleCancelEdit = () => {
     setEditingFunction(null);
     setEditingValues({});
+    setIsEditingModalOpen(false);
   };
 
   // 機能を削除
@@ -675,7 +754,7 @@ export default function FunctionStructuring() {
                 </div>
 
                 {/* カテゴリ別機能表示 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex gap-6 overflow-x-auto pb-4">
                   {Object.entries(CATEGORY_LABELS).map(([category, label]) => {
                     const categoryFunctions = structuringResult.functions.filter(f => f.category === category);
 
@@ -686,7 +765,7 @@ export default function FunctionStructuring() {
                     return (
                       <div
                         key={category}
-                        className={`rounded-xl p-4 border backdrop-blur-lg transition-all ${colors.bg} ${colors.border} shadow-lg ${colors.glow}`}
+                        className={`rounded-xl p-4 border backdrop-blur-lg transition-all flex-shrink-0 w-80 ${colors.bg} ${colors.border} shadow-lg ${colors.glow}`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h3 className={`text-lg font-bold ${colors.text}`}>
@@ -712,76 +791,7 @@ export default function FunctionStructuring() {
                                       : "bg-white/50 border-gray-200/60 hover:bg-white/70"
                                   }`}
                                 >
-                                  {editingFunction === func.function_id ? (
-                                    // 編集モード
-                                    <div className="space-y-3">
-                                      <div className="flex items-center justify-between">
-                                        <input
-                                          type="text"
-                                          value={editingValues.function_name || ''}
-                                          onChange={(e) => setEditingValues({...editingValues, function_name: e.target.value})}
-                                          className={`text-sm font-semibold bg-transparent border-b border-dashed outline-none flex-1 mr-2 ${
-                                            darkMode ? "text-gray-100 border-gray-400" : "text-gray-900 border-gray-500"
-                                          }`}
-                                        />
-                                        <div className="flex space-x-1">
-                                          <button
-                                            onClick={() => handleSaveFunction(func.function_id)}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-green-700 text-green-400" : "hover:bg-green-100 text-green-600"
-                                            }`}
-                                          >
-                                            <Save size={14} />
-                                          </button>
-                                          <button
-                                            onClick={handleCancelEdit}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-200 text-gray-600"
-                                            }`}
-                                          >
-                                            <X size={14} />
-                                          </button>
-                                        </div>
-                                      </div>
-
-                                      <textarea
-                                        value={editingValues.description || ''}
-                                        onChange={(e) => setEditingValues({...editingValues, description: e.target.value})}
-                                        className={`w-full text-xs bg-transparent border border-dashed rounded p-2 outline-none resize-none ${
-                                          darkMode ? "text-gray-400 border-gray-400" : "text-gray-600 border-gray-500"
-                                        }`}
-                                        rows={2}
-                                      />
-
-                                      <div className="flex space-x-2">
-                                        <select
-                                          value={editingValues.category || func.category}
-                                          onChange={(e) => setEditingValues({...editingValues, category: e.target.value as StructuredFunction['category']})}
-                                          className={`text-xs border rounded px-2 py-1 ${
-                                            darkMode ? "bg-gray-700 border-gray-600 text-gray-300" : "bg-white border-gray-300 text-gray-700"
-                                          }`}
-                                        >
-                                          {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                                            <option key={key} value={key}>{label}</option>
-                                          ))}
-                                        </select>
-
-                                        <select
-                                          value={editingValues.priority || func.priority}
-                                          onChange={(e) => setEditingValues({...editingValues, priority: e.target.value as StructuredFunction['priority']})}
-                                          className={`text-xs border rounded px-2 py-1 ${
-                                            darkMode ? "bg-gray-700 border-gray-600 text-gray-300" : "bg-white border-gray-300 text-gray-700"
-                                          }`}
-                                        >
-                                          {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                                            <option key={key} value={key}>{label}</option>
-                                          ))}
-                                        </select>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    // 表示モード
-                                    <div>
+                                  <div>
                                       <div className="flex items-start justify-between gap-2 mb-2">
                                         <h4 className={`font-semibold text-sm flex-1 min-w-0 ${
                                           darkMode ? "text-gray-100" : "text-gray-900"
@@ -898,7 +908,6 @@ export default function FunctionStructuring() {
                                         </div>
                                       </div>
                                     </div>
-                                  )}
                                 </div>
                               );
                             })}
@@ -1206,15 +1215,20 @@ export default function FunctionStructuring() {
                   説明
                 </label>
                 <textarea
+                  ref={newTextareaRef}
                   value={newFunctionData.description}
-                  onChange={(e) => setNewFunctionData({...newFunctionData, description: e.target.value})}
+                  onChange={(e) => {
+                    setNewFunctionData({...newFunctionData, description: e.target.value});
+                    adjustTextareaHeight(e.target);
+                  }}
                   className={`w-full px-3 py-2 rounded-lg border outline-none resize-none backdrop-blur-sm transition-all ${
                     darkMode
                       ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
                       : "bg-white/70 border-gray-300 text-gray-900"
                   }`}
-                  rows={3}
+                  rows={6}
                   placeholder="機能の詳細を入力してください"
+                  style={{ minHeight: '120px' }}
                 />
               </div>
 
@@ -1279,6 +1293,125 @@ export default function FunctionStructuring() {
                 }`}
               >
                 追加
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 機能編集モーダル */}
+      {isEditingModalOpen && editingFunction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
+          <div className={`rounded-xl p-6 shadow-2xl border max-w-lg w-full mx-4 backdrop-blur-xl ${
+            darkMode
+              ? "bg-gray-800/80 border-cyan-500/40 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+              : "bg-white/80 border-purple-500/40"
+          }`}>
+            <h3 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+              機能を編集
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  機能名
+                </label>
+                <input
+                  type="text"
+                  value={editingValues.function_name || ''}
+                  onChange={(e) => setEditingValues({...editingValues, function_name: e.target.value})}
+                  className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
+                    darkMode
+                      ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
+                      : "bg-white/70 border-gray-300 text-gray-900"
+                  }`}
+                  placeholder="例: ユーザー認証機能"
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  説明
+                </label>
+                <textarea
+                  ref={editTextareaRef}
+                  value={editingValues.description || ''}
+                  onChange={(e) => {
+                    setEditingValues({...editingValues, description: e.target.value});
+                    adjustTextareaHeight(e.target);
+                  }}
+                  className={`w-full px-3 py-2 rounded-lg border outline-none resize-none backdrop-blur-sm transition-all ${
+                    darkMode
+                      ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
+                      : "bg-white/70 border-gray-300 text-gray-900"
+                  }`}
+                  rows={6}
+                  placeholder="機能の詳細を入力してください"
+                  style={{ minHeight: '120px' }}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                    カテゴリ
+                  </label>
+                  <select
+                    value={editingValues.category}
+                    onChange={(e) => setEditingValues({...editingValues, category: e.target.value as StructuredFunction['category']})}
+                    className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
+                      darkMode
+                        ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80"
+                        : "bg-white/70 border-gray-300 text-gray-900"
+                    }`}
+                  >
+                    {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                    優先度
+                  </label>
+                  <select
+                    value={editingValues.priority}
+                    onChange={(e) => setEditingValues({...editingValues, priority: e.target.value as StructuredFunction['priority']})}
+                    className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
+                      darkMode
+                        ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80"
+                        : "bg-white/70 border-gray-300 text-gray-900"
+                    }`}
+                  >
+                    {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleCancelEdit}
+                className={`px-4 py-2 rounded-lg transition-all backdrop-blur-sm ${
+                  darkMode
+                    ? "bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 border border-gray-600/60"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                }`}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => handleSaveFunction(editingFunction)}
+                className={`px-4 py-2 rounded-lg transition-all backdrop-blur-sm ${
+                  darkMode
+                    ? "bg-cyan-500/80 hover:bg-cyan-500 text-gray-900 shadow-[0_0_10px_rgba(34,211,238,0.2)] hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]"
+                    : "bg-purple-500 hover:bg-purple-600 text-white"
+                }`}
+              >
+                保存
               </button>
             </div>
           </div>
