@@ -1,0 +1,113 @@
+"use client";
+
+import React from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import useSWR from 'swr';
+import ReactMarkdown from 'react-markdown';
+import { BookOpen, ArrowLeft, Loader2 } from 'lucide-react';
+import { getProjectDocument } from '@/libs/modelAPI/frameworkService';
+
+export default function FunctionRequirementsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const projectId = params?.projectId as string;
+  const userName = params?.userName as string;
+
+  // プロジェクトドキュメントを取得
+  const { data: projectDocument, error, isLoading } = useSWR(
+    projectId ? `project-document-${projectId}` : null,
+    () => projectId ? getProjectDocument(projectId) : null
+  );
+
+  const handleBack = () => {
+    router.push(`/${userName}/${projectId}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-amber-900/20 to-gray-900">
+      {/* Header */}
+      <div className="border-b border-amber-500/30 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/50 text-amber-300 rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              <ArrowLeft size={18} />
+              戻る
+            </button>
+            <div className="flex items-center gap-3 flex-1">
+              <BookOpen className="text-amber-400" size={32} />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                機能要件定義書
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl rounded-2xl border-2 border-amber-500/40 shadow-2xl p-8">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="text-amber-400 animate-spin mb-4" size={48} />
+              <p className="text-gray-400">読み込み中...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <BookOpen size={64} className="mx-auto mb-4 text-red-400 opacity-50" />
+              <p className="text-red-400 mb-2">エラーが発生しました</p>
+              <p className="text-gray-500 text-sm">{error.message}</p>
+            </div>
+          ) : projectDocument?.function_doc ? (
+            <div className="prose prose-invert max-w-none text-gray-300">
+              <ReactMarkdown
+                components={{
+                  h1: ({ node, ...props }) => <h1 className="text-4xl font-bold text-amber-400 mb-6 pb-4 border-b-2 border-amber-500/30" {...props} />,
+                  h2: ({ node, ...props }) => <h2 className="text-3xl font-bold text-amber-300 mb-4 mt-8" {...props} />,
+                  h3: ({ node, ...props }) => <h3 className="text-2xl font-bold text-amber-200 mb-3 mt-6" {...props} />,
+                  h4: ({ node, ...props }) => <h4 className="text-xl font-bold text-amber-200 mb-2 mt-4" {...props} />,
+                  p: ({ node, ...props }) => <p className="text-gray-300 mb-4 leading-relaxed text-base" {...props} />,
+                  ul: ({ node, ...props }) => <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2 ml-4" {...props} />,
+                  ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-gray-300 mb-4 space-y-2 ml-4" {...props} />,
+                  li: ({ node, ...props }) => <li className="text-gray-300 leading-relaxed" {...props} />,
+                  code: ({ node, inline, ...props }: any) =>
+                    inline ? (
+                      <code className="bg-amber-900/30 text-amber-300 px-2 py-1 rounded text-sm font-mono" {...props} />
+                    ) : (
+                      <code className="block bg-gray-800/70 text-gray-200 p-4 rounded-lg overflow-x-auto mb-4 font-mono text-sm" {...props} />
+                    ),
+                  pre: ({ node, ...props }) => <pre className="bg-gray-800/70 rounded-lg overflow-hidden mb-4" {...props} />,
+                  blockquote: ({ node, ...props }) => (
+                    <blockquote className="border-l-4 border-amber-500/50 pl-6 py-2 my-4 italic text-gray-400 bg-amber-900/10 rounded-r-lg" {...props} />
+                  ),
+                  strong: ({ node, ...props }) => <strong className="font-bold text-amber-300" {...props} />,
+                  em: ({ node, ...props }) => <em className="italic text-gray-300" {...props} />,
+                  a: ({ node, ...props }) => <a className="text-amber-400 hover:text-amber-300 underline transition-colors" {...props} />,
+                  table: ({ node, ...props }) => (
+                    <div className="overflow-x-auto mb-4">
+                      <table className="min-w-full border-collapse border border-amber-500/30" {...props} />
+                    </div>
+                  ),
+                  thead: ({ node, ...props }) => <thead className="bg-amber-900/30" {...props} />,
+                  th: ({ node, ...props }) => <th className="border border-amber-500/30 px-4 py-2 text-left text-amber-300 font-bold" {...props} />,
+                  td: ({ node, ...props }) => <td className="border border-amber-500/30 px-4 py-2 text-gray-300" {...props} />,
+                  hr: ({ node, ...props }) => <hr className="border-amber-500/30 my-8" {...props} />,
+                }}
+              >
+                {projectDocument.function_doc}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <BookOpen size={64} className="mx-auto mb-4 text-amber-400 opacity-50" />
+              <p className="text-gray-400 text-lg mb-2">機能要件定義書がまだ作成されていません</p>
+              <p className="text-gray-500 text-sm">プロジェクトセットアップを完了してください</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

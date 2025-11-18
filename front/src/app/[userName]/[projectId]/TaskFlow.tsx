@@ -3,13 +3,10 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
 import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info, LayoutGrid, FileText, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import useSWR from 'swr';
-import ReactMarkdown from 'react-markdown';
 import '@xyflow/react/dist/style.css';
 
 import { TextUpdaterNode } from './CustomNode';
 import { CustomEdge } from './CustomEdge';
-import { getProjectDocument } from '@/libs/modelAPI/frameworkService';
 
 interface TaskFlowProps {
   initialNodes: Node[];
@@ -49,17 +46,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   const [currentTime, setCurrentTime] = useState(new Date());
   const [projectStartTime, setProjectStartTime] = useState('09:00');
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [showSpecificationModal, setShowSpecificationModal] = useState(false);
-  const [showFrameworkDocModal, setShowFrameworkDocModal] = useState(false);
-
-  // プロジェクトIDを取得
-  const projectId = pathname?.split('/')[2];
-
-  // プロジェクトドキュメントを取得
-  const { data: projectDocument, error: docError } = useSWR(
-    projectId ? `project-document-${projectId}` : null,
-    () => projectId ? getProjectDocument(projectId) : null
-  );
 
   // Timer logic
   useEffect(() => {
@@ -359,7 +345,11 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
             </button>
 
             <button
-              onClick={() => setShowSpecificationModal(true)}
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/specification`;
+              }}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-pink-500/30 to-rose-500/30 hover:from-pink-400/40 hover:to-rose-400/40 border-2 border-pink-400/60 text-pink-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
             >
               <FileText size={18} />
@@ -367,7 +357,11 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
             </button>
 
             <button
-              onClick={() => setShowFrameworkDocModal(true)}
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/function-requirements`;
+              }}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 hover:from-amber-400/40 hover:to-yellow-400/40 border-2 border-amber-400/60 text-amber-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
             >
               <BookOpen size={18} />
@@ -420,134 +414,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               <button
                 onClick={() => setShowKeyboardHelp(false)}
                 className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-purple-500/30 to-cyan-500/30 hover:from-purple-400/40 hover:to-cyan-400/40 border border-purple-400/50 text-purple-300 rounded-lg transition-all duration-300"
-              >
-                閉じる
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Specification Modal */}
-        {showSpecificationModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowSpecificationModal(false)}>
-            <div className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-6 border-2 border-pink-500/40 shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="text-pink-400" size={24} />
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">
-                    仕様書
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setShowSpecificationModal(false)}
-                  className="text-gray-400 hover:text-gray-200 transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto">
-                {projectDocument?.specification ? (
-                  <div className="prose prose-invert max-w-none bg-gray-900/50 p-6 rounded-lg border border-pink-500/20 text-gray-300">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-pink-400 mb-4" {...props} />,
-                        h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-pink-300 mb-3 mt-6" {...props} />,
-                        h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-pink-200 mb-2 mt-4" {...props} />,
-                        p: ({ node, ...props }) => <p className="text-gray-300 mb-3 leading-relaxed" {...props} />,
-                        ul: ({ node, ...props }) => <ul className="list-disc list-inside text-gray-300 mb-3 space-y-1" {...props} />,
-                        ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-gray-300 mb-3 space-y-1" {...props} />,
-                        li: ({ node, ...props }) => <li className="text-gray-300" {...props} />,
-                        code: ({ node, inline, ...props }: any) =>
-                          inline ? (
-                            <code className="bg-pink-900/30 text-pink-300 px-1.5 py-0.5 rounded text-sm" {...props} />
-                          ) : (
-                            <code className="block bg-gray-800/70 text-gray-200 p-4 rounded-lg overflow-x-auto mb-3" {...props} />
-                          ),
-                        blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-pink-500/50 pl-4 italic text-gray-400 my-3" {...props} />,
-                        strong: ({ node, ...props }) => <strong className="font-bold text-pink-300" {...props} />,
-                        em: ({ node, ...props }) => <em className="italic text-gray-300" {...props} />,
-                        a: ({ node, ...props }) => <a className="text-pink-400 hover:text-pink-300 underline" {...props} />,
-                      }}
-                    >
-                      {projectDocument.specification}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <FileText size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>仕様書がまだ作成されていません</p>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => setShowSpecificationModal(false)}
-                className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-pink-500/30 to-rose-500/30 hover:from-pink-400/40 hover:to-rose-400/40 border border-pink-400/50 text-pink-300 rounded-lg transition-all duration-300"
-              >
-                閉じる
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Framework Document Modal */}
-        {showFrameworkDocModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowFrameworkDocModal(false)}>
-            <div className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-6 border-2 border-amber-500/40 shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="text-amber-400" size={24} />
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
-                    機能要件定義書
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setShowFrameworkDocModal(false)}
-                  className="text-gray-400 hover:text-gray-200 transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto">
-                {projectDocument?.function_doc ? (
-                  <div className="prose prose-invert max-w-none bg-gray-900/50 p-6 rounded-lg border border-amber-500/20 text-gray-300">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-amber-400 mb-4" {...props} />,
-                        h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-amber-300 mb-3 mt-6" {...props} />,
-                        h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-amber-200 mb-2 mt-4" {...props} />,
-                        p: ({ node, ...props }) => <p className="text-gray-300 mb-3 leading-relaxed" {...props} />,
-                        ul: ({ node, ...props }) => <ul className="list-disc list-inside text-gray-300 mb-3 space-y-1" {...props} />,
-                        ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-gray-300 mb-3 space-y-1" {...props} />,
-                        li: ({ node, ...props }) => <li className="text-gray-300" {...props} />,
-                        code: ({ node, inline, ...props }: any) =>
-                          inline ? (
-                            <code className="bg-amber-900/30 text-amber-300 px-1.5 py-0.5 rounded text-sm" {...props} />
-                          ) : (
-                            <code className="block bg-gray-800/70 text-gray-200 p-4 rounded-lg overflow-x-auto mb-3" {...props} />
-                          ),
-                        blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-amber-500/50 pl-4 italic text-gray-400 my-3" {...props} />,
-                        strong: ({ node, ...props }) => <strong className="font-bold text-amber-300" {...props} />,
-                        em: ({ node, ...props }) => <em className="italic text-gray-300" {...props} />,
-                        a: ({ node, ...props }) => <a className="text-amber-400 hover:text-amber-300 underline" {...props} />,
-                      }}
-                    >
-                      {projectDocument.function_doc}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <BookOpen size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>機能要件定義書がまだ作成されていません</p>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => setShowFrameworkDocModal(false)}
-                className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 hover:from-amber-400/40 hover:to-yellow-400/40 border border-amber-400/50 text-amber-300 rounded-lg transition-all duration-300"
               >
                 閉じる
               </button>
