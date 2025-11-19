@@ -4,7 +4,6 @@ import { MemberAvatar } from './MemberAvatar';
 import { X } from 'lucide-react';
 
 type MemberDropdownProps = {
-  taskId: string;
   projectMembers: ProjectMemberType[];
   currentAssignments: TaskAssignmentType[];
   onAssign: (memberId: string) => Promise<void>;
@@ -20,7 +19,6 @@ type MemberDropdownProps = {
  * - 割り当て済みメンバーはチェック済み状態
  */
 export function MemberDropdown({
-  taskId,
   projectMembers,
   currentAssignments,
   onAssign,
@@ -56,6 +54,8 @@ export function MemberDropdown({
 
   // メンバー選択/解除のトグル
   const handleToggleMember = async (member: ProjectMemberType) => {
+    if (!member.project_member_id) return;
+
     setProcessingMemberId(member.project_member_id);
 
     try {
@@ -121,13 +121,16 @@ export function MemberDropdown({
             <p className="text-sm">プロジェクトメンバーがいません</p>
           </div>
         ) : (
-          projectMembers.map((member) => {
-            const assigned = isAssigned(member.project_member_id);
-            const processing = processingMemberId === member.project_member_id;
+          projectMembers
+            .filter((member) => member.project_member_id)
+            .map((member) => {
+              const memberId = member.project_member_id!;
+              const assigned = isAssigned(memberId);
+              const processing = processingMemberId === memberId;
 
             return (
               <label
-                key={member.project_member_id}
+                key={memberId}
                 className={`
                   flex items-center gap-3 p-2 rounded-lg cursor-pointer
                   transition-all
@@ -150,11 +153,6 @@ export function MemberDropdown({
                   <p className={`text-sm font-medium ${textClass}`}>
                     {member.member_name}
                   </p>
-                  {member.member_skill && (
-                    <p className={`text-xs ${mutedTextClass}`}>
-                      {member.member_skill}
-                    </p>
-                  )}
                 </div>
                 {processing && (
                   <div className="animate-spin">

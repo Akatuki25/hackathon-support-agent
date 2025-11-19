@@ -5,7 +5,6 @@ import { MemberDropdown } from './MemberDropdown';
 import { UserPlus } from 'lucide-react';
 
 type MemberAssignmentBadgeProps = {
-  taskId: string;
   assignments: TaskAssignmentType[];
   projectMembers: ProjectMemberType[];
   onAssign: (memberId: string) => Promise<void>;
@@ -20,7 +19,6 @@ type MemberAssignmentBadgeProps = {
  * - 「追加」ボタンクリックでドロップダウン表示
  */
 export function MemberAssignmentBadge({
-  taskId,
   assignments,
   projectMembers,
   onAssign,
@@ -100,7 +98,6 @@ export function MemberAssignmentBadge({
       {/* ドロップダウン */}
       {isOpen && (
         <MemberDropdown
-          taskId={taskId}
           projectMembers={projectMembers}
           currentAssignments={assignments}
           onAssign={onAssign}

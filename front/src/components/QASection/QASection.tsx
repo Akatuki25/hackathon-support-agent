@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { AlertTriangle, CheckCircle, Loader2, Plus, X, Trash2, Edit2 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { QAType } from "@/types/modelTypes";

@@ -12,7 +12,7 @@ import {
   type KeyboardEventHandler,
 } from 'react';
 import { useDarkMode } from '@/hooks/useDarkMode';
-import { useTasksByProjectId, patchTask, useTaskAssignmentsByTaskId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
+import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
 import { TaskType, TaskStatusEnum, TaskAssignmentType, ProjectMemberType } from '@/types/modelTypes';
 import { getProjectMembersByProjectId } from '@/libs/modelAPI/project_member';
 import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
@@ -355,7 +355,6 @@ const moveTaskToMember = (
 type TaskCardProps = {
   task: TaskWithAssignments;
   styles: ColumnStyle;
-  projectMembers: ProjectMemberType[];
   darkMode: boolean;
   showStatus?: boolean;
   onDragStart: (taskId?: string) => void;
@@ -366,7 +365,6 @@ type TaskCardProps = {
 function TaskCard({
   task,
   styles,
-  projectMembers,
   darkMode,
   showStatus = false,
   onDragStart,
@@ -452,7 +450,6 @@ type MemberColumnProps = {
   memberName: string;
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
-  projectMembers: ProjectMemberType[];
   darkMode: boolean;
   isUnassigned?: boolean;
   onDrop: (event: DragEvent<HTMLDivElement>) => void;
@@ -466,7 +463,6 @@ function MemberColumn({
   memberName,
   tasks,
   styles,
-  projectMembers,
   darkMode,
   isUnassigned = false,
   onDrop,
@@ -511,7 +507,6 @@ function MemberColumn({
               key={task.task_id ?? `${memberId}-${index}`}
               task={task}
               styles={styles}
-              projectMembers={projectMembers}
               darkMode={darkMode}
               showStatus={true}
               onDragStart={onDragStart}
@@ -595,7 +590,7 @@ export default function KanbanBoardPage() {
                 `${API_URL}/task_assignment/task/${task.task_id}`
               );
               assignmentsMap[task.task_id] = response.data || [];
-            } catch (error) {
+            } catch {
               // 割り当てがない場合は空配列
               assignmentsMap[task.task_id] = [];
             }
@@ -795,7 +790,6 @@ export default function KanbanBoardPage() {
               memberName="未割り当て"
               tasks={board[UNASSIGNED_KEY] || []}
               styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle(darkMode)}
-              projectMembers={projectMembers}
               darkMode={darkMode}
               isUnassigned={true}
               onDrop={handleMemberDrop(UNASSIGNED_KEY)}
@@ -816,7 +810,6 @@ export default function KanbanBoardPage() {
                     memberName={member.member_name}
                     tasks={board[memberId] || []}
                     styles={columnStyles[memberId] || getColumnColor(index, darkMode)}
-                    projectMembers={projectMembers}
                     darkMode={darkMode}
                     onDrop={handleMemberDrop(memberId)}
                     onDragStart={handleCardDragStart}
