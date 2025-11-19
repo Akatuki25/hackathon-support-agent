@@ -21,7 +21,7 @@ class TaskHandsOnGenerator:
             google_api_key=os.getenv("GOOGLE_API_KEY"),
         )
 
-    def generate(
+    async def generate(
         self,
         task_info: Dict[str, Any],
         collected_info_text: str
@@ -38,9 +38,9 @@ class TaskHandsOnGenerator:
         """
         prompt = self._build_generation_prompt(task_info, collected_info_text)
 
-        # Gemini 2.0 Structured Output を使用
+        # Gemini 2.0 Structured Output を使用 (非同期版)
         structured_llm = self.model.with_structured_output(TaskHandsOnOutput)
-        hands_on = structured_llm.invoke(prompt)
+        hands_on = await structured_llm.ainvoke(prompt)
 
         return hands_on
 

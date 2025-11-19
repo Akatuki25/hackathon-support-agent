@@ -160,7 +160,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
           if (event.ctrlKey || event.metaKey) {
             event.preventDefault();
             setIsTimerRunning(false);
-            setCurrentTime(new Date());
           }
           break;
         case '?':

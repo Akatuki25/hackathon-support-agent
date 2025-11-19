@@ -72,7 +72,7 @@ export default function SpecificationPage() {
                   ul: ({ ...props }) => <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2 ml-4" {...props} />,
                   ol: ({ ...props }) => <ol className="list-decimal list-inside text-gray-300 mb-4 space-y-2 ml-4" {...props} />,
                   li: ({ ...props }) => <li className="text-gray-300 leading-relaxed" {...props} />,
-                  code: ({ inline, ...props }: { inline?: boolean; [key: string]: unknown }) =>
+                  code: ({ inline, ...props }: React.HTMLAttributes<HTMLElement> & { inline?: boolean }) =>
                     inline ? (
                       <code className="bg-pink-900/30 text-pink-300 px-2 py-1 rounded text-sm font-mono" {...props} />
                     ) : (

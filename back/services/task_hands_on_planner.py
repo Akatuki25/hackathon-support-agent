@@ -20,7 +20,7 @@ class TaskHandsOnPlanner:
             google_api_key=os.getenv("GOOGLE_API_KEY"),
         )
 
-    def create_plan(self, task_info: Dict[str, Any]) -> InformationPlan:
+    async def create_plan(self, task_info: Dict[str, Any]) -> InformationPlan:
         """
         タスク情報から情報収集計画を作成
 
@@ -37,9 +37,9 @@ class TaskHandsOnPlanner:
         """
         prompt = self._build_planning_prompt(task_info)
 
-        # Gemini 2.0 Structured Output を使用
+        # Gemini 2.0 Structured Output を使用 (非同期版)
         structured_llm = self.model.with_structured_output(InformationPlan)
-        plan = structured_llm.invoke(prompt)
+        plan = await structured_llm.ainvoke(prompt)
 
         return plan
 
