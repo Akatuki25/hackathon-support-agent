@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info, LayoutGrid, FileText, BookOpen } from 'lucide-react';
+import { Clock, Timer, Keyboard, Info, LayoutGrid, FileText, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 
@@ -43,20 +43,10 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   const [nodes, setNodes, onNodesStateChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesStateChange] = useEdgesState(initialEdges);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [projectStartTime, setProjectStartTime] = useState('09:00');
+  const [projectStartTime] = useState('09:00');
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
-  // Timer logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setCurrentTime(new Date());
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning]);
+  // Timer logic (removed - not currently used in UI)
 
   // Auto-calculate task times based on dependencies
   const calculateTaskTimes = useCallback(() => {
