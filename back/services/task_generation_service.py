@@ -249,7 +249,7 @@ class TaskGenerationService(BaseService):
 **重要**: 同じデータを扱う機能は必ず同じドメインにまとめてください。"""
 
         from langchain_google_genai import ChatGoogleGenerativeAI
-        llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0.1)
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1)
 
         response = await llm.ainvoke(prompt)
         response_content = response.content if hasattr(response, 'content') else str(response)
