@@ -445,7 +445,7 @@ class TaskHandsOnAgent:
             task_id=self.task.task_id,
             **hands_on_sections,
             quality_score=quality_score,
-            generation_model="gemini-2.0-flash-exp",
+            generation_model="gemini-2.5-flash",
             search_queries=verified_info["queries"],
             referenced_urls=verified_info["urls"],
             verification_result=verified_info["verification"],
@@ -1180,7 +1180,7 @@ Response:
   "metadata": {
     "generated_at": "2025-10-09T10:25:00Z",
     "quality_score": 0.92,
-    "generation_model": "gemini-2.0-flash-exp",
+    "generation_model": "gemini-2.5-flash",
     "information_freshness": "2025-10-05"
   }
 }

@@ -38,7 +38,7 @@ class HandsOnGenerationRequest(BaseModel):
                     "batch_size": 5,
                     "enable_web_search": True,
                     "verification_level": "medium",
-                    "model": "gemini-2.0-flash-exp"
+                    "model": "gemini-2.5-flash"
                 }
             }
         }

@@ -54,7 +54,7 @@ class TaskHandsOnAgent:
                 }
             config: 生成設定
                 {
-                    "model": "gemini-2.0-flash-exp"
+                    "model": "gemini-2.5-flash"
                 }
         """
         self.db = db
@@ -272,7 +272,7 @@ class TaskHandsOnAgent:
             technical_context=output.technical_context,
             implementation_tips=implementation_tips,
             quality_score=0.0,  # 後で設定
-            generation_model=self.config.get("model", "gemini-2.0-flash-exp"),
+            generation_model=self.config.get("model", "gemini-2.5-flash"),
             search_queries=search_queries,
             referenced_urls=referenced_urls,
             information_freshness=datetime.now().date()
@@ -387,7 +387,7 @@ if __name__ == "__main__":
         db=db,
         task=task,
         project_context=project_context,
-        config={"model": "gemini-2.0-flash-exp"}
+        config={"model": "gemini-2.5-flash"}
     )
 
     hands_on = agent.generate_hands_on()

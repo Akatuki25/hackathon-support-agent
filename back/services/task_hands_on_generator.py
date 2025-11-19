@@ -15,7 +15,7 @@ class TaskHandsOnGenerator:
 
     def __init__(self):
         self.model = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash-exp",
+            model="gemini-2.5-flash",
             temperature=0.4,
             max_output_tokens=16000,
             google_api_key=os.getenv("GOOGLE_API_KEY"),
