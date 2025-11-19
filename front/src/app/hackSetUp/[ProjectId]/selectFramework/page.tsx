@@ -547,11 +547,11 @@ export default function SelectFramework() {
   const getMissingCategories = () => {
     const requiredCategories = getRequiredCategories();
     return Object.entries(requiredCategories)
-      .filter(([category, config]: [string, any]) => {
+      .filter(([category, config]: [string, CategoryConfig]) => {
         if (!config.required) return false;
         return getCategorySelectionCount(category) < config.min;
       })
-      .map(([category, config]: [string, any]) => config.label);
+      .map(([, config]: [string, CategoryConfig]) => config.label);
   };
 
   if (flowState === 'loading') {
@@ -708,7 +708,7 @@ export default function SelectFramework() {
 
                     {/* カテゴリ別進捗 */}
                     <div className="space-y-3">
-                      {Object.entries(getRequiredCategories()).map(([category, config]: [string, any]) => {
+                      {Object.entries(getRequiredCategories()).map(([category, config]: [string, CategoryConfig]) => {
                         const count = getCategorySelectionCount(category);
                         const isFilled = count >= config.min;
                         const percentage = config.min > 0 ? Math.min((count / config.min) * 100, 100) : 100;
@@ -969,7 +969,7 @@ export default function SelectFramework() {
 
                     {/* カテゴリ別進捗 */}
                     <div className="space-y-3">
-                      {Object.entries(getRequiredCategories()).map(([category, config]: [string, any]) => {
+                      {Object.entries(getRequiredCategories()).map(([category, config]: [string, CategoryConfig]) => {
                         const count = getCategorySelectionCount(category);
                         const isFilled = count >= config.min;
                         const percentage = config.min > 0 ? Math.min((count / config.min) * 100, 100) : 100;

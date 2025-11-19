@@ -88,7 +88,7 @@ class BaseService:
 
         # AIモデルの初期化
         # ※ APIキーそのものはログに出さない
-        # gemini-2.0-flash-exp は高性能でagenticタスクに適している
+        # gemini-2.5-flash は高性能でagenticタスクに適している
         self.llm_pro = self._load_llm(default_model_provider, "gemini-2.5-flash")
         self.llm_flash = self._load_llm(default_model_provider, "gemini-2.5-flash")
         self.llm_flash_thinking = self._load_llm(default_model_provider, "gemini-2.5-flash")

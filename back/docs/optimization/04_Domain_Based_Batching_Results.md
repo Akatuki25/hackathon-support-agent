@@ -271,7 +271,7 @@ async def _create_domain_batches(self, functions: List[FunctionBatch]) -> Dict[s
 }}
 """
 
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0.1)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1)
     response = await llm.ainvoke(prompt)
     domain_mapping = self._parse_llm_response(response.content)
 

@@ -54,7 +54,7 @@ class TaskHandsOnAgent:
                 }
             config: 生成設定
                 {
-                    "model": "gemini-2.0-flash-exp"
+                    "model": "gemini-2.5-flash"
                 }
         """
         self.db = db
@@ -90,7 +90,7 @@ class TaskHandsOnAgent:
             # ===== Phase 1: Planning (1 LLM call) =====
             print("\n[Phase 1] Planning - 情報収集計画の作成...")
             task_info = self._prepare_task_info()
-            plan = self.planner.create_plan(task_info)
+            plan = asyncio.run(self.planner.create_plan(task_info))
 
             print(f"[Phase 1] 計画完了:")
             print(f"  - 依存タスク情報が必要: {plan.needs_dependencies}")
@@ -110,10 +110,10 @@ class TaskHandsOnAgent:
 
             # ===== Phase 3: Generation (1 LLM call with Structured Output) =====
             print("\n[Phase 3] Generation - ハンズオンの生成...")
-            hands_on_output: TaskHandsOnOutput = self.generator.generate(
+            hands_on_output: TaskHandsOnOutput = asyncio.run(self.generator.generate(
                 task_info=task_info,
                 collected_info_text=collected_info_text
-            )
+            ))
 
             print(f"[Phase 3] ハンズオン生成完了")
             print(f"  - Overview: {len(hands_on_output.overview)} 文字")
@@ -272,7 +272,7 @@ class TaskHandsOnAgent:
             technical_context=output.technical_context,
             implementation_tips=implementation_tips,
             quality_score=0.0,  # 後で設定
-            generation_model=self.config.get("model", "gemini-2.0-flash-exp"),
+            generation_model=self.config.get("model", "gemini-2.5-flash"),
             search_queries=search_queries,
             referenced_urls=referenced_urls,
             information_freshness=datetime.now().date()
@@ -387,7 +387,7 @@ if __name__ == "__main__":
         db=db,
         task=task,
         project_context=project_context,
-        config={"model": "gemini-2.0-flash-exp"}
+        config={"model": "gemini-2.5-flash"}
     )
 
     hands_on = agent.generate_hands_on()
