@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from pydantic import BaseModel, Field
@@ -435,3 +435,83 @@ class FunctionService(BaseService):
 
         self.logger.info(f"Generated specification feedback: {result.summary[:50]}...")
         return result.model_dump()
+
+    async def update_function_doc_with_spec_diff(
+        self,
+        project_id: str,
+        specification_diff: Optional[str] = None
+    ) -> str:
+        """
+        仕様書の変更に基づいて機能要件を差分更新する
+
+        Args:
+            project_id: プロジェクトID
+            specification_diff: 仕様書の差分情報（オプション）
+
+        Returns:
+            更新された機能要件書（Markdown）
+        """
+        try:
+            project_uuid = uuid.UUID(project_id) if isinstance(project_id, str) else project_id
+
+            # 既存の機能要件書と仕様書を取得
+            project_doc = self.db.query(ProjectDocument).filter(
+                ProjectDocument.project_id == project_uuid
+            ).first()
+
+            if not project_doc:
+                raise ValueError(f"Project document not found for project_id: {project_id}")
+
+            if not project_doc.function_doc:
+                raise ValueError(f"No function document found for project_id: {project_id}")
+
+            if not project_doc.specification:
+                raise ValueError(f"No specification found for project_id: {project_id}")
+
+            # 差分がない場合は既存の機能要件書を返す
+            if not specification_diff:
+                self.logger.info("No specification_diff provided, returning existing function_doc")
+                return project_doc.function_doc
+
+            # 差分更新プロンプトを構築
+            prompt_text = f"""
+既存の機能要件書に対して、仕様書の変更を反映して更新してください。
+
+## 既存の機能要件書:
+{project_doc.function_doc}
+
+## 仕様書の変更:
+{specification_diff}
+
+## 最新の仕様書:
+{project_doc.specification}
+
+**重要な指示:**
+- 既存の機能要件書の構造を保ちつつ、仕様書の変更に対応する部分のみを更新してください
+- 変更が必要ない部分はそのまま残してください
+- 新しい機能が追加された場合は、適切なセクションに追記してください
+- 削除された機能があれば、該当部分を削除してください
+- Markdown形式で出力してください
+
+更新された機能要件書を出力してください:
+"""
+
+            # LLMで差分更新を実行
+            from langchain.prompts import ChatPromptTemplate
+            from langchain_core.output_parsers import StrOutputParser
+
+            prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
+            chain = prompt_template | self.llm_pro | StrOutputParser()
+
+            self.logger.info(f"Updating function document with specification diff for project_id: {project_id}")
+            updated_function_doc = await chain.ainvoke({})
+
+            self.logger.info(f"Successfully updated function document (length: {len(updated_function_doc)})")
+            return updated_function_doc
+
+        except ValueError as e:
+            self.logger.error(f"Validation error in update_function_doc_with_spec_diff: {e}")
+            raise
+        except Exception as e:
+            self.logger.error(f"Error updating function document with spec diff: {e}")
+            raise

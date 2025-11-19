@@ -174,3 +174,42 @@ export const getFunctionSpecificationFeedback = async (
 
 // Legacy alias - deprecated, use getFunctionSpecificationFeedback instead
 export const getFunctionConfidenceFeedback = getFunctionSpecificationFeedback;
+
+/**
+ * ユーザーが編集した機能要件ドキュメントを保存する
+ */
+export const saveFunctionDocument = async (
+  projectId: string,
+  functionDoc: string
+): Promise<{ message: string; project_id: string; doc_id: string }> => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/function_requirements/save`,
+    {
+      project_id: projectId,
+      function_doc: functionDoc
+    }
+  );
+  return response.data;
+};
+
+/**
+ * 仕様書の変更に基づいて機能要件を差分更新する
+ */
+export const updateFunctionDocWithSpec = async (
+  projectId: string,
+  specificationDiff?: string
+): Promise<{
+  message: string;
+  function_doc: string;
+  project_id: string;
+  doc_id: string;
+}> => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/function_requirements/update-with-spec`,
+    {
+      project_id: projectId,
+      specification_diff: specificationDiff
+    }
+  );
+  return response.data;
+};

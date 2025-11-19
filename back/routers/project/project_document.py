@@ -148,7 +148,44 @@ async def delete_project_document_by_id(doc_id: uuid.UUID, db: Session = Depends
     db_document = db.query(ProjectDocument).filter(ProjectDocument.doc_id == doc_id).first()
     if db_document is None:
         raise HTTPException(status_code=404, detail="Project document not found")
-    
+
     db.delete(db_document)
     db.commit()
     return {"doc_id": doc_id, "message": "プロジェクトドキュメントが削除されました"}
+
+
+@router.delete("/project_document/{project_id}/downstream", summary="Q&A以降のドキュメントを削除")
+async def delete_downstream_documents(
+    project_id: uuid.UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Q&Aが変更された際に、仕様書以降のドキュメントを削除する
+
+    Args:
+        project_id: プロジェクトID
+
+    Returns:
+        削除完了メッセージ
+    """
+    db_document = db.query(ProjectDocument).filter(
+        ProjectDocument.project_id == project_id
+    ).first()
+
+    if db_document is None:
+        raise HTTPException(status_code=404, detail="Project document not found")
+
+    # 後続ドキュメントをNULLにする
+    db_document.specification = None
+    db_document.specification_updated_at = None
+    db_document.function_doc = None
+    db_document.function_doc_updated_at = None
+    db_document.function_structure = None
+    db_document.function_structure_updated_at = None
+
+    db.commit()
+    return {
+        "project_id": str(project_id),
+        "message": "Q&A以降のドキュメントを削除しました",
+        "deleted_documents": ["specification", "function_doc", "function_structure"]
+    }

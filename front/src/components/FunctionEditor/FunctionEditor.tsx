@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { RefreshCcw, Loader2, FileText, TrendingUp } from "lucide-react";
+import { useCallback, useState, useEffect } from "react";
+import { RefreshCcw, Loader2, FileText, TrendingUp, GitBranch, Save } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { SpecificationFeedback } from "@/types/modelTypes";
 import SpecificationFeedbackModal from "@/components/SpecificationFeedbackModal/SpecificationFeedbackModal";
@@ -10,7 +10,9 @@ import {
   QAForRequirement,
   regenerateFunctionalRequirements,
   updateFunctionDocument,
-  getFunctionSpecificationFeedback
+  getFunctionSpecificationFeedback,
+  saveFunctionDocument,
+  updateFunctionDocWithSpec
 } from "@/libs/service/function";
 import { BaseEditor } from "@/components/BaseEditor";
 
@@ -51,6 +53,10 @@ export default function FunctionEditor({
   const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [specificationFeedback, setSpecificationFeedback] = useState<SpecificationFeedback | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [hasSpecificationChanged, setHasSpecificationChanged] = useState(false);
+  const [updatingDiff, setUpdatingDiff] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // 再生成
   const regenerateAndEvaluate = async () => {
@@ -94,6 +100,54 @@ export default function FunctionEditor({
       setLoadingFeedback(false);
     }
   };
+
+  // 差分更新
+  const handleDifferentialUpdate = async () => {
+    if (!projectId) return;
+    setUpdatingDiff(true);
+    try {
+      const result = await updateFunctionDocWithSpec(projectId);
+      onDocumentUpdate(result.function_doc);
+      setHasSpecificationChanged(false);
+      setIsContentInitialized(false);
+      alert("差分更新が完了しました");
+    } catch (error) {
+      console.error("差分更新に失敗:", error);
+      alert("差分更新に失敗しました");
+    } finally {
+      setUpdatingDiff(false);
+    }
+  };
+
+  // 保存
+  const handleSave = async () => {
+    if (!functionDocument) return;
+    setSaving(true);
+    try {
+      await saveFunctionDocument(projectId, functionDocument);
+      setIsDirty(false);
+      alert("保存が完了しました");
+    } catch (error) {
+      console.error("保存に失敗:", error);
+      alert("保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 仕様書の変更を検知
+  useEffect(() => {
+    // TODO: 実装時にproject_documentから仕様書と機能要件の更新日時を比較
+    // 現在は手動でトリガーする想定
+    setHasSpecificationChanged(false);
+  }, [projectId]);
+
+  // コンテンツ変更の検知
+  useEffect(() => {
+    if (functionDocument) {
+      setIsDirty(true);
+    }
+  }, [functionDocument]);
 
   // 要件をMarkdown形式に変換
   const formatRequirementsAsMarkdown = (reqs: FunctionalRequirement[]): string => {
@@ -178,6 +232,62 @@ export default function FunctionEditor({
   // フッターアクション
   const footerActions = (
     <div className="flex justify-center gap-3">
+      <button
+        onClick={handleDifferentialUpdate}
+        disabled={!hasSpecificationChanged || updatingDiff}
+        className={`px-6 py-2 flex items-center rounded-lg shadow focus:outline-none transform transition ${
+          !hasSpecificationChanged || updatingDiff
+            ? "cursor-not-allowed opacity-70 bg-gray-300"
+            : "hover:-translate-y-0.5"
+        } ${
+          hasSpecificationChanged && !updatingDiff
+            ? darkMode
+              ? "bg-blue-500 hover:bg-blue-600 text-white focus:ring-2 focus:ring-blue-400"
+              : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white focus:ring-2 focus:ring-blue-400"
+            : ""
+        }`}
+      >
+        {updatingDiff ? (
+          <>
+            <Loader2 size={16} className="mr-2 animate-spin" />
+            更新中...
+          </>
+        ) : (
+          <>
+            <GitBranch size={16} className="mr-2" />
+            差分更新
+          </>
+        )}
+      </button>
+
+      <button
+        onClick={handleSave}
+        disabled={!isDirty || saving || !functionDocument}
+        className={`px-6 py-2 flex items-center rounded-lg shadow focus:outline-none transform transition ${
+          !isDirty || saving || !functionDocument
+            ? "cursor-not-allowed opacity-70 bg-gray-300"
+            : "hover:-translate-y-0.5"
+        } ${
+          isDirty && !saving && functionDocument
+            ? darkMode
+              ? "bg-green-500 hover:bg-green-600 text-white focus:ring-2 focus:ring-green-400"
+              : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white focus:ring-2 focus:ring-green-400"
+            : ""
+        }`}
+      >
+        {saving ? (
+          <>
+            <Loader2 size={16} className="mr-2 animate-spin" />
+            保存中...
+          </>
+        ) : (
+          <>
+            <Save size={16} className="mr-2" />
+            保存
+          </>
+        )}
+      </button>
+
       <button
         onClick={regenerateAndEvaluate}
         disabled={regenerating}

@@ -289,3 +289,127 @@ def get_confidence_feedback(request: ProjectIdRequest, db: Session = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+class FunctionDocSaveRequest(BaseModel):
+    project_id: Union[str, uuid.UUID]
+    function_doc: str  # Markdown形式の機能要件書
+
+
+@router.post("/save")
+def save_function_document(
+    request: FunctionDocSaveRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    ユーザーが編集した機能要件ドキュメントを保存する
+
+    Args:
+        project_id: プロジェクトID
+        function_doc: 更新後の機能要件書（Markdown）
+
+    Returns:
+        保存完了メッセージ
+    """
+    from models.project_base import ProjectDocument
+    from datetime import datetime
+
+    try:
+        # project_idをUUIDに変換
+        if isinstance(request.project_id, str):
+            project_uuid = uuid.UUID(request.project_id)
+        else:
+            project_uuid = request.project_id
+
+        # プロジェクトドキュメントを取得
+        project_doc = db.query(ProjectDocument).filter(
+            ProjectDocument.project_id == project_uuid
+        ).first()
+
+        if not project_doc:
+            # ドキュメントが存在しない場合は作成
+            project_doc = ProjectDocument(
+                project_id=project_uuid,
+                function_doc=request.function_doc
+            )
+            db.add(project_doc)
+        else:
+            # 既存のドキュメントを更新
+            project_doc.function_doc = request.function_doc
+            project_doc.function_doc_updated_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(project_doc)
+
+        return {
+            "message": "Function document saved successfully",
+            "doc_id": str(project_doc.doc_id),
+            "project_id": str(project_doc.project_id)
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+class FunctionDocUpdateWithSpecRequest(BaseModel):
+    project_id: Union[str, uuid.UUID]
+    specification_diff: Optional[str] = None  # 仕様書の差分情報
+
+
+@router.post("/update-with-spec")
+async def update_function_doc_with_spec(
+    request: FunctionDocUpdateWithSpecRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    仕様書の変更に基づいて機能要件を差分更新し、自動保存する
+
+    Args:
+        project_id: プロジェクトID
+        specification_diff: 仕様書の差分情報
+
+    Returns:
+        更新された機能要件書
+    """
+    from models.project_base import ProjectDocument
+    from datetime import datetime
+
+    function_service = FunctionService(db=db)
+
+    try:
+        if isinstance(request.project_id, str):
+            project_id_str = request.project_id
+        else:
+            project_id_str = str(request.project_id)
+
+        # 差分更新
+        updated_doc = await function_service.update_function_doc_with_spec_diff(
+            project_id=project_id_str,
+            specification_diff=request.specification_diff
+        )
+
+        # 自動保存
+        project_uuid = uuid.UUID(project_id_str)
+        project_doc = db.query(ProjectDocument).filter(
+            ProjectDocument.project_id == project_uuid
+        ).first()
+
+        if project_doc:
+            project_doc.function_doc = updated_doc
+            project_doc.function_doc_updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(project_doc)
+
+        return {
+            "message": "Function document updated successfully",
+            "function_doc": updated_doc,
+            "project_id": str(project_uuid),
+            "doc_id": str(project_doc.doc_id) if project_doc else None
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
