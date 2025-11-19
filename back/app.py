@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
-from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency
+from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chat_hanson
 
 # データベース初期化
 from database import engine, Base
@@ -71,6 +71,7 @@ app.include_router(task_quality.router, prefix="/api/task_quality", tags=["TaskQ
 app.include_router(complete_task_generation.router, prefix="/api/complete_task_generation", tags=["CompleteTaskGeneration"])
 app.include_router(task_dependency.router, prefix="/api/task_dependencies", tags=["TaskDependency"])
 app.include_router(ai_document.router, prefix="/api/ai_document", tags=["AIDocument"])
+app.include_router(chat_hanson.router, prefix="/api/chat_hanson", tags=["ChatHanson"])
 
 # Phase 3: Task Hands-On Generation
 app.include_router(task_hands_on.router)

@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info, LayoutGrid, FileText, BookOpen } from 'lucide-react';
+import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info, LayoutGrid, FileText, BookOpen, MessageCircle, Send, Minimize2, Maximize2, X, Loader2, Shield } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
+import { chatWithHanson, ChatMessage as ChatHansonMessage } from '@/libs/service/chat_hanson';
 
 import { TextUpdaterNode } from './CustomNode';
 import { CustomEdge } from './CustomEdge';
@@ -46,6 +47,15 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   const [currentTime, setCurrentTime] = useState(new Date());
   const [projectStartTime, setProjectStartTime] = useState('09:00');
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+
+  // Chat states
+  const [showChat, setShowChat] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatHansonMessage[]>([]);
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
+  const [chatSize, setChatSize] = useState({ width: 450, height: 600 });
+  const [isMinimized, setIsMinimized] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Timer logic
   useEffect(() => {
@@ -146,6 +156,69 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   useEffect(() => {
     calculateTaskTimes();
   }, [calculateTaskTimes]);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory]);
+
+  // Send chat message
+  const sendChatMessage = async () => {
+    if (!currentMessage.trim() || isLoadingChat) return;
+
+    const userMessage = currentMessage.trim();
+    setCurrentMessage('');
+
+    // Add user message to history
+    const newUserMessage: ChatHansonMessage = {
+      role: 'user',
+      content: userMessage
+    };
+    setChatHistory(prev => [...prev, newUserMessage]);
+    setIsLoadingChat(true);
+
+    try {
+      // Get project ID from pathname
+      const projectId = pathname?.split('/')[2];
+      if (!projectId) {
+        throw new Error('Project ID not found');
+      }
+
+      // Call Chat Hanson API
+      const response = await chatWithHanson(
+        projectId,
+        userMessage,
+        chatHistory
+      );
+
+      // Add assistant message to history
+      const assistantMessage: ChatHansonMessage = {
+        role: 'assistant',
+        content: response.answer
+      };
+      setChatHistory(prev => [...prev, assistantMessage]);
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: ChatHansonMessage = {
+        role: 'assistant',
+        content: 'エラーが発生しました。もう一度お試しください。'
+      };
+      setChatHistory(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoadingChat(false);
+    }
+  };
+
+  // Handle Enter key in chat input
+  const handleChatKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -367,6 +440,19 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               <BookOpen size={18} />
               📋 機能要件定義書
             </button>
+
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-green-500/30 to-emerald-500/30 hover:from-green-400/40 hover:to-emerald-400/40 border-2 border-green-400/60 text-green-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm relative"
+            >
+              <MessageCircle size={18} />
+              💬 AIチャット
+              {chatHistory.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
+                  {chatHistory.filter(msg => msg.role === 'user').length}
+                </span>
+              )}
+            </button>
           </div>
         </Panel>
 
@@ -418,6 +504,138 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
                 閉じる
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Chat Modal */}
+        {showChat && (
+          <div
+            className="fixed bottom-4 right-4 z-50 flex flex-col shadow-2xl"
+            style={{
+              width: isMinimized ? '300px' : `${chatSize.width}px`,
+              height: isMinimized ? '60px' : `${chatSize.height}px`,
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {/* Chat Header */}
+            <div className="bg-gradient-to-r from-green-600/90 to-emerald-600/90 backdrop-blur-xl rounded-t-2xl p-4 flex items-center justify-between border-2 border-green-500/50 cursor-move">
+              <div className="flex items-center gap-3">
+                <MessageCircle className="text-white" size={20} />
+                <h3 className="font-bold text-white">AI Assistant</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  {isMinimized ? (
+                    <Maximize2 className="text-white" size={16} />
+                  ) : (
+                    <Minimize2 className="text-white" size={16} />
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="text-white" size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Chat Body */}
+            {!isMinimized && (
+              <>
+                <div className="flex-1 bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl overflow-y-auto p-4 space-y-3 border-x-2 border-green-500/50">
+                  {chatHistory.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center">
+                      <MessageCircle size={48} className="mb-3 opacity-50" />
+                      <p className="text-sm">プロジェクトについて何でも聞いてください</p>
+                      <p className="text-xs mt-2">仕様書、機能要件、技術スタックなどの情報を基に回答します</p>
+                    </div>
+                  ) : (
+                    chatHistory.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                            msg.role === 'user'
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                              : 'bg-gradient-to-r from-gray-700 to-gray-800 text-gray-100 border border-gray-600'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  {isLoadingChat && (
+                    <div className="flex justify-start">
+                      <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl px-4 py-2 border border-gray-600">
+                        <Loader2 className="animate-spin text-gray-300" size={20} />
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Chat Input */}
+                <div className="bg-gradient-to-r from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-b-2xl p-4 border-2 border-green-500/50 border-t-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={currentMessage}
+                      onChange={(e) => setCurrentMessage(e.target.value)}
+                      onKeyDown={handleChatKeyDown}
+                      placeholder="メッセージを入力..."
+                      disabled={isLoadingChat}
+                      className="flex-1 bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                    />
+                    <button
+                      onClick={sendChatMessage}
+                      disabled={!currentMessage.trim() || isLoadingChat}
+                      className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className="text-white" size={20} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                    <Shield size={12} />
+                    <span>プロジェクトコンテキストを使用して回答</span>
+                  </div>
+                </div>
+
+                {/* Resize Handle */}
+                <div
+                  className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const startWidth = chatSize.width;
+                    const startHeight = chatSize.height;
+
+                    const handleMouseMove = (e: MouseEvent) => {
+                      const newWidth = Math.max(300, Math.min(800, startWidth + (e.clientX - startX)));
+                      const newHeight = Math.max(400, Math.min(900, startHeight + (e.clientY - startY)));
+                      setChatSize({ width: newWidth, height: newHeight });
+                    };
+
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove);
+                      document.removeEventListener('mouseup', handleMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                  }}
+                >
+                  <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400/50" />
+                </div>
+              </>
+            )}
           </div>
         )}
 
