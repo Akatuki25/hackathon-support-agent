@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AlertTriangle, CheckCircle, Loader2, Plus, X, Trash2, Edit2 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { QAType } from "@/types/modelTypes";
@@ -27,6 +27,12 @@ export default function QASection({
   const [editingQA, setEditingQA] = useState<{id: string, field: 'question' | 'answer', value: string} | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
+
+  // textareaの自動高さ調整
+  const autoResizeTextarea = (element: HTMLTextAreaElement) => {
+    element.style.height = 'auto';
+    element.style.height = element.scrollHeight + 'px';
+  };
 
   // QA保存
   const saveQA = async (updatedQA: QAType[]) => {
@@ -251,17 +257,21 @@ export default function QASection({
                 }`}>
                   質問
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                  className={`w-full p-3 rounded-lg border transition-all ${
+                  onChange={(e) => {
+                    setNewQuestion(e.target.value);
+                    autoResizeTextarea(e.target);
+                  }}
+                  onFocus={(e) => autoResizeTextarea(e.target)}
+                  className={`w-full p-3 rounded-lg border transition-all resize-none ${
                     darkMode
                       ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
                       : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
                   } focus:outline-none focus:ring-2 ${
                     darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
                   }`}
+                  style={{ minHeight: '50px' }}
                   placeholder="質問を入力してください..."
                 />
               </div>
@@ -274,8 +284,11 @@ export default function QASection({
                 </label>
                 <textarea
                   value={newAnswer}
-                  onChange={(e) => setNewAnswer(e.target.value)}
-                  rows={2}
+                  onChange={(e) => {
+                    setNewAnswer(e.target.value);
+                    autoResizeTextarea(e.target);
+                  }}
+                  onFocus={(e) => autoResizeTextarea(e.target)}
                   className={`w-full p-2 text-sm rounded-lg border transition-all resize-none ${
                     darkMode
                       ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
@@ -283,6 +296,7 @@ export default function QASection({
                   } focus:outline-none focus:ring-2 ${
                     darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
                   }`}
+                  style={{ minHeight: '60px' }}
                   placeholder="回答を入力してください..."
                 />
               </div>
@@ -343,17 +357,26 @@ export default function QASection({
               <div className="flex items-start justify-between mb-1">
                 <div className="flex-1">
                   {editingQA?.id === qa.qa_id && editingQA.field === 'question' ? (
-                    <input
-                      type="text"
+                    <textarea
                       value={editingQA.value}
-                      onChange={(e) => setEditingQA({...editingQA, value: e.target.value})}
+                      onChange={(e) => {
+                        setEditingQA({...editingQA, value: e.target.value});
+                        autoResizeTextarea(e.target);
+                      }}
                       onBlur={handleEndEdit}
-                      onKeyDown={(e) => e.key === 'Enter' && handleEndEdit()}
-                      className={`w-full p-2 rounded border text-sm font-medium ${
+                      onFocus={(e) => autoResizeTextarea(e.target)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleEndEdit();
+                        }
+                      }}
+                      className={`w-full p-2 rounded border text-sm font-medium resize-none ${
                         darkMode
                           ? "bg-gray-800 border-cyan-500/50 text-cyan-300"
                           : "bg-white border-purple-300 text-purple-600"
                       } focus:outline-none`}
+                      style={{ minHeight: '40px' }}
                       autoFocus
                     />
                   ) : (
@@ -383,9 +406,12 @@ export default function QASection({
               {editingQA?.id === qa.qa_id && editingQA.field === 'answer' ? (
                 <textarea
                   value={editingQA.value}
-                  onChange={(e) => setEditingQA({...editingQA, value: e.target.value})}
+                  onChange={(e) => {
+                    setEditingQA({...editingQA, value: e.target.value});
+                    autoResizeTextarea(e.target);
+                  }}
                   onBlur={handleEndEdit}
-                  rows={2}
+                  onFocus={(e) => autoResizeTextarea(e.target)}
                   className={`w-full p-2 text-sm rounded-lg border transition-all resize-none ${
                     darkMode
                       ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
@@ -393,6 +419,7 @@ export default function QASection({
                   } focus:outline-none focus:ring-2 ${
                     darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
                   }`}
+                  style={{ minHeight: '60px' }}
                   autoFocus
                 />
               ) : (

@@ -85,7 +85,7 @@ def save_summary(request: SummaryRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to save summary: {str(e)}")
 
 @router.post("/evaluate")
-def evaluate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
+async def evaluate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
     """
     既存の要約を評価する
     """
@@ -95,7 +95,7 @@ def evaluate_summary(request: ProjectIdRequest, db: Session = Depends(get_db)):
     if not document or not document.specification:
         raise HTTPException(status_code=404, detail="No summary found for the given project_id")
 
-    result = judge_service.main(requirements_text=document.specification, project_id=project_id)
+    result = await judge_service.main(requirements_text=document.specification, project_id=project_id)
 
     # フロントエンドが期待する形式にレスポンスを変換
     return {
