@@ -10,3 +10,6 @@ venv/
 __pycache__/
 routers/__pycache__/
 *.log
+
+pyproject.toml
+uv.lock

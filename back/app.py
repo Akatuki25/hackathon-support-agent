@@ -1,3 +1,9 @@
+import os
+
+# gRPCとuvloopの競合を回避するための環境変数設定
+os.environ["GRPC_POLL_STRATEGY"] = "poll"
+os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "1"
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
