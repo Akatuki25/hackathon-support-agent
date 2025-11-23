@@ -35,17 +35,24 @@ export default function CyberHeader() {
   const getProjectIdFromPath = (path: string): string | null => {
     const segments = path.split("/").filter(Boolean);
 
-    // プロジェクト関連のパスかチェック
-    // 例: /hackSetUp/[ProjectId]/*, /projects/[ProjectId]/* など
-    const projectPaths = ["hackSetUp", "projects", "project"];
+    // UUIDまたは数字のみのIDかチェック
+    // UUIDパターン: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const numberPattern = /^\d+$/;
 
+    // パターン1: /hackSetUp/[ProjectId]/*, /projects/[ProjectId]/* など
+    const projectPaths = ["hackSetUp", "projects", "project"];
     if (segments.length >= 2 && projectPaths.includes(segments[0])) {
       const potentialId = segments[1];
-      // UUIDまたは数字のみのIDかチェック（必要に応じて調整）
-      // UUIDパターン: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const numberPattern = /^\d+$/;
+      if (uuidPattern.test(potentialId) || numberPattern.test(potentialId)) {
+        return potentialId;
+      }
+    }
 
+    // パターン2: /[userName]/[projectId]/* の形式
+    // セグメントが2つ以上あり、2番目のセグメントがUUID/数字パターンの場合
+    if (segments.length >= 2) {
+      const potentialId = segments[1];
       if (uuidPattern.test(potentialId) || numberPattern.test(potentialId)) {
         return potentialId;
       }

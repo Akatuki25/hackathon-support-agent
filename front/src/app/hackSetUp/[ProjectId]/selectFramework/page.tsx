@@ -34,6 +34,24 @@ export interface FrameworkRecommendationResponse {
 type FlowState = 'loading' | 'ready';
 type SelectedPlatform = 'web' | 'ios' | 'android' | null;
 
+// プラットフォーム別の必須カテゴリ定義
+const REQUIRED_CATEGORIES = {
+  web: {
+    frontend: { min: 1, label: 'フロントエンド', required: true },
+    backend: { min: 1, label: 'バックエンド', required: true },
+    database: { min: 1, label: 'データベース', required: true },
+    deployment: { min: 0, label: 'デプロイメント', required: false }
+  },
+  ios: {
+    frontend: { min: 1, label: 'iOSフレームワーク', required: true },
+    backend: { min: 1, label: 'バックエンド/BaaS', required: true }
+  },
+  android: {
+    frontend: { min: 1, label: 'Androidフレームワーク', required: true },
+    backend: { min: 1, label: 'バックエンド/BaaS', required: true }
+  }
+};
+
 const TECHNOLOGY_OPTIONS: Record<string, TechnologyOption[]> = {
   web: [
     // Frontend Technologies
@@ -456,6 +474,86 @@ export default function SelectFramework() {
     }
   };
 
+  // カテゴリの表示ラベル
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'frontend': return 'フロントエンド';
+      case 'backend': return 'バックエンド';
+      case 'database': return 'データベース';
+      case 'deployment': return 'デプロイメント';
+      default: return category;
+    }
+  };
+
+  // カテゴリの色
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'frontend': return darkMode ? 'bg-purple-500/80 text-white' : 'bg-purple-500 text-white';
+      case 'backend': return darkMode ? 'bg-blue-500/80 text-white' : 'bg-blue-500 text-white';
+      case 'database': return darkMode ? 'bg-green-600/80 text-white' : 'bg-green-600 text-white';
+      case 'deployment': return darkMode ? 'bg-orange-500/80 text-white' : 'bg-orange-500 text-white';
+      default: return darkMode ? 'bg-gray-500/80 text-white' : 'bg-gray-500 text-white';
+    }
+  };
+
+  // カテゴリごとの選択数を計算
+  const getCategorySelectionCount = (category: string) => {
+    if (!selectedPlatform && !useAIRecommendations) return 0;
+    const platform = useAIRecommendations ? 'web' : selectedPlatform;
+    if (!platform) return 0;
+
+    return Array.from(selectedTechnologies).filter(techName => {
+      const tech = TECHNOLOGY_OPTIONS[platform]?.find(t => t.name === techName);
+      return tech?.category === category;
+    }).length;
+  };
+
+  // 現在のプラットフォームの必須カテゴリを取得
+    // 型定義を追加して config のプロパティにアクセスできるようにする
+    type CategoryConfig = { min: number; label: string; required: boolean };
+    type RequiredCategoriesMap = Record<string, CategoryConfig>;
+  
+    const getRequiredCategories = (): RequiredCategoriesMap => {
+      const platform = useAIRecommendations ? 'web' : selectedPlatform;
+      if (!platform) return {};
+      return (REQUIRED_CATEGORIES[platform] as RequiredCategoriesMap) || {};
+    };
+
+  // すべての必須カテゴリが満たされているかチェック
+  const areAllRequiredCategoriesFilled = () => {
+    const requiredCategories = getRequiredCategories();
+    return Object.entries(requiredCategories).every(([category, config]) => {
+      if (!config.required) return true;
+      return getCategorySelectionCount(category) >= config.min;
+    });
+  };
+
+  // 完了したカテゴリ数を計算
+  const getCompletedCategoriesCount = () => {
+    const requiredCategories = getRequiredCategories();
+    return Object.entries(requiredCategories).filter(([category, config]) => {
+      if (!config.required) return false;
+      return getCategorySelectionCount(category) >= config.min;
+    }).length;
+  };
+
+  // 必須カテゴリの総数
+  const getTotalRequiredCategoriesCount = () => {
+    const requiredCategories = getRequiredCategories();
+    return Object.values(requiredCategories).filter(config => config.required).length;
+  };
+
+  // 不足しているカテゴリのリストを取得
+  const getMissingCategories = () => {
+    const requiredCategories = getRequiredCategories();
+    return Object.entries(requiredCategories)
+      .filter(([category, config]: [string, CategoryConfig]) => {
+        if (!config.required) return false;
+        return getCategorySelectionCount(category) < config.min;
+      })
+      .map(([, config]: [string, CategoryConfig]) => config.label);
+  };
+
   if (flowState === 'loading') {
     return <Loading />;
   }
@@ -560,18 +658,119 @@ export default function SelectFramework() {
             </div>
           </div>
 
-          {/* AI推薦技術選択 */}
+          {/* AI推薦技術選択 - 2カラムレイアウト */}
           {useAIRecommendations && aiRecommendations && (
-            <div className="mb-8">
-              <h2 className={`text-xl font-bold mb-4 flex items-center ${
-                darkMode ? "text-cyan-300" : "text-purple-700"
-              }`}>
-                <Bot size={24} className="mr-2" />
-                AI推薦技術を選択 (WEB)
-              </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+              {/* 左側：選択状況メータ（sticky） */}
+              <div className="lg:col-span-3">
+                <div className="lg:sticky lg:top-24">
+                  <div className={`p-4 rounded-xl border-2 ${
+                    darkMode ? "bg-gray-800/50 border-gray-600" : "bg-white border-gray-300"
+                  }`}>
+                    <h3 className={`text-sm font-semibold mb-3 flex items-center ${
+                      darkMode ? "text-cyan-300" : "text-purple-700"
+                    }`}>
+                      <Bot size={16} className="mr-2" />
+                      選択状況
+                    </h3>
 
-              {/* AI推薦技術を手動選択と同じUIで表示 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* 全体進捗サマリー */}
+                    <div className={`mb-4 p-3 rounded-lg ${
+                      areAllRequiredCategoriesFilled()
+                        ? darkMode ? "bg-green-900/20 border border-green-500/30" : "bg-green-50 border border-green-200"
+                        : darkMode ? "bg-yellow-900/20 border border-yellow-500/30" : "bg-yellow-50 border border-yellow-200"
+                    }`}>
+                      <div className={`text-xs font-semibold mb-1 ${
+                        areAllRequiredCategoriesFilled()
+                          ? darkMode ? "text-green-400" : "text-green-600"
+                          : darkMode ? "text-yellow-400" : "text-yellow-600"
+                      }`}>
+                        {areAllRequiredCategoriesFilled() ? (
+                          <span className="flex items-center">
+                            <Check size={14} className="mr-1" />
+                            選択完了
+                          </span>
+                        ) : (
+                          `進捗: ${getCompletedCategoriesCount()}/${getTotalRequiredCategoriesCount()}`
+                        )}
+                      </div>
+                      <div className={`text-xs ${
+                        areAllRequiredCategoriesFilled()
+                          ? darkMode ? "text-green-300" : "text-green-700"
+                          : darkMode ? "text-yellow-300" : "text-yellow-700"
+                      }`}>
+                        {areAllRequiredCategoriesFilled()
+                          ? "すべての必須カテゴリが選択されています"
+                          : "必須カテゴリを選択してください"
+                        }
+                      </div>
+                    </div>
+
+                    {/* カテゴリ別進捗 */}
+                    <div className="space-y-3">
+                      {Object.entries(getRequiredCategories()).map(([category, config]: [string, CategoryConfig]) => {
+                        const count = getCategorySelectionCount(category);
+                        const isFilled = count >= config.min;
+                        const percentage = config.min > 0 ? Math.min((count / config.min) * 100, 100) : 100;
+
+                        return (
+                          <div key={category}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className={`text-xs font-medium ${
+                                darkMode ? "text-gray-300" : "text-gray-700"
+                              }`}>
+                                {config.label}
+                                {config.required && <span className="text-red-500 ml-1">*</span>}
+                              </span>
+                              <span className={`text-xs flex items-center ${
+                                isFilled
+                                  ? darkMode ? "text-green-400" : "text-green-600"
+                                  : darkMode ? "text-gray-400" : "text-gray-500"
+                              }`}>
+                                {count}/{config.min}
+                                {isFilled && <Check size={12} className="ml-1" />}
+                              </span>
+                            </div>
+                            <div className={`h-1.5 rounded-full overflow-hidden ${
+                              darkMode ? "bg-gray-700" : "bg-gray-200"
+                            }`}>
+                              <div
+                                className={`h-full transition-all duration-300 ${
+                                  isFilled
+                                    ? "bg-gradient-to-r from-green-500 to-green-600"
+                                    : count > 0
+                                      ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
+                                      : "bg-gray-400"
+                                }`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 未完了の警告メッセージ */}
+                    {!areAllRequiredCategoriesFilled() && (
+                      <div className={`mt-3 text-xs ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}>
+                        ⚠️ 必須カテゴリ（*印）を選択してください
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 右側：AI推薦技術カード */}
+              <div className="lg:col-span-9">
+                <h2 className={`text-xl font-bold mb-4 flex items-center ${
+                  darkMode ? "text-cyan-300" : "text-purple-700"
+                }`}>
+                  <Bot size={24} className="mr-2" />
+                  AI推薦技術を選択 (WEB)
+                </h2>
+
+                {/* AI推薦技術を手動選択と同じUIで表示 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {aiRecommendations.recommended_technologies
                   .sort((a, b) => a.priority - b.priority)
                   .map((tech, index) => {
@@ -679,6 +878,7 @@ export default function SelectFramework() {
                     </div>
                     );
                   })}
+                </div>
               </div>
             </div>
           )}
@@ -719,14 +919,115 @@ export default function SelectFramework() {
             </div>
           )}
 
-          {/* 技術選択（手動選択時のみ） */}
+          {/* 技術選択（手動選択時のみ）- 2カラムレイアウト */}
           {selectedPlatform && !useAIRecommendations && (
-            <div className="mb-8">
-              <h2 className={`text-xl font-bold mb-4 ${
-                darkMode ? "text-cyan-300" : "text-purple-700"
-              }`}>
-                技術スタックを選択 ({selectedPlatform.toUpperCase()})
-              </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+              {/* 左側：選択状況メータ（sticky） */}
+              <div className="lg:col-span-3">
+                <div className="lg:sticky lg:top-24">
+                  <div className={`p-4 rounded-xl border-2 ${
+                    darkMode ? "bg-gray-800/50 border-gray-600" : "bg-white border-gray-300"
+                  }`}>
+                    <h3 className={`text-sm font-semibold mb-3 flex items-center ${
+                      darkMode ? "text-cyan-300" : "text-purple-700"
+                    }`}>
+                      <Terminal size={16} className="mr-2" />
+                      選択状況
+                    </h3>
+
+                    {/* 全体進捗サマリー */}
+                    <div className={`mb-4 p-3 rounded-lg ${
+                      areAllRequiredCategoriesFilled()
+                        ? darkMode ? "bg-green-900/20 border border-green-500/30" : "bg-green-50 border border-green-200"
+                        : darkMode ? "bg-yellow-900/20 border border-yellow-500/30" : "bg-yellow-50 border border-yellow-200"
+                    }`}>
+                      <div className={`text-xs font-semibold mb-1 ${
+                        areAllRequiredCategoriesFilled()
+                          ? darkMode ? "text-green-400" : "text-green-600"
+                          : darkMode ? "text-yellow-400" : "text-yellow-600"
+                      }`}>
+                        {areAllRequiredCategoriesFilled() ? (
+                          <span className="flex items-center">
+                            <Check size={14} className="mr-1" />
+                            選択完了
+                          </span>
+                        ) : (
+                          `進捗: ${getCompletedCategoriesCount()}/${getTotalRequiredCategoriesCount()}`
+                        )}
+                      </div>
+                      <div className={`text-xs ${
+                        areAllRequiredCategoriesFilled()
+                          ? darkMode ? "text-green-300" : "text-green-700"
+                          : darkMode ? "text-yellow-300" : "text-yellow-700"
+                      }`}>
+                        {areAllRequiredCategoriesFilled()
+                          ? "すべての必須カテゴリが選択されています"
+                          : "必須カテゴリを選択してください"
+                        }
+                      </div>
+                    </div>
+
+                    {/* カテゴリ別進捗 */}
+                    <div className="space-y-3">
+                      {Object.entries(getRequiredCategories()).map(([category, config]: [string, CategoryConfig]) => {
+                        const count = getCategorySelectionCount(category);
+                        const isFilled = count >= config.min;
+                        const percentage = config.min > 0 ? Math.min((count / config.min) * 100, 100) : 100;
+
+                        return (
+                          <div key={category}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className={`text-xs font-medium ${
+                                darkMode ? "text-gray-300" : "text-gray-700"
+                              }`}>
+                                {config.label}
+                                {config.required && <span className="text-red-500 ml-1">*</span>}
+                              </span>
+                              <span className={`text-xs flex items-center ${
+                                isFilled
+                                  ? darkMode ? "text-green-400" : "text-green-600"
+                                  : darkMode ? "text-gray-400" : "text-gray-500"
+                              }`}>
+                                {count}/{config.min}
+                                {isFilled && <Check size={12} className="ml-1" />}
+                              </span>
+                            </div>
+                            <div className={`h-1.5 rounded-full overflow-hidden ${
+                              darkMode ? "bg-gray-700" : "bg-gray-200"
+                            }`}>
+                              <div
+                                className={`h-full transition-all duration-300 ${
+                                  isFilled
+                                    ? "bg-gradient-to-r from-green-500 to-green-600"
+                                    : count > 0
+                                      ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
+                                      : "bg-gray-400"
+                                }`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 未完了の警告メッセージ */}
+                    {!areAllRequiredCategoriesFilled() && (
+                      <div className={`mt-3 text-xs ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}>
+                        ⚠️ 必須カテゴリ（*印）を選択してください
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 右側：技術選択カード */}
+              <div className="lg:col-span-9">
+                <h2 className={`text-xl font-bold mb-4 ${
+                  darkMode ? "text-cyan-300" : "text-purple-700"
+                }`}>
+                  技術スタックを選択 ({selectedPlatform.toUpperCase()})
+                </h2>
 
               {selectedPlatform === 'web' ? (
                 // Web専用：カテゴリ別表示
@@ -772,16 +1073,21 @@ export default function SelectFramework() {
                                       : "bg-white border-gray-300 hover:border-purple-500/50"
                               }`}
                             >
-                              {/* AI推薦バッジ */}
-                              {isRecommended && (
-                                <div className="absolute top-2 right-2">
+                              {/* カテゴリバッジとAI推薦バッジ（右上） */}
+                              <div className="absolute top-2 right-2 flex gap-1 flex-wrap justify-end">
+                                {/* カテゴリバッジ */}
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(tech.category)}`}>
+                                  {getCategoryLabel(tech.category)}
+                                </div>
+                                {/* AI推薦バッジ */}
+                                {isRecommended && (
                                   <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                                     darkMode ? "bg-green-500 text-white" : "bg-green-500 text-white"
                                   }`}>
                                     AI推薦
                                   </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
 
                               <div className="flex items-start justify-between mb-2">
                                 <div>
@@ -862,13 +1168,13 @@ export default function SelectFramework() {
                   })}
                 </>
               ) : (
-                // iOS/Android：通常表示
+                // iOS/Android：カテゴリ表示付き
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {TECHNOLOGY_OPTIONS[selectedPlatform].map((tech) => (
                   <div
                     key={tech.name}
                     onClick={() => handleTechnologyToggle(tech.name)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-102 ${
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-102 relative ${
                       selectedTechnologies.has(tech.name)
                         ? darkMode
                           ? "bg-cyan-500/20 border-cyan-500"
@@ -878,8 +1184,19 @@ export default function SelectFramework() {
                           : "bg-white border-gray-300 hover:border-purple-500/50"
                     }`}
                   >
+                    {/* カテゴリバッジ（右上） */}
+                    <div className="absolute top-2 right-2">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        tech.category === 'frontend'
+                          ? darkMode ? "bg-purple-500/80 text-white" : "bg-purple-500 text-white"
+                          : darkMode ? "bg-blue-500/80 text-white" : "bg-blue-500 text-white"
+                      }`}>
+                        {tech.category === 'frontend' ? 'フロントエンド' : 'バックエンド'}
+                      </div>
+                    </div>
+
                     <div className="flex items-start justify-between mb-2">
-                      <div>
+                      <div className="pr-24">
                         <h3 className={`font-semibold ${
                           darkMode ? "text-cyan-300" : "text-purple-700"
                         }`}>
@@ -929,6 +1246,7 @@ export default function SelectFramework() {
                   ))}
                 </div>
               )}
+              </div>
             </div>
           )}
 
@@ -946,21 +1264,47 @@ export default function SelectFramework() {
                   <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     選択した技術: {Array.from(selectedTechnologies).join(", ")}
                   </p>
-                  <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    技術スタックの選択が完了したら、次のステップに進みましょう。
-                  </p>
 
-                  <button
-                    onClick={handleNext}
-                    className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
-                      darkMode
-                        ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-                        : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-                    }`}
-                  >
-                    <span>次へ進む</span>
-                    <ChevronRight size={18} className="ml-2" />
-                  </button>
+                  {areAllRequiredCategoriesFilled() ? (
+                    <>
+                      <p className={`mb-6 flex items-center justify-center ${
+                        darkMode ? 'text-green-400' : 'text-green-600'
+                      }`}>
+                        <Check size={18} className="mr-2" />
+                        すべての必須カテゴリが選択されています。次のステップに進みましょう！
+                      </p>
+
+                      <button
+                        onClick={handleNext}
+                        className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
+                          darkMode
+                            ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
+                            : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                        }`}
+                      >
+                        <span>次へ進む</span>
+                        <ChevronRight size={18} className="ml-2" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className={`mb-6 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                        ⚠️ {getMissingCategories().join('、')}が足りませんが次に進みますか？
+                      </p>
+
+                      <button
+                        onClick={handleNext}
+                        className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
+                          darkMode
+                            ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
+                            : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                        }`}
+                      >
+                        <span>次へ進む</span>
+                        <ChevronRight size={18} className="ml-2" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

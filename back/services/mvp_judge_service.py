@@ -43,12 +43,12 @@ class MVPJudgeService(BaseService):
         # 例: judgeは軽量モデルでもOK（必要時だけ重めに昇格）
         self.judge_llm = self.llm_flash.with_structured_output(MVPJudge)
 
-    def judge(self, requirements_text: str) -> MVPJudge:
+    async def judge(self, requirements_text: str) -> MVPJudge:
         prompt = ChatPromptTemplate.from_template(
             self.get_prompt("mvp_service", "judge_mvp")  # TOMLにMVP_JUDGE_PROMPTを入れておく
         )
         chain = prompt | self.judge_llm
-        return chain.invoke({"requirements_text": requirements_text})
+        return await chain.ainvoke({"requirements_text": requirements_text})
     
     
     def route_next(self, j: MVPJudge, project_id:str ) -> Dict[str, Any]:
@@ -103,7 +103,7 @@ class MVPJudgeService(BaseService):
             },
             "qa": return_qa
         }
-    def main(self,requirements_text: str, project_id:str) -> Dict[str, Any]:
-        j = self.judge(requirements_text=requirements_text)
+    async def main(self, requirements_text: str, project_id: str) -> Dict[str, Any]:
+        j = await self.judge(requirements_text=requirements_text)
         return self.route_next(j, project_id)
 

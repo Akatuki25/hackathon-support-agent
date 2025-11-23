@@ -20,6 +20,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://hack_helper:hackathon@db/hackathon_support_agent
       - REDIS_URL=redis://redis:6379/0
+      - GRPC_POLL_STRATEGY=poll
+      - GRPC_ENABLE_FORK_SUPPORT=1
     working_dir: /workspaces/hackathon_support_agent/back
     depends_on:
       - db
@@ -75,6 +77,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://hack_helper:hackathon@db/hackathon_support_agent
       - REDIS_URL=redis://redis:6379/0
+      - GRPC_POLL_STRATEGY=poll
+      - GRPC_ENABLE_FORK_SUPPORT=1
     volumes:
       - ..:/workspaces/hackathon_support_agent:cached
     working_dir: /workspaces/hackathon_support_agent/back

@@ -46,9 +46,20 @@ export default function SummaryQA() {
         // 評価を取得
         try {
           const evaluation = await evaluateSummary(projectId);
-          console.log("評価結果:", evaluation); // デバッグ用
-          console.log("スコア:", evaluation.score_0_100); // デバッグ用
-          console.log("MVP可能性:", evaluation.mvp_feasible); // デバッグ用
+          console.log("=== 評価結果の詳細 ===");
+          console.log("評価結果全体:", evaluation);
+          console.log("スコア:", evaluation.score_0_100);
+          console.log("MVP可能性:", evaluation.mvp_feasible);
+          console.log("信頼度:", evaluation.confidence);
+          console.log("追加質問の数:", evaluation.qa?.length || 0);
+          console.log("追加質問の内容:", evaluation.qa);
+          if (evaluation.qa && evaluation.qa.length > 0) {
+            evaluation.qa.forEach((q, idx) => {
+              console.log(`質問${idx + 1}:`, q.question);
+              console.log(`回答${idx + 1}:`, q.answer);
+            });
+          }
+          console.log("===================");
 
           setQuestion(evaluation.qa || []);
           setScore(evaluation.score_0_100 || 0);
@@ -181,7 +192,7 @@ export default function SummaryQA() {
                     </div>
                   ) : (
                     <>
-                      <span>フレームワーク選択へ</span>
+                      <span>機能要件の作成へ</span>
                       <ChevronRight size={18} className="ml-2" />
                     </>
                   )}
