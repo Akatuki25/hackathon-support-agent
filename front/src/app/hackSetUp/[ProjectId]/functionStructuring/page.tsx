@@ -446,7 +446,8 @@ export default function FunctionStructuring() {
     const githubName = session?.user?.name || 'unknown';
     console.log("githubName:", githubName);
     console.log("projectId:", projectId);
-    router.push(`/${githubName}/${projectId}`);
+    // from=setup パラメータを追加して、初回遷移を識別
+    router.push(`/${githubName}/${projectId}?from=setup`);
   };
 
   // 認証とデータ初期化

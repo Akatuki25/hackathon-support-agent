@@ -240,3 +240,31 @@ export type ChatHansonResponse = {
 export type ChatHansonPlanResponse = {
   plan: string;             // Response plan only
 };
+
+// --- EnvSetup Types (AI Generated) ---
+
+export type EnvSetupRequest = {
+  project_id: string;
+};
+
+export type EnvSetupResponse = {
+  env_id: string;
+  project_id: string;
+  front: string | null;
+  backend: string | null;
+  devcontainer: string | null;
+  database: string | null;
+  deploy: string | null;
+  message: string;
+};
+
+export type EnvGetResponse = {
+  env_id: string;
+  project_id: string;
+  front: string | null;
+  backend: string | null;
+  devcontainer: string | null;
+  database: string | null;
+  deploy: string | null;
+  created_at: string | null;
+};
