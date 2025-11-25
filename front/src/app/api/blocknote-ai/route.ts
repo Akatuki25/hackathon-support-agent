@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // Note: BlockNoteのAI機能はテキスト生成のみなので、toolsは不要
     // toolDefinitionsはBlockNote独自の形式であり、Vercel AI SDKのtoolsパラメータと互換性がない
     const result = streamText({
-      model: google("gemini-2.0-flash-exp"),
+      model: google("gemini-2.5-flash"),
       messages: convertToModelMessages(reorderedMessages),
       temperature: 0.7,
       maxOutputTokens: 2000,

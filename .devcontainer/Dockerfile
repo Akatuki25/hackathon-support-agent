@@ -30,11 +30,11 @@ ENV NVM_DIR=/usr/local/nvm
 RUN mkdir -p "$NVM_DIR" \
  && curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
-# Node 最新（stable = 'node' エイリアス）を入れてデフォルト化
+# Node LTS（安定版）を入れてデフォルト化
 # さらに corepack で pnpm を最新化＆有効化
 RUN source "$NVM_DIR/nvm.sh" \
- && nvm install node --latest-npm \
- && nvm alias default node \
+ && nvm install --lts --latest-npm \
+ && nvm alias default 'lts/*' \
  && corepack enable \
  && corepack prepare pnpm@latest --activate \
  # nvm 管理の node/npm/pnpm をパスの通った場所にシンボリックリンク

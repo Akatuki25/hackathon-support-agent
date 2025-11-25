@@ -1,10 +1,16 @@
+import os
+
+# gRPCとuvloopの競合を回避するための環境変数設定
+os.environ["GRPC_POLL_STRATEGY"] = "poll"
+os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "1"
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
-from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency
+from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, chatHanson, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chatHanson, env_setup_agent
 
 # データベース初期化
 from database import engine, Base
@@ -60,6 +66,7 @@ app.include_router(directory.router, prefix="/api/directory", tags=["Directory"]
 app.include_router(environment.router, prefix="/api/environment", tags=["Environment"])
 app.include_router(taskDetail.router, prefix="/api/taskDetail", tags=["TaskDetail"])
 app.include_router(taskChat.router, prefix="/api/taskChat", tags=["TaskChat"])
+app.include_router(chatHanson.router, prefix="/api/chatHanson", tags=["ChatHanson"])
 app.include_router(graphTask.router, prefix="/api/graphTask", tags=["GraphTask"])
 app.include_router(durationTask.router, prefix="/api/durationTask", tags=["DurationTask"])
 app.include_router(deploy.router, prefix="/api/deploy", tags=["Deploy"])
@@ -74,6 +81,9 @@ app.include_router(ai_document.router, prefix="/api/ai_document", tags=["AIDocum
 
 # Phase 3: Task Hands-On Generation
 app.include_router(task_hands_on.router)
+
+# Environment Setup Agent
+app.include_router(env_setup_agent.router, prefix="/api/env_setup", tags=["EnvSetupAgent"])
 
 # 適宜追加
 

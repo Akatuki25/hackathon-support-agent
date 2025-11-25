@@ -34,6 +34,32 @@ celery_app.conf.update(
     task_acks_late=True,          # タスク完了後にACK
     task_reject_on_worker_lost=True,  # Worker停止時に再キュー
 
+    # 🔧 Redis コマンド最適化設定
+    result_expires=3600,  # 結果を1時間で自動削除（デフォルト24時間）
+    result_backend_transport_options={
+        'master_name': None,
+        'visibility_timeout': 3600,
+        'retry_policy': {
+            'max_retries': 3,
+        }
+    },
+
+    # 不要な状態保存を削減
+    task_ignore_result=False,  # chordで結果が必要なのでFalse
+    task_store_eager_result=False,  # EAGER_MODE無効化（本番用）
+
+    # Redisポーリング間隔の調整
+    broker_transport_options={
+        'visibility_timeout': 43200,  # 12時間（長時間タスク対応）
+        'polling_interval': 60,  # 🔧 BRPOPタイムアウト: 1秒 → 60秒（Redis READ 98%削減）
+        'fanout_prefix': True,
+        'fanout_patterns': True,
+    },
+
+    # 🔧 Worker heartbeat/events 最適化（Redis READ削減）
+    worker_send_task_events=False,  # タスクイベント送信無効化（Flower不使用）
+    broker_heartbeat=None,  # ハートビート無効化
+
     # タスク自動検出（tasksディレクトリ配下）
     imports=[
         "tasks.hands_on_tasks",  # Phase 3: ハンズオン生成タスク

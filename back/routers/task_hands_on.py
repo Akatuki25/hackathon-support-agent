@@ -38,7 +38,7 @@ class HandsOnGenerationRequest(BaseModel):
                     "batch_size": 5,
                     "enable_web_search": True,
                     "verification_level": "medium",
-                    "model": "gemini-2.0-flash-exp"
+                    "model": "gemini-2.5-flash"
                 }
             }
         }
@@ -111,20 +111,22 @@ async def start_hands_on_generation(
         service = TaskHandsOnService(db)
         project_uuid = UUID(request.project_id)
 
-        # 🔒 Step 1: 既存のジョブをチェック (処理中 or 完了済み)
+        # 🔒 Step 1: アクティブなジョブをチェック (queued or processing のみ)
+        # NOTE: completedは含めない（完了後は削除されるため）
         existing_job = (
             db.query(HandsOnGenerationJob)
             .filter(
                 and_(
                     HandsOnGenerationJob.project_id == project_uuid,
-                    HandsOnGenerationJob.status.in_(["queued", "processing", "completed"])
+                    HandsOnGenerationJob.status.in_(["queued", "processing"])
                 )
             )
-            .with_for_update(skip_locked=True)  # 排他制御 (他のトランザクションがロック中ならスキップ)
+            .with_for_update()  # 排他制御: 他のトランザクションを待つ（skip_locked削除で確実に）
             .first()
         )
 
         if existing_job:
+            print(f"[API] 既存ジョブ検出: job_id={existing_job.job_id}, status={existing_job.status}")
             return HandsOnGenerationResponse(
                 success=True,
                 job_id=str(existing_job.job_id),

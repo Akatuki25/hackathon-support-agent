@@ -64,3 +64,10 @@ $ cd front
 $ npm run dev
 ```
 
+## 必要ならば再度
+
+```bash 
+
+docker compose build --no-cache
+```
+

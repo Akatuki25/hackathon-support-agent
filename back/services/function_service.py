@@ -10,6 +10,22 @@ import uuid
 from models.project_base import QA, ProjectDocument
 
 
+# SpecificationFeedbackモデル（summary_serviceと共通）
+class MissingInformation(BaseModel):
+    """不足している情報"""
+    category: str = Field(description="カテゴリ（例: 技術要件、ユーザー要件、非機能要件）")
+    question: str = Field(description="具体的な質問")
+    why_needed: str = Field(description="なぜこの情報が必要か")
+    priority: str = Field(description="優先度（high/medium/low）")
+
+class SpecificationFeedback(BaseModel):
+    """仕様書評価フィードバック（Pydantic構造化出力用）"""
+    summary: str = Field(description="仕様書の全体的な評価サマリー")
+    strengths: List[str] = Field(description="現在の仕様書の強み")
+    missing_info: List[MissingInformation] = Field(description="不足している情報のリスト")
+    suggestions: List[str] = Field(description="改善提案")
+
+
 class FunctionalRequirement(BaseModel):
     requirement_id: str = Field(description="Unique identifier for the requirement")
     category: str = Field(description="Category of the requirement (e.g., 'authentication', 'data_management', 'user_interface')")
@@ -401,109 +417,21 @@ class FunctionService(BaseService):
 
         # Q&Aリストを取得
         qa_list = self.db.query(QA).filter(QA.project_id == project_uuid).all()
-        qa_context = ""
-        if qa_list:
-            qa_context = "\n".join([
-                f"Q: {qa.question}\nA: {qa.answer or '未回答'}"
-                for qa in qa_list
-            ])
+        qa_context = "\n".join([
+            f"Q: {qa.question}\nA: {qa.answer or '未回答'}"
+            for qa in qa_list
+        ]) if qa_list else "Q&Aなし"
 
-        # 確信度フィードバック生成のレスポンススキーマ
-        response_schemas = [
-            ResponseSchema(
-                name="overall_confidence",
-                type="float",
-                description="全体の確信度 0.0-1.0"
-            ),
-            ResponseSchema(
-                name="clarity_score",
-                type="float",
-                description="要件の明確性スコア 0.0-1.0"
-            ),
-            ResponseSchema(
-                name="feasibility_score",
-                type="float",
-                description="技術的実現可能性スコア 0.0-1.0"
-            ),
-            ResponseSchema(
-                name="scope_score",
-                type="float",
-                description="スコープの適切性スコア 0.0-1.0"
-            ),
-            ResponseSchema(
-                name="value_score",
-                type="float",
-                description="開発価値スコア 0.0-1.0"
-            ),
-            ResponseSchema(
-                name="completeness_score",
-                type="float",
-                description="要件の完全性スコア 0.0-1.0"
-            ),
-            ResponseSchema(
-                name="clarity_feedback",
-                type="string",
-                description="明確性に関する詳細フィードバック"
-            ),
-            ResponseSchema(
-                name="feasibility_feedback",
-                type="string",
-                description="実現可能性に関する詳細フィードバック"
-            ),
-            ResponseSchema(
-                name="scope_feedback",
-                type="string",
-                description="スコープに関する詳細フィードバック"
-            ),
-            ResponseSchema(
-                name="value_feedback",
-                type="string",
-                description="開発価値に関する詳細フィードバック"
-            ),
-            ResponseSchema(
-                name="completeness_feedback",
-                type="string",
-                description="完全性に関する詳細フィードバック"
-            ),
-            ResponseSchema(
-                name="improvement_suggestions",
-                type="array(strings)",
-                description="改善提案のリスト"
-            ),
-            ResponseSchema(
-                name="confidence_reason",
-                type="string",
-                description="全体確信度の理由"
-            )
-        ]
+        # Pydantic構造化出力を使用（summary_serviceと同じ形式）
+        prompt_text = self.get_prompt("summary_service", "evaluate_specification")
+        prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        parser = StructuredOutputParser.from_response_schemas(response_schemas)
-        prompt_template = ChatPromptTemplate.from_template(
-            template=self.get_prompt("function_service.confidence_feedback", "generate_confidence_feedback"),
-            partial_variables={"format_instructions": parser.get_format_instructions()}
-        )
+        chain = prompt_template | self.llm_flash_thinking.with_structured_output(SpecificationFeedback)
 
-        chain = prompt_template | self.llm_flash_thinking | parser
-        result = chain.invoke({
-            "function_document": project_doc.function_doc,
+        result: SpecificationFeedback = chain.invoke({
+            "specification": project_doc.function_doc,
             "question_answer": qa_context
         })
 
-        # 結果の検証と調整
-        validated_result = {
-            "overall_confidence": max(0.0, min(1.0, result.get("overall_confidence", 0.7))),
-            "clarity_score": max(0.0, min(1.0, result.get("clarity_score", 0.7))),
-            "feasibility_score": max(0.0, min(1.0, result.get("feasibility_score", 0.7))),
-            "scope_score": max(0.0, min(1.0, result.get("scope_score", 0.7))),
-            "value_score": max(0.0, min(1.0, result.get("value_score", 0.7))),
-            "completeness_score": max(0.0, min(1.0, result.get("completeness_score", 0.7))),
-            "clarity_feedback": result.get("clarity_feedback", ""),
-            "feasibility_feedback": result.get("feasibility_feedback", ""),
-            "scope_feedback": result.get("scope_feedback", ""),
-            "value_feedback": result.get("value_feedback", ""),
-            "completeness_feedback": result.get("completeness_feedback", ""),
-            "improvement_suggestions": result.get("improvement_suggestions", []),
-            "confidence_reason": result.get("confidence_reason", "")
-        }
-
-        return validated_result
+        self.logger.info(f"Generated specification feedback: {result.summary[:50]}...")
+        return result.model_dump()

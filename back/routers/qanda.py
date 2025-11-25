@@ -51,21 +51,22 @@ def save_questions(payload: QAResult, db: Session = Depends(get_db)):
 
 # ---------- Routes ----------
 @router.post("/{project_id}", response_model=QAResult)
-def generate_question(
+async def generate_question(
     idea_prompt: IdeaPrompt,
     project_id: uuid.UUID,
     db: Session = Depends(get_db),
 ):
     """
     idea_prompt.Prompt を受け取り、{ QA: [...] } を返す
+    非同期版に最適化
     """
     qanda_service = QuestionService(db=db)
     # <- ここでサービスの返却も { "QA": [...] } になるように統一する
-    
-    result = qanda_service.generate_question(idea_prompt.Prompt, project_id=project_id)
+
+    result = await qanda_service.generate_question(idea_prompt.Prompt, project_id=project_id)
 
     # サービスが list[QABase/Dict] を返すなら包む
     if isinstance(result, dict) and "QA" in result:
         return result
-    
+
     return {"QA": result}

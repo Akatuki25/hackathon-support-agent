@@ -4,8 +4,8 @@ import { useState } from "react";
 import { AlertTriangle, CheckCircle, Loader2, Plus, X, Trash2, Edit2 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { QAType } from "@/types/modelTypes";
-import { patchQA, postQA, deleteQA } from "@/libs/modelAPI/qa";
-import { evaluateSummary } from "@/libs/service/summary";
+import { patchQA, postQA, deleteQA, getQAsByProjectId } from "@/libs/modelAPI/qa";
+import axios from "axios";
 
 interface QASectionProps {
   projectId: string;
@@ -25,6 +25,14 @@ export default function QASection({
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
   const [editingQA, setEditingQA] = useState<{id: string, field: 'question' | 'answer', value: string} | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
+
+  // textareaの自動高さ調整
+  const autoResizeTextarea = (element: HTMLTextAreaElement) => {
+    element.style.height = 'auto';
+    element.style.height = element.scrollHeight + 'px';
+  };
 
   // QA保存
   const saveQA = async (updatedQA: QAType[]) => {
@@ -86,6 +94,12 @@ export default function QASection({
       return;
     }
 
+    console.log("[QA追加] 開始 - プロジェクトID:", projectId);
+    console.log("[QA追加] 現在のQA数:", questions.length);
+
+    setIsAdding(true);
+    setAddSuccess(false);
+
     try {
       const newQA: Omit<QAType, 'qa_id' | 'created_at'> = {
         project_id: projectId,
@@ -97,18 +111,53 @@ export default function QASection({
         follows_qa_id: questions.length > 0 ? questions[questions.length - 1].qa_id : null,
       };
 
-      await postQA(newQA);
+      console.log("[QA追加] 送信データ:", newQA);
 
-      // 最新のQ&Aリストを再取得
-      const evaluation = await evaluateSummary(projectId);
-      onQuestionsUpdate(evaluation.qa);
+      const newQaId = await postQA(newQA);
+      console.log("[QA追加] 作成成功 - 新しいQA ID:", newQaId);
+
+      if (!newQaId) {
+        throw new Error("QAの作成に失敗しました（IDが返されませんでした）");
+      }
+
+      // 最新のQ&Aリストを直接取得（改善版）
+      console.log("[QA追加] getQAsByProjectId呼び出し中...");
+      const updatedQAs = await getQAsByProjectId(projectId);
+      console.log("[QA追加] 取得されたQA数:", updatedQAs?.length || 0);
+
+      if (!updatedQAs || updatedQAs.length === 0) {
+        console.warn("[QA追加] 警告: QAリストが空です");
+        // 空でも更新は続行（初回追加の可能性）
+      }
+
+      onQuestionsUpdate(updatedQAs);
+
+      // 成功フィードバック
+      setAddSuccess(true);
+      setTimeout(() => setAddSuccess(false), 2000);
 
       setNewQuestion("");
       setNewAnswer("");
       setShowAddQA(false);
+      console.log("[QA追加] 完了");
     } catch (error) {
-      console.error("Q&Aの追加に失敗:", error);
-      alert("Q&Aの追加に失敗しました");
+      console.error("[QA追加] エラー詳細:", error);
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const message = error.response?.data?.message || error.message;
+        console.error(`[QA追加] HTTPエラー (${status}):`, message);
+        alert(`Q&Aの追加に失敗しました (${status}): ${message}`);
+      } else if (error instanceof Error) {
+        console.error("[QA追加] エラーメッセージ:", error.message);
+        console.error("[QA追加] スタックトレース:", error.stack);
+        alert(`Q&Aの追加に失敗しました: ${error.message}`);
+      } else {
+        console.error("[QA追加] 不明なエラー:", error);
+        alert("Q&Aの追加に失敗しました: 不明なエラー");
+      }
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -208,17 +257,21 @@ export default function QASection({
                 }`}>
                   質問
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                  className={`w-full p-3 rounded-lg border transition-all ${
+                  onChange={(e) => {
+                    setNewQuestion(e.target.value);
+                    autoResizeTextarea(e.target);
+                  }}
+                  onFocus={(e) => autoResizeTextarea(e.target)}
+                  className={`w-full p-3 rounded-lg border transition-all resize-none ${
                     darkMode
                       ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
                       : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
                   } focus:outline-none focus:ring-2 ${
                     darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
                   }`}
+                  style={{ minHeight: '50px' }}
                   placeholder="質問を入力してください..."
                 />
               </div>
@@ -231,8 +284,11 @@ export default function QASection({
                 </label>
                 <textarea
                   value={newAnswer}
-                  onChange={(e) => setNewAnswer(e.target.value)}
-                  rows={2}
+                  onChange={(e) => {
+                    setNewAnswer(e.target.value);
+                    autoResizeTextarea(e.target);
+                  }}
+                  onFocus={(e) => autoResizeTextarea(e.target)}
                   className={`w-full p-2 text-sm rounded-lg border transition-all resize-none ${
                     darkMode
                       ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
@@ -240,6 +296,7 @@ export default function QASection({
                   } focus:outline-none focus:ring-2 ${
                     darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
                   }`}
+                  style={{ minHeight: '60px' }}
                   placeholder="回答を入力してください..."
                 />
               </div>
@@ -247,7 +304,10 @@ export default function QASection({
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setShowAddQA(false)}
+                  disabled={isAdding}
                   className={`px-4 py-2 rounded-lg border transition-all ${
+                    isAdding ? "opacity-50 cursor-not-allowed" : ""
+                  } ${
                     darkMode
                       ? "border-gray-600 text-gray-400 hover:text-gray-300"
                       : "border-gray-300 text-gray-600 hover:text-gray-700"
@@ -257,13 +317,30 @@ export default function QASection({
                 </button>
                 <button
                   onClick={handleAddNewQA}
-                  className={`px-4 py-2 rounded-lg transition-all ${
-                    darkMode
+                  disabled={isAdding}
+                  className={`px-4 py-2 rounded-lg transition-all flex items-center ${
+                    isAdding ? "opacity-70 cursor-not-allowed" : ""
+                  } ${
+                    addSuccess
+                      ? "bg-green-600 text-white"
+                      : darkMode
                       ? "bg-cyan-600 hover:bg-cyan-700 text-white"
                       : "bg-purple-500 hover:bg-purple-600 text-white"
                   }`}
                 >
-                  追加
+                  {isAdding ? (
+                    <>
+                      <Loader2 size={16} className="mr-2 animate-spin" />
+                      追加中...
+                    </>
+                  ) : addSuccess ? (
+                    <>
+                      <CheckCircle size={16} className="mr-2" />
+                      追加完了
+                    </>
+                  ) : (
+                    "追加"
+                  )}
                 </button>
               </div>
             </div>
@@ -280,17 +357,26 @@ export default function QASection({
               <div className="flex items-start justify-between mb-1">
                 <div className="flex-1">
                   {editingQA?.id === qa.qa_id && editingQA.field === 'question' ? (
-                    <input
-                      type="text"
+                    <textarea
                       value={editingQA.value}
-                      onChange={(e) => setEditingQA({...editingQA, value: e.target.value})}
+                      onChange={(e) => {
+                        setEditingQA({...editingQA, value: e.target.value});
+                        autoResizeTextarea(e.target);
+                      }}
                       onBlur={handleEndEdit}
-                      onKeyDown={(e) => e.key === 'Enter' && handleEndEdit()}
-                      className={`w-full p-2 rounded border text-sm font-medium ${
+                      onFocus={(e) => autoResizeTextarea(e.target)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleEndEdit();
+                        }
+                      }}
+                      className={`w-full p-2 rounded border text-sm font-medium resize-none ${
                         darkMode
                           ? "bg-gray-800 border-cyan-500/50 text-cyan-300"
                           : "bg-white border-purple-300 text-purple-600"
                       } focus:outline-none`}
+                      style={{ minHeight: '40px' }}
                       autoFocus
                     />
                   ) : (
@@ -320,9 +406,12 @@ export default function QASection({
               {editingQA?.id === qa.qa_id && editingQA.field === 'answer' ? (
                 <textarea
                   value={editingQA.value}
-                  onChange={(e) => setEditingQA({...editingQA, value: e.target.value})}
+                  onChange={(e) => {
+                    setEditingQA({...editingQA, value: e.target.value});
+                    autoResizeTextarea(e.target);
+                  }}
                   onBlur={handleEndEdit}
-                  rows={2}
+                  onFocus={(e) => autoResizeTextarea(e.target)}
                   className={`w-full p-2 text-sm rounded-lg border transition-all resize-none ${
                     darkMode
                       ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
@@ -330,6 +419,7 @@ export default function QASection({
                   } focus:outline-none focus:ring-2 ${
                     darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
                   }`}
+                  style={{ minHeight: '60px' }}
                   autoFocus
                 />
               ) : (

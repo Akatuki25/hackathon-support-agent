@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Clock, Timer, Play, Pause, RotateCcw, Keyboard, Info, LayoutGrid } from 'lucide-react';
+import { Clock, Timer, Keyboard, Info, LayoutGrid, FileText, BookOpen, Terminal } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 
@@ -43,20 +43,10 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   const [nodes, setNodes, onNodesStateChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesStateChange] = useEdgesState(initialEdges);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [projectStartTime, setProjectStartTime] = useState('09:00');
+  const [projectStartTime] = useState('09:00');
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
-  // Timer logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setCurrentTime(new Date());
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning]);
+  // Timer logic (removed - not currently used in UI)
 
   // Auto-calculate task times based on dependencies
   const calculateTaskTimes = useCallback(() => {
@@ -170,7 +160,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
           if (event.ctrlKey || event.metaKey) {
             event.preventDefault();
             setIsTimerRunning(false);
-            setCurrentTime(new Date());
           }
           break;
         case '?':
@@ -242,66 +231,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
         className="cyber-flow"
         style={{ background: 'transparent' }}
       >
-        {/* Enhanced Timer and Project Controls */}
-        <Panel position="top-left" className="space-y-3">
-          <div className="backdrop-blur-xl rounded-2xl p-5 shadow-2xl border-2 bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-purple-500/40 hover:border-purple-400/60 transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-cyan-400 animate-pulse"></div>
-              <h3 className="font-bold text-lg bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                🎯 プロジェクト制御
-              </h3>
-            </div>
-
-            {/* Project Start Time */}
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Timer size={14} className="text-emerald-400" />
-                <label className="text-sm font-medium text-gray-300">開始時刻</label>
-              </div>
-              <input
-                type="time"
-                value={projectStartTime}
-                onChange={(e) => setProjectStartTime(e.target.value)}
-                className="text-sm px-4 py-2 rounded-xl border-2 bg-gray-800/70 border-gray-600/50 text-cyan-200 focus:border-cyan-400/70 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 w-full font-mono backdrop-blur-sm shadow-sm transition-all"
-              />
-            </div>
-
-            {/* Enhanced Timer Controls */}
-            <div className="flex gap-3 mb-4">
-              <button
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex-1 justify-center backdrop-blur-sm shadow-lg hover:scale-105 active:scale-95 ${
-                  isTimerRunning
-                    ? 'bg-gradient-to-r from-red-500/30 to-orange-500/30 text-red-300 border-2 border-red-400/50 hover:from-red-400/40 hover:to-orange-400/40 shadow-red-500/20'
-                    : 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 text-green-300 border-2 border-green-400/50 hover:from-green-400/40 hover:to-emerald-400/40 shadow-green-500/20'
-                }`}
-              >
-                {isTimerRunning ? <Pause size={16} /> : <Play size={16} />}
-                {isTimerRunning ? 'ポーズ' : 'スタート'}
-              </button>
-              <button
-                onClick={() => {
-                  setIsTimerRunning(false);
-                  setCurrentTime(new Date());
-                }}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-gray-500/30 to-slate-500/30 text-gray-300 border-2 border-gray-400/50 hover:from-gray-400/40 hover:to-slate-400/40 transition-all duration-300 backdrop-blur-sm shadow-lg hover:scale-105 active:scale-95"
-              >
-                <RotateCcw size={16} />
-              </button>
-            </div>
-
-            {/* Enhanced Current Time Display */}
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-gray-900/60 to-black/40 border border-cyan-500/20">
-              <div className="text-xs font-medium text-gray-400 mb-1">🕐 現在時刻</div>
-              <div className="text-2xl font-mono font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent tracking-wider">
-                {currentTime.toLocaleTimeString()}
-              </div>
-              <div className="w-full h-1 bg-gray-700/50 rounded-full mt-2 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse" style={{width: `${(currentTime.getSeconds() / 60) * 100}%`}}></div>
-              </div>
-            </div>
-          </div>
-        </Panel>
 
         {/* Enhanced Project Stats Panel */}
         <Panel position="top-right" className="space-y-3">
@@ -402,6 +331,42 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
             >
               <Keyboard size={18} />
               ⌨️ ショートカット
+            </button>
+
+            <button
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/specification`;
+              }}
+              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-pink-500/30 to-rose-500/30 hover:from-pink-400/40 hover:to-rose-400/40 border-2 border-pink-400/60 text-pink-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
+            >
+              <FileText size={18} />
+              📄 仕様書
+            </button>
+
+            <button
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/function-requirements`;
+              }}
+              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 hover:from-amber-400/40 hover:to-yellow-400/40 border-2 border-amber-400/60 text-amber-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
+            >
+              <BookOpen size={18} />
+              📋 機能要件定義書
+            </button>
+
+            <button
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/env`;
+              }}
+              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-green-500/30 to-cyan-500/30 hover:from-green-400/40 hover:to-cyan-400/40 border-2 border-green-400/60 text-green-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
+            >
+              <Terminal size={18} />
+              🛠️ 環境構築ガイド
             </button>
           </div>
         </Panel>

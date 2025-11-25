@@ -5,18 +5,23 @@ uvicorn[standard]
 numpy<2
 matplotlib
 pandas
-langchain
-langchain_openai
-langchain-google-genai
+langchain==0.3.27
+langchain-core==0.3.79
+langchain_openai==0.3.35
+langchain-google-genai==2.1.12
+langchain-text-splitters==0.3.11
+langchain_anthropic==0.3.22
+google-genai>=1.0.0
+langgraph==0.6.10
+langgraph-checkpoint==2.1.2
+langgraph-prebuilt==0.6.4
 langdetect
 deepl
 sqlalchemy
 psycopg2-binary
 pydantic
-langchain_anthropic
 json-repair
 markdown-it-py
-langgraph
 
 # Phase 3: Celery非同期処理
 celery[redis]==5.3.4

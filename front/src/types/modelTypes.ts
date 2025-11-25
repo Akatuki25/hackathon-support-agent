@@ -207,18 +207,64 @@ export type MVPJudge = {
   qa: QAType[];
 };
 
-export type ConfidenceFeedback = {
-  overall_confidence: number; // 0.0-1.0
-  clarity_score: number; // 0.0-1.0
-  feasibility_score: number; // 0.0-1.0
-  scope_score: number; // 0.0-1.0
-  value_score: number; // 0.0-1.0
-  completeness_score: number; // 0.0-1.0
-  clarity_feedback: string;
-  feasibility_feedback: string;
-  scope_feedback: string;
-  value_feedback: string;
-  completeness_feedback: string;
-  improvement_suggestions: string[];
-  confidence_reason: string;
+export type MissingInformation = {
+  category: string;
+  question: string;
+  why_needed: string;
+  priority: "high" | "medium" | "low";
+};
+
+export type SpecificationFeedback = {
+  summary: string;
+  strengths: string[];
+  missing_info: MissingInformation[];
+  suggestions: string[];
+};
+
+// Legacy ConfidenceFeedback type - deprecated, use SpecificationFeedback instead
+export type ConfidenceFeedback = SpecificationFeedback;
+
+// --- ChatHanson Types ---
+export type ChatHansonRequest = {
+  project_id: string;       // Project ID
+  user_question: string;    // User's question
+  chat_history?: string;    // Chat history (optional)
+  return_plan?: boolean;    // Whether to return plan (optional, default: false)
+};
+
+export type ChatHansonResponse = {
+  answer: string;           // AI-generated answer
+  plan?: string;            // Response plan (only when return_plan=true)
+};
+
+export type ChatHansonPlanResponse = {
+  plan: string;             // Response plan only
+};
+
+// --- EnvSetup Types (AI Generated) ---
+
+export type EnvSetupRequest = {
+  project_id: string;
+};
+
+export type EnvSetupResponse = {
+  env_id: string;
+  project_id: string;
+  front: string | null;
+  backend: string | null;
+  devcontainer: string | null;
+  database: string | null;
+  deploy: string | null;
+  message: string;
+};
+
+export type EnvGetResponse = {
+  env_id: string;
+  project_id: string;
+  front: string | null;
+  backend: string | null;
+  devcontainer: string | null;
+  database: string | null;
+  deploy: string | null;
+  created_at: string | null;
 };
