@@ -7,6 +7,7 @@ import '@xyflow/react/dist/style.css';
 import './cyber-flow.css';
 
 import { TaskFlow } from './TaskFlow';
+import { AgentChatWidget } from './AgentChatWidget';
 import { generateCompleteTaskSet } from '@/libs/service/completeTaskGenerationService';
 import { useDarkMode } from '@/hooks/useDarkMode';
 
@@ -582,6 +583,7 @@ export default function TaskVisualizationPage() {
           />
         </div>
       </main>
+      {projectId && <AgentChatWidget projectId={projectId} />}
     </>
   );
 }

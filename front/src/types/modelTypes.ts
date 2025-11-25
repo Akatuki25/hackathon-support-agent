@@ -223,3 +223,20 @@ export type SpecificationFeedback = {
 
 // Legacy ConfidenceFeedback type - deprecated, use SpecificationFeedback instead
 export type ConfidenceFeedback = SpecificationFeedback;
+
+// --- ChatHanson Types ---
+export type ChatHansonRequest = {
+  project_id: string;       // Project ID
+  user_question: string;    // User's question
+  chat_history?: string;    // Chat history (optional)
+  return_plan?: boolean;    // Whether to return plan (optional, default: false)
+};
+
+export type ChatHansonResponse = {
+  answer: string;           // AI-generated answer
+  plan?: string;            // Response plan (only when return_plan=true)
+};
+
+export type ChatHansonPlanResponse = {
+  plan: string;             // Response plan only
+};
