@@ -1,14 +1,16 @@
 "use client";
 import { useState, useCallback, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { Node, Edge } from '@xyflow/react';
 import axios from 'axios';
 import '@xyflow/react/dist/style.css';
 import './cyber-flow.css';
 
 import { TaskFlow } from './TaskFlow';
+import { AgentChatWidget } from './AgentChatWidget';
 import { generateCompleteTaskSet } from '@/libs/service/completeTaskGenerationService';
 import { useDarkMode } from '@/hooks/useDarkMode';
+import { Terminal, X, ArrowRight } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -45,6 +47,8 @@ interface BackendTaskDependency {
 
 export default function TaskVisualizationPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { darkMode } = useDarkMode();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -52,7 +56,12 @@ export default function TaskVisualizationPage() {
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState<boolean>(false);
 
-  // Extract projectId from pathname: /[userName]/[projectId]
+  // 環境構築確認モーダルの状態
+  const [showEnvSetupModal, setShowEnvSetupModal] = useState<boolean>(false);
+  const [hasShownEnvModal, setHasShownEnvModal] = useState<boolean>(false);
+
+  // Extract projectId and userName from pathname: /[userName]/[projectId]
+  const userName = pathname?.split('/')[1];
   const projectId = pathname?.split('/')[2];
 
   const handleNodesChange = useCallback((updatedNodes: Node[]) => {
@@ -187,6 +196,27 @@ export default function TaskVisualizationPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  // functionStructuringから遷移してきた場合、タスク表示完了後にモーダルを表示
+  useEffect(() => {
+    const fromSetup = searchParams?.get('from') === 'setup';
+    if (fromSetup && !loading && !generating && nodes.length > 0 && !hasShownEnvModal) {
+      // タスク表示が完了したらモーダルを表示
+      setShowEnvSetupModal(true);
+      setHasShownEnvModal(true);
+    }
+  }, [searchParams, loading, generating, nodes.length, hasShownEnvModal]);
+
+  // envページへ遷移
+  const handleNavigateToEnv = () => {
+    setShowEnvSetupModal(false);
+    router.push(`/${userName}/${projectId}/env`);
+  };
+
+  // モーダルを閉じる
+  const handleCloseEnvModal = () => {
+    setShowEnvSetupModal(false);
+  };
 
   // Render loading state - Cyber AI Agent Style
   if (loading || generating) {
@@ -582,6 +612,83 @@ export default function TaskVisualizationPage() {
           />
         </div>
       </main>
+      {projectId && <AgentChatWidget projectId={projectId} />}
+
+      {/* 環境構築確認モーダル */}
+      {showEnvSetupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
+          <div className={`rounded-2xl p-8 shadow-2xl border max-w-md w-full mx-4 backdrop-blur-xl ${
+            darkMode
+              ? "bg-gray-900/90 border-cyan-500/40 shadow-[0_0_40px_rgba(34,211,238,0.3)]"
+              : "bg-white/90 border-purple-500/40 shadow-purple-300/30"
+          }`}>
+            {/* ヘッダー */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-xl ${
+                  darkMode
+                    ? "bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-400/30"
+                    : "bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-300/30"
+                }`}>
+                  <Terminal size={28} className={darkMode ? "text-cyan-400" : "text-purple-600"} />
+                </div>
+                <h3 className={`text-xl font-bold ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+                  環境構築ガイド
+                </h3>
+              </div>
+              <button
+                onClick={handleCloseEnvModal}
+                className={`p-2 rounded-lg transition-all ${
+                  darkMode
+                    ? "hover:bg-gray-800 text-gray-400 hover:text-gray-200"
+                    : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* コンテンツ */}
+            <div className="mb-8">
+              <p className={`text-base leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                タスクの可視化が完了しました！
+              </p>
+              <p className={`text-base leading-relaxed mt-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                続いて、<span className={`font-semibold ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>開発環境の構築ガイド</span>を確認しますか？
+              </p>
+              <p className={`text-sm mt-4 ${darkMode ? "text-gray-500" : "text-gray-500"}`}>
+                AIが最適な環境構築手順を自動生成します
+              </p>
+            </div>
+
+            {/* ボタン */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleNavigateToEnv}
+                className={`w-full px-6 py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all duration-300 ${
+                  darkMode
+                    ? "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
+                    : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl"
+                }`}
+              >
+                <Terminal size={20} />
+                環境構築ガイドを表示
+                <ArrowRight size={18} />
+              </button>
+              <button
+                onClick={handleCloseEnvModal}
+                className={`w-full px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  darkMode
+                    ? "bg-gray-800/50 hover:bg-gray-700/70 text-gray-300 border border-gray-700/60"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200"
+                }`}
+              >
+                後で確認する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -467,7 +467,7 @@ export default function CyberHeader() {
                         <button
                           onClick={() => {
                             setIsMenuOpen(false);
-                            router.push("/dashbord/allProject");
+                            router.push("/dashbord/memberProject");
                           }}
                           className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
                             darkMode
