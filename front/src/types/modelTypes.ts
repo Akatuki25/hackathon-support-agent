@@ -223,3 +223,48 @@ export type SpecificationFeedback = {
 
 // Legacy ConfidenceFeedback type - deprecated, use SpecificationFeedback instead
 export type ConfidenceFeedback = SpecificationFeedback;
+
+// --- ChatHanson Types ---
+export type ChatHansonRequest = {
+  project_id: string;       // Project ID
+  user_question: string;    // User's question
+  chat_history?: string;    // Chat history (optional)
+  return_plan?: boolean;    // Whether to return plan (optional, default: false)
+};
+
+export type ChatHansonResponse = {
+  answer: string;           // AI-generated answer
+  plan?: string;            // Response plan (only when return_plan=true)
+};
+
+export type ChatHansonPlanResponse = {
+  plan: string;             // Response plan only
+};
+
+// --- EnvSetup Types (AI Generated) ---
+
+export type EnvSetupRequest = {
+  project_id: string;
+};
+
+export type EnvSetupResponse = {
+  env_id: string;
+  project_id: string;
+  front: string | null;
+  backend: string | null;
+  devcontainer: string | null;
+  database: string | null;
+  deploy: string | null;
+  message: string;
+};
+
+export type EnvGetResponse = {
+  env_id: string;
+  project_id: string;
+  front: string | null;
+  backend: string | null;
+  devcontainer: string | null;
+  database: string | null;
+  deploy: string | null;
+  created_at: string | null;
+};

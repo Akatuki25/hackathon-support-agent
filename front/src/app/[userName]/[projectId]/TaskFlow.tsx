@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Clock, Timer, Keyboard, Info, LayoutGrid, FileText, BookOpen } from 'lucide-react';
+import { Clock, Timer, Keyboard, Info, LayoutGrid, FileText, BookOpen, Terminal } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 
@@ -355,6 +355,18 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
             >
               <BookOpen size={18} />
               📋 機能要件定義書
+            </button>
+
+            <button
+              onClick={() => {
+                const userName = pathname?.split('/')[1];
+                const projectId = pathname?.split('/')[2];
+                window.location.href = `/${userName}/${projectId}/env`;
+              }}
+              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-green-500/30 to-cyan-500/30 hover:from-green-400/40 hover:to-cyan-400/40 border-2 border-green-400/60 text-green-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
+            >
+              <Terminal size={18} />
+              🛠️ 環境構築ガイド
             </button>
           </div>
         </Panel>
