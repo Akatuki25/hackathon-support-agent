@@ -23,6 +23,7 @@
     "@blocknote/xl-ai": "^0.41.1",
     "@google/gemini-cli": "^0.3.2",
     "@hookform/resolvers": "^5.1.1",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@xyflow/react": "^12.8.6",
     "ai": "^5.0.48",
     "axios": "^1.12.2",
@@ -36,6 +37,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.60.0",
     "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.0",
     "swr": "^2.3.6",
     "undici": "^7.16.0",
     "zod": "^3.25.76"

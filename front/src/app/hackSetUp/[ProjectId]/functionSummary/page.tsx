@@ -16,6 +16,7 @@ import {
   generateAndSaveAll,
 } from "@/libs/service/function";
 import { QAType } from "@/types/modelTypes";
+import { FunctionChatWidget } from "@/components/FunctionChatWidget/FunctionChatWidget";
 
 type FlowState = 'loading' | 'ready';
 
@@ -270,6 +271,9 @@ export default function FunctionSummary() {
           <HackthonSupportAgent />
         </div>
       </main>
+
+      {/* 機能要件チャットウィジェット */}
+      <FunctionChatWidget projectId={projectId} />
     </>
   );
 }

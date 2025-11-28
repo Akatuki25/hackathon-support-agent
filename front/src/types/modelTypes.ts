@@ -268,3 +268,25 @@ export type EnvGetResponse = {
   deploy: string | null;
   created_at: string | null;
 };
+
+// --- SpecificationChat Types ---
+export type SpecificationChatRequest = {
+  project_id: string;       // Project ID
+  user_question: string;    // User's question about the specification
+  chat_history?: string;    // Chat history (optional)
+};
+
+export type SpecificationChatResponse = {
+  answer: string;           // AI-generated answer explaining the specification
+};
+
+// --- FunctionChat Types ---
+export type FunctionChatRequest = {
+  project_id: string;       // Project ID
+  user_question: string;    // User's question about the functional requirements
+  chat_history?: string;    // Chat history (optional)
+};
+
+export type FunctionChatResponse = {
+  answer: string;           // AI-generated answer explaining the functional requirements
+};
