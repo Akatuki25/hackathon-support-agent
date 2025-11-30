@@ -13,6 +13,7 @@ import { getProjectDocument } from "@/libs/modelAPI/document";
 import { ProjectDocumentType } from "@/types/modelTypes";
 import { evaluateSummary } from "@/libs/service/summary";
 import { QAType } from "@/types/modelTypes";
+import { SpecificationChatWidget } from "@/components/SpecificationChatWidget/SpecificationChatWidget";
  
 type FlowState = 'loading' | 'ready';
 
@@ -204,6 +205,9 @@ export default function SummaryQA() {
           <HackthonSupportAgent />
         </div>
       </main>
+
+      {/* 仕様書チャットウィジェット */}
+      <SpecificationChatWidget projectId={projectId} />
     </>
   );
 }
