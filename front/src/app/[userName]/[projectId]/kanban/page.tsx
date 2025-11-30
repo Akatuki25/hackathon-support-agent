@@ -416,7 +416,11 @@ function TaskCard({
 
   return (
     <article
-      className={`rounded border p-3 text-sm shadow-sm transition ${styles.card} cursor-pointer`}
+      className={`group relative rounded-xl border-2 p-4 text-sm transition-all duration-300 ${styles.card} cursor-pointer ${
+        darkMode
+          ? 'hover:translate-y-[-2px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]'
+          : 'hover:translate-y-[-2px] hover:shadow-xl'
+      }`}
       draggable={canDrag}
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
@@ -425,22 +429,43 @@ function TaskCard({
       role="button"
       tabIndex={canDrag ? 0 : -1}
     >
-      <h3 className={`font-semibold ${styles.title}`}>{task.title}</h3>
-      {task.description && (
-        <p className={`mt-2 text-xs ${styles.description}`}>{task.description}</p>
-      )}
-      <div className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}>
-        <div className="flex items-center gap-2">
-          {task.priority && (
-            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>{task.priority}</span>
-          )}
-          {showStatus && task.status && (
-            <span className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}>
-              {task.status}
-            </span>
-          )}
-        </div>
+      {/* ドラッグインジケーター */}
+      <div className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity ${
+        darkMode ? 'text-slate-500' : 'text-gray-400'
+      }`}>
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
+        </svg>
       </div>
+
+      {/* タイトル */}
+      <h3 className={`font-bold text-sm pr-6 ${styles.title}`}>{task.title}</h3>
+
+      {/* 説明 */}
+      {task.description && (
+        <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
+      )}
+
+      {/* メタ情報 */}
+      <div className={`mt-3 flex items-center flex-wrap gap-2 text-xs ${styles.meta}`}>
+        {task.priority && (
+          <span className={`rounded-full px-2.5 py-1 font-medium ${styles.priority}`}>
+            {task.priority}
+          </span>
+        )}
+        {showStatus && task.status && (
+          <span className={`rounded-full px-2.5 py-1 border font-medium ${getStatusBadgeClass(task.status)}`}>
+            {task.status}
+          </span>
+        )}
+      </div>
+
+      {/* 下部のアクセントライン */}
+      <div className={`absolute bottom-0 left-0 right-0 h-1 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity ${
+        darkMode
+          ? 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500'
+          : 'bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500'
+      }`} />
     </article>
   );
 }
@@ -452,6 +477,7 @@ type MemberColumnProps = {
   styles: ColumnStyle;
   darkMode: boolean;
   isUnassigned?: boolean;
+  memberIndex?: number;
   onDrop: (event: DragEvent<HTMLDivElement>) => void;
   onDragStart: (taskId?: string) => void;
   onDragEnd: () => void;
@@ -465,6 +491,7 @@ function MemberColumn({
   styles,
   darkMode,
   isUnassigned = false,
+  memberIndex = 0,
   onDrop,
   onDragStart,
   onDragEnd,
@@ -474,18 +501,47 @@ function MemberColumn({
     event.preventDefault();
   };
 
+  // メンバーのアバターカラー（インデックスに基づく）
+  const avatarColors = [
+    'from-purple-500 to-fuchsia-500',
+    'from-cyan-500 to-blue-500',
+    'from-emerald-500 to-teal-500',
+    'from-pink-500 to-rose-500',
+    'from-orange-500 to-amber-500',
+  ];
+  const avatarColor = avatarColors[memberIndex % avatarColors.length];
+
   return (
     <section
       aria-label={`${memberName} column`}
-      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit ${styles.column}`}
+      className={`flex flex-col gap-4 rounded-xl border-2 p-5 transition-all duration-300 backdrop-blur-md min-w-[320px] w-[320px] shrink-0 ${styles.column} ${
+        darkMode
+          ? 'hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]'
+          : 'hover:shadow-lg'
+      }`}
       data-member-id={memberId}
       onDragOver={handleDragOver}
       onDrop={onDrop}
     >
-      <header className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}>
-        <div className="flex items-center gap-2">
-          {!isUnassigned && (
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+      {/* カラムヘッダー */}
+      <header className={`flex items-center justify-between pb-3 border-b ${
+        darkMode ? 'border-slate-700/50' : 'border-gray-200'
+      }`}>
+        <div className="flex items-center gap-3">
+          {isUnassigned ? (
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              darkMode
+                ? 'bg-slate-700/50 border border-slate-600'
+                : 'bg-gray-200 border border-gray-300'
+            }`}>
+              <svg className={`w-5 h-5 ${darkMode ? 'text-slate-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          ) : (
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-sm font-bold shadow-lg ${
+              darkMode ? 'shadow-purple-500/30' : 'shadow-purple-500/20'
+            }`}>
               {memberName
                 .split(' ')
                 .map((n) => n[0])
@@ -494,13 +550,28 @@ function MemberColumn({
                 .slice(0, 2)}
             </div>
           )}
-          <span className="truncate">{memberName}</span>
+          <div>
+            <h3 className={`font-bold text-sm ${styles.label}`}>{memberName}</h3>
+            <p className={`text-xs ${darkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {tasks.length} タスク
+            </p>
+          </div>
         </div>
-        <span className={`rounded px-2 py-0.5 text-[10px] shrink-0 ${styles.count}`}>{tasks.length}</span>
+        <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${styles.count}`}>
+          {tasks.length}
+        </span>
       </header>
-      <div className="flex flex-col gap-3 min-h-[150px]">
+
+      {/* タスクリスト */}
+      <div className="flex flex-col gap-3 min-h-[200px] max-h-[calc(100vh-350px)] overflow-y-auto pr-1 scrollbar-thin">
         {tasks.length === 0 ? (
-          <p className={`mt-4 text-center text-xs ${styles.empty}`}>タスクなし</p>
+          <div className={`flex flex-col items-center justify-center py-8 ${styles.empty}`}>
+            <svg className="w-12 h-12 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <p className="text-xs font-medium">タスクなし</p>
+            <p className="text-[10px] mt-1 opacity-60">ドラッグ&ドロップで追加</p>
+          </div>
         ) : (
           tasks.map((task, index) => (
             <TaskCard
@@ -781,43 +852,84 @@ export default function KanbanBoardPage() {
             darkMode={darkMode}
           />
 
-          {/* カンバンボード */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 items-start">
-            {/* 未割り当てカラム */}
-            <MemberColumn
-              key={UNASSIGNED_KEY}
-              memberId={UNASSIGNED_KEY}
-              memberName="未割り当て"
-              tasks={board[UNASSIGNED_KEY] || []}
-              styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle(darkMode)}
-              darkMode={darkMode}
-              isUnassigned={true}
-              onDrop={handleMemberDrop(UNASSIGNED_KEY)}
-              onDragStart={handleCardDragStart}
-              onDragEnd={handleCardDragEnd}
-              onSelect={handleTaskSelect}
-            />
+          {/* カンバンボード - 横スクロール対応 */}
+          <div className={`relative rounded-2xl p-4 ${
+            darkMode
+              ? 'bg-slate-900/50 border border-slate-700/50'
+              : 'bg-white/30 border border-gray-200/50'
+          }`}>
+            {/* スクロールヒント（左） */}
+            <div className={`absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-10 ${
+              darkMode
+                ? 'bg-gradient-to-r from-slate-900/80 to-transparent'
+                : 'bg-gradient-to-r from-white/80 to-transparent'
+            }`} />
 
-            {/* メンバーごとのカラム */}
-            {projectMembers
-              .filter((member) => member.project_member_id)
-              .map((member, index) => {
-                const memberId = member.project_member_id!;
-                return (
-                  <MemberColumn
-                    key={memberId}
-                    memberId={memberId}
-                    memberName={member.member_name}
-                    tasks={board[memberId] || []}
-                    styles={columnStyles[memberId] || getColumnColor(index, darkMode)}
-                    darkMode={darkMode}
-                    onDrop={handleMemberDrop(memberId)}
-                    onDragStart={handleCardDragStart}
-                    onDragEnd={handleCardDragEnd}
-                    onSelect={handleTaskSelect}
-                  />
-                );
-              })}
+            {/* スクロールヒント（右） */}
+            <div className={`absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-10 ${
+              darkMode
+                ? 'bg-gradient-to-l from-slate-900/80 to-transparent'
+                : 'bg-gradient-to-l from-white/80 to-transparent'
+            }`} />
+
+            <div className="flex gap-5 overflow-x-auto pb-4 pt-2 px-2 scrollbar-thin scrollbar-thumb-rounded-full scrollbar-track-rounded-full" style={{
+              scrollbarColor: darkMode ? 'rgba(6,182,212,0.3) rgba(15,23,42,0.3)' : 'rgba(168,85,247,0.3) rgba(243,244,246,0.3)'
+            }}>
+              {/* 未割り当てカラム */}
+              <MemberColumn
+                key={UNASSIGNED_KEY}
+                memberId={UNASSIGNED_KEY}
+                memberName="未割り当て"
+                tasks={board[UNASSIGNED_KEY] || []}
+                styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle(darkMode)}
+                darkMode={darkMode}
+                isUnassigned={true}
+                onDrop={handleMemberDrop(UNASSIGNED_KEY)}
+                onDragStart={handleCardDragStart}
+                onDragEnd={handleCardDragEnd}
+                onSelect={handleTaskSelect}
+              />
+
+              {/* メンバーごとのカラム */}
+              {projectMembers
+                .filter((member) => member.project_member_id)
+                .map((member, index) => {
+                  const memberId = member.project_member_id!;
+                  return (
+                    <MemberColumn
+                      key={memberId}
+                      memberId={memberId}
+                      memberName={member.member_name}
+                      tasks={board[memberId] || []}
+                      styles={columnStyles[memberId] || getColumnColor(index, darkMode)}
+                      darkMode={darkMode}
+                      memberIndex={index}
+                      onDrop={handleMemberDrop(memberId)}
+                      onDragStart={handleCardDragStart}
+                      onDragEnd={handleCardDragEnd}
+                      onSelect={handleTaskSelect}
+                    />
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* ボード下部の統計情報 */}
+          <div className={`mt-6 flex items-center justify-center gap-6 text-xs ${
+            darkMode ? 'text-slate-400' : 'text-gray-500'
+          }`}>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${darkMode ? 'bg-pink-500' : 'bg-pink-400'}`} />
+              <span>TODO</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${darkMode ? 'bg-cyan-500' : 'bg-blue-400'}`} />
+              <span>DOING</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${darkMode ? 'bg-emerald-500' : 'bg-emerald-400'}`} />
+              <span>DONE</span>
+            </div>
           </div>
         </div>
       </div>
