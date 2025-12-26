@@ -9,9 +9,16 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_anthropic import ChatAnthropic
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple, Optional
 from models.project_base import ProjectDocument  # 未使用なら削除可
 from sqlalchemy.orm import Session
+
+# Google Search Grounding 用
+try:
+    from google.ai.generativelanguage_v1beta.types import Tool as GenAITool
+    GROUNDING_AVAILABLE = True
+except ImportError:
+    GROUNDING_AVAILABLE = False
 
 # ---- ロギング設定（環境変数で調整可能） -------------------------------
 def _configure_logging() -> Logger:
@@ -159,3 +166,130 @@ class BaseService:
             raise ValueError(
                 f"Prompt '{prompt_name}' not found in service '{service_name}' in prompts.toml"
             )
+
+    def invoke_with_search(
+        self,
+        prompt: str,
+        model_type: str = "gemini-2.5-flash"
+    ) -> Tuple[str, List[Dict[str, Any]]]:
+        """
+        Google Search Grounding を使用してLLMを呼び出す
+
+        Args:
+            prompt: 検索クエリを含むプロンプト
+            model_type: 使用するモデル（デフォルト: gemini-2.5-flash）
+
+        Returns:
+            (response_text, reference_urls)
+            - response_text: LLMの応答テキスト
+            - reference_urls: 参照URLのリスト
+              [{"title": "...", "url": "...", "snippet": "..."}, ...]
+        """
+        if not GROUNDING_AVAILABLE:
+            self.logger.warning("Google Search Grounding is not available (missing google-genai package)")
+            # フォールバック: 通常のLLM呼び出し
+            response = self.llm_flash.invoke(prompt)
+            return response.content, []
+
+        self.logger.debug("Invoking LLM with Google Search Grounding")
+        try:
+            # Google Search ツールを使用してLLM呼び出し
+            llm_with_search = ChatGoogleGenerativeAI(
+                model=model_type,
+                temperature=0.3,
+                api_key=os.getenv("GOOGLE_API_KEY"),
+            )
+
+            response = llm_with_search.invoke(
+                prompt,
+                tools=[GenAITool(google_search={})],
+            )
+
+            # grounding metadata からURLを抽出
+            reference_urls = self._extract_grounding_urls(response)
+
+            self.logger.info(
+                "Search grounding completed: %d reference URLs found",
+                len(reference_urls)
+            )
+
+            return response.content, reference_urls
+
+        except Exception as e:
+            self.logger.exception("Failed to invoke with search grounding: %s", e)
+            # エラー時は通常のLLM呼び出しにフォールバック
+            response = self.llm_flash.invoke(prompt)
+            return response.content, []
+
+    def _extract_grounding_urls(self, response) -> List[Dict[str, Any]]:
+        """
+        LLMレスポンスからgrounding metadataのURLを抽出
+
+        Args:
+            response: LangChain ChatGoogleGenerativeAI のレスポンス
+
+        Returns:
+            参照URLのリスト
+        """
+        urls = []
+
+        try:
+            # response_metadata から grounding 情報を取得
+            if not hasattr(response, 'response_metadata'):
+                return urls
+
+            metadata = response.response_metadata
+            grounding_metadata = metadata.get('grounding_metadata', {})
+
+            # grounding_chunks から URL を抽出
+            grounding_chunks = grounding_metadata.get('grounding_chunks', [])
+            for chunk in grounding_chunks:
+                web_info = chunk.get('web', {})
+                if web_info:
+                    urls.append({
+                        "title": web_info.get('title', ''),
+                        "url": web_info.get('uri', ''),
+                        "snippet": "",
+                        "source": "grounding_chunk"
+                    })
+
+            # search_entry_point から追加情報を取得
+            search_entry = grounding_metadata.get('search_entry_point', {})
+            if search_entry:
+                rendered_content = search_entry.get('rendered_content', '')
+                # rendered_content にはHTML形式の検索結果が含まれる可能性がある
+
+            # grounding_supports から引用情報を取得
+            grounding_supports = grounding_metadata.get('grounding_supports', [])
+            for support in grounding_supports:
+                segment = support.get('segment', {})
+                grounding_chunk_indices = support.get('grounding_chunk_indices', [])
+
+                # 対応するチャンクの情報を追加
+                for idx in grounding_chunk_indices:
+                    if idx < len(grounding_chunks):
+                        chunk = grounding_chunks[idx]
+                        web_info = chunk.get('web', {})
+                        if web_info:
+                            # snippetにセグメントのテキストを追加
+                            existing = next(
+                                (u for u in urls if u.get('url') == web_info.get('uri')),
+                                None
+                            )
+                            if existing and segment.get('text'):
+                                existing['snippet'] = segment.get('text', '')[:200]
+
+            # 重複を除去
+            seen_urls = set()
+            unique_urls = []
+            for url_info in urls:
+                url = url_info.get('url', '')
+                if url and url not in seen_urls:
+                    seen_urls.add(url)
+                    unique_urls.append(url_info)
+
+            return unique_urls
+
+        except Exception as e:
+            self.logger.warning("Failed to extract grounding URLs: %s", e)
+            return []

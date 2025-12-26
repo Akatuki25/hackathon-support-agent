@@ -19,6 +19,8 @@ import {
   type CreateFunctionRequest,
 } from "@/libs/modelAPI/functionStructuringAPI";
 import { patchProjectDocument } from "@/libs/modelAPI/document";
+import { AgentChatWidget } from "@/components/chat";
+import type { ChatAction } from "@/types/modelTypes";
 
 // フレームワーク選択データの型定義
 interface FrameworkSelectionData {
@@ -1417,6 +1419,83 @@ export default function FunctionStructuring() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Chat Widget */}
+      {projectId && (
+        <AgentChatWidget
+          projectId={projectId}
+          pageContext="functionStructuring"
+          onAction={async (action: ChatAction) => {
+            const payload = action.payload as {
+              function_name?: string;
+              description?: string;
+              category?: string;
+              priority?: string;
+            };
+
+            // function_nameで機能を特定
+            const findFunctionByName = (name: string) => {
+              if (!structuringResult?.functions) return null;
+              return structuringResult.functions.find(f => f.function_name === name);
+            };
+
+            switch (action.action_type) {
+              case 'add_function': {
+                if (payload.function_name) {
+                  try {
+                    await createFunction({
+                      project_id: projectId,
+                      function_name: payload.function_name,
+                      description: payload.description || '',
+                      category: (payload.category as StructuredFunction['category']) || 'logic',
+                      priority: (payload.priority as StructuredFunction['priority']) || 'Should',
+                    });
+                    const freshData = await getStructuredFunctions(projectId);
+                    setStructuringResult(freshData);
+                  } catch (error) {
+                    console.error('Failed to add function:', error);
+                  }
+                }
+                break;
+              }
+              case 'update_function': {
+                if (payload.function_name) {
+                  const func = findFunctionByName(payload.function_name);
+                  if (func) {
+                    try {
+                      const updates: Partial<StructuredFunction> = {};
+                      if (payload.priority) updates.priority = payload.priority as StructuredFunction['priority'];
+                      if (payload.category) updates.category = payload.category as StructuredFunction['category'];
+                      if (payload.description) updates.description = payload.description;
+                      await updateFunction(func.function_id, updates);
+                      const freshData = await getStructuredFunctions(projectId);
+                      setStructuringResult(freshData);
+                    } catch (error) {
+                      console.error('Failed to update function:', error);
+                    }
+                  }
+                }
+                break;
+              }
+              case 'delete_function': {
+                if (payload.function_name) {
+                  const func = findFunctionByName(payload.function_name);
+                  if (func) {
+                    try {
+                      await deleteFunction(func.function_id);
+                      const freshData = await getStructuredFunctions(projectId);
+                      setStructuringResult(freshData);
+                    } catch (error) {
+                      console.error('Failed to delete function:', error);
+                    }
+                  }
+                }
+                break;
+              }
+            }
+          }}
+        />
       )}
     </>
   );

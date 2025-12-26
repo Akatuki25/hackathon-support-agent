@@ -7,10 +7,14 @@ import { useDarkMode } from '@/hooks/useDarkMode';
 import { useTask } from '@/libs/modelAPI/task';
 import {
   fetchTaskHandsOn,
+  updateTaskHandsOn,
   type TaskHandsOnResponse,
   type HandsOnContent,
-  type HandsOnMetadata
+  type HandsOnMetadata,
+  type UpdateHandsOnRequest
 } from '@/libs/service/taskHandsOnService';
+import type { ChatAction } from '@/types/modelTypes';
+import { AgentChatWidget } from '@/components/chat';
 
 type HandsOnSuccessPayload = TaskHandsOnResponse<HandsOnContent, HandsOnMetadata> & {
   hands_on: HandsOnContent;
@@ -34,6 +38,41 @@ export default function TaskHandsOnPage() {
   const [handsOnState, setHandsOnState] = useState<HandsOnState>({ status: 'idle' });
 
   const { task, isLoading: isTaskLoading, isError: isTaskError } = useTask(taskId);
+
+  // ハンズオンを再取得する関数
+  const refreshHandsOn = async () => {
+    if (!taskId) return;
+    try {
+      const response = await fetchTaskHandsOn(taskId);
+      if (response.success && response.hands_on) {
+        setHandsOnState({
+          status: 'success',
+          payload: { ...response, hands_on: response.hands_on },
+        });
+      }
+    } catch (error) {
+      console.error('Failed to refresh hands-on:', error);
+    }
+  };
+
+  // AIアクションハンドラー
+  const handleChatAction = async (action: ChatAction) => {
+    if (action.action_type === 'adjust_hands_on' && taskId) {
+      try {
+        const payload = action.payload as { field: string; content: string };
+        if (payload.field && payload.content) {
+          await updateTaskHandsOn(taskId, {
+            field: payload.field as UpdateHandsOnRequest['field'],
+            content: payload.content,
+          });
+          // 更新後にハンズオンを再取得
+          await refreshHandsOn();
+        }
+      } catch (error) {
+        console.error('Failed to update hands-on:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!taskId) {
@@ -326,6 +365,16 @@ export default function TaskHandsOnPage() {
           {handsOnContent}
         </section>
       </div>
+
+      {/* AI Chat Widget */}
+      {projectId && taskId && (
+        <AgentChatWidget
+          projectId={projectId}
+          pageContext="taskDetail"
+          pageSpecificContext={{ task_id: taskId }}
+          onAction={handleChatAction}
+        />
+      )}
     </div>
   );
 }

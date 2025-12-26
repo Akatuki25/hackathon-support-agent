@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Clock, Timer, Keyboard, Info, LayoutGrid, FileText, BookOpen, Terminal } from 'lucide-react';
+import { Keyboard, Info, LayoutGrid, FileText, BookOpen, Terminal } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 
@@ -42,7 +42,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   const pathname = usePathname();
   const [nodes, setNodes, onNodesStateChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesStateChange] = useEdgesState(initialEdges);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [projectStartTime] = useState('09:00');
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
@@ -146,22 +145,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
       }
 
       switch (event.key.toLowerCase()) {
-        case 's':
-          if (event.ctrlKey || event.metaKey) {
-            event.preventDefault();
-            calculateTaskTimes();
-          }
-          break;
-        case ' ':
-          event.preventDefault();
-          setIsTimerRunning(!isTimerRunning);
-          break;
-        case 'r':
-          if (event.ctrlKey || event.metaKey) {
-            event.preventDefault();
-            setIsTimerRunning(false);
-          }
-          break;
         case '?':
         case 'h':
           setShowKeyboardHelp(!showKeyboardHelp);
@@ -174,7 +157,7 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isTimerRunning, showKeyboardHelp, calculateTaskTimes]);
+  }, [showKeyboardHelp]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -211,10 +194,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   // Calculate project stats
   const completedTasks = nodes.filter(node => node.data?.completed).length;
   const totalTasks = nodes.length;
-  const totalEstimatedHours = nodes.reduce((sum, node) => sum + (typeof node.data?.estimatedHours === 'number' ? node.data.estimatedHours : 0), 0);
-  const completedHours = nodes
-    .filter(node => node.data?.completed)
-    .reduce((sum, node) => sum + (typeof node.data?.estimatedHours === 'number' ? node.data.estimatedHours : 0), 0);
 
   return (
     <div className="h-full w-full relative">
@@ -242,51 +221,22 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               </h3>
             </div>
 
-            <div className="space-y-4">
-              {/* Task Progress */}
-              <div className="p-3 rounded-xl bg-gradient-to-br from-gray-900/60 to-black/40 border border-cyan-500/20">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-300">✅ 完了タスク</span>
-                  <span className="font-mono font-bold text-lg bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-                    {completedTasks}/{totalTasks}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-700/60 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-3 rounded-full transition-all duration-500 shadow-lg shadow-cyan-500/30"
-                    style={{ width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-400 mt-1 text-center">
-                  {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% 完了
-                </div>
+            {/* Task Progress */}
+            <div className="p-3 rounded-xl bg-gradient-to-br from-gray-900/60 to-black/40 border border-cyan-500/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-300">✅ 完了タスク</span>
+                <span className="font-mono font-bold text-lg bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                  {completedTasks}/{totalTasks}
+                </span>
               </div>
-
-              {/* Time Progress */}
-              <div className="p-3 rounded-xl bg-gradient-to-br from-gray-900/60 to-black/40 border border-purple-500/20">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-300">⏱️ 作業時間</span>
-                  <span className="font-mono font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    {completedHours}h/{totalEstimatedHours}h
-                  </span>
-                </div>
-                <div className="w-full bg-gray-700/60 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-purple-400 to-pink-400 h-3 rounded-full transition-all duration-500 shadow-lg shadow-purple-500/30"
-                    style={{ width: `${totalEstimatedHours > 0 ? (completedHours / totalEstimatedHours) * 100 : 0}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-400 mt-1 text-center">
-                  {totalEstimatedHours > 0 ? Math.round((completedHours / totalEstimatedHours) * 100) : 0}% 完了
-                </div>
+              <div className="w-full bg-gray-700/60 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-3 rounded-full transition-all duration-500 shadow-lg shadow-cyan-500/30"
+                  style={{ width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` }}
+                />
               </div>
-
-              {/* Overall Progress */}
-              <div className="text-center p-2 rounded-lg bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
-                <div className="text-xs text-gray-400 mb-1">総合進捗</div>
-                <div className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
-                  {totalTasks > 0 && totalEstimatedHours > 0 ? Math.round(((completedTasks / totalTasks) + (completedHours / totalEstimatedHours)) / 2 * 100) : 0}%
-                </div>
+              <div className="text-xs text-gray-400 mt-1 text-center">
+                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% 完了
               </div>
             </div>
           </div>
@@ -306,25 +256,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               <LayoutGrid size={18} />
               📋 カンバンボード
             </button>
-            <button
-              onClick={calculateTaskTimes}
-              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 hover:from-blue-400/40 hover:to-indigo-400/40 border-2 border-blue-400/60 text-blue-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
-            >
-              <Clock size={18} className="animate-spin" />
-              ⚡ 時間再計算
-            </button>
-
-            <button
-              onClick={() => {
-                // Add gantt chart view toggle functionality
-                console.log('Gantt chart view toggle');
-              }}
-              className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-emerald-500/30 to-teal-500/30 hover:from-emerald-400/40 hover:to-teal-400/40 border-2 border-emerald-400/60 text-emerald-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
-            >
-              <Timer size={18} />
-              📊 ガントビュー
-            </button>
-
             <button
               onClick={() => setShowKeyboardHelp(!showKeyboardHelp)}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-violet-500/30 to-purple-500/30 hover:from-violet-400/40 hover:to-purple-400/40 border-2 border-violet-400/60 text-violet-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
@@ -383,18 +314,6 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               </div>
 
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between items-center p-2 rounded-lg bg-gray-800/50">
-                  <span className="text-gray-300">タイマー スタート/ポーズ</span>
-                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">スペース</kbd>
-                </div>
-                <div className="flex justify-between items-center p-2 rounded-lg bg-gray-800/50">
-                  <span className="text-gray-300">時間再計算</span>
-                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">Ctrl+S</kbd>
-                </div>
-                <div className="flex justify-between items-center p-2 rounded-lg bg-gray-800/50">
-                  <span className="text-gray-300">タイマーリセット</span>
-                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">Ctrl+R</kbd>
-                </div>
                 <div className="flex justify-between items-center p-2 rounded-lg bg-gray-800/50">
                   <span className="text-gray-300">ヘルプ表示</span>
                   <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">H または ?</kbd>

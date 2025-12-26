@@ -10,6 +10,7 @@ import Loading from "@/components/PageLoading";
 import { getProjectDocument } from "@/libs/modelAPI/frameworkService";
 import { getFrameworkRecommendations } from "@/libs/service/frameworkService";
 import { structureFunctions } from "@/libs/modelAPI/functionStructuringAPI";
+import { AgentChatWidget } from "@/components/chat";
 
 export interface TechnologyOption {
   name: string;
@@ -1313,6 +1314,18 @@ export default function SelectFramework() {
           <HackthonSupportAgent />
         </div>
       </main>
+
+      {/* AI Chat Widget */}
+      {projectId && (
+        <AgentChatWidget
+          projectId={projectId}
+          pageContext="selectFramework"
+          pageSpecificContext={{
+            selected_platform: selectedPlatform,
+            selected_technologies: Array.from(selectedTechnologies),
+          }}
+        />
+      )}
     </>
   );
 }

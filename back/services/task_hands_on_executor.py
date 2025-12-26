@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from services.task_hands_on_schemas import InformationPlan
 from services.tools.hands_on_search_tool import HandsOnSearchTool
 from services.tools.use_case_tool import UseCaseTool
+from services.tools.document_fetch_tool import DocumentFetchTool
+from services.base_service import BaseService
 
 
 class InformationExecutor:
@@ -23,6 +25,10 @@ class InformationExecutor:
         # ツールの初期化
         self.hands_on_search = HandsOnSearchTool(db, project_id, current_task_id)
         self.use_case_tool = UseCaseTool(db, project_id)
+        self.doc_fetch_tool = DocumentFetchTool()
+
+        # BaseService を初期化（Google Search grounding 用）
+        self.base_service = BaseService(db)
 
     async def execute_plan(self, plan: InformationPlan) -> Dict[str, Any]:
         """
@@ -117,17 +123,114 @@ class InformationExecutor:
         )
         return flow
 
-    async def _web_search(self, queries: List[str]) -> List[Dict[str, str]]:
-        """Web検索 (将来実装予定)"""
-        # TODO: 実際のWeb検索ツールを統合
-        # 現在はプレースホルダー
-        return []
+    async def _web_search(self, queries: List[str]) -> List[Dict[str, Any]]:
+        """
+        Gemini Google Search Grounding を使用してWeb検索を実行
 
-    async def _fetch_documents(self, urls: List[str]) -> List[Dict[str, str]]:
-        """ドキュメント取得 (将来実装予定)"""
-        # TODO: 実際のドキュメント取得ツールを統合
-        # 現在はプレースホルダー
-        return []
+        Args:
+            queries: 検索クエリのリスト
+
+        Returns:
+            検索結果のリスト
+            [{"query": "...", "title": "...", "url": "...", "snippet": "...", "content": "..."}, ...]
+        """
+        results = []
+
+        for query in queries[:3]:  # 最大3クエリ
+            try:
+                # Google Search Grounding を使用
+                search_prompt = f"""
+以下の技術トピックについて、最新かつ正確な情報を検索して回答してください。
+公式ドキュメントやベストプラクティスを優先してください。
+
+検索トピック: {query}
+
+回答は簡潔に、重要なポイントを箇条書きで説明してください。
+"""
+                response_text, reference_urls = await asyncio.to_thread(
+                    self.base_service.invoke_with_search,
+                    search_prompt
+                )
+
+                # 検索結果を整形
+                for url_info in reference_urls:
+                    results.append({
+                        "query": query,
+                        "title": url_info.get("title", query),
+                        "url": url_info.get("url", ""),
+                        "snippet": url_info.get("snippet", ""),
+                        "content": response_text[:500] if not results else "",  # 最初の結果のみコンテンツを含める
+                        "source": "gemini_grounding"
+                    })
+
+                # URLが取得できなかった場合でも、レスポンス内容は保存
+                if not reference_urls and response_text:
+                    results.append({
+                        "query": query,
+                        "title": query,
+                        "url": "",
+                        "snippet": response_text[:200],
+                        "content": response_text[:500],
+                        "source": "gemini_grounding_no_url"
+                    })
+
+            except Exception as e:
+                # エラー時はスキップ
+                print(f"[_web_search] Error for query '{query}': {e}")
+                continue
+
+        return results
+
+    async def _fetch_documents(self, urls: List[str]) -> List[Dict[str, Any]]:
+        """
+        指定されたURLからドキュメントを取得
+
+        Args:
+            urls: 取得するドキュメントのURLリスト
+
+        Returns:
+            ドキュメント情報のリスト
+            [{"url": "...", "title": "...", "content": "...", "domain": "..."}, ...]
+        """
+        results = []
+
+        for url in urls[:3]:  # 最大3URL
+            try:
+                # DocumentFetchTool を使用してドキュメントを取得
+                doc = await asyncio.to_thread(
+                    self.doc_fetch_tool.fetch, url
+                )
+
+                if doc.get("success", True):
+                    results.append({
+                        "url": url,
+                        "title": doc.get("title", ""),
+                        "content": doc.get("content", "")[:2000],  # 最大2000文字
+                        "domain": doc.get("domain", ""),
+                        "description": doc.get("description", ""),
+                        "success": True
+                    })
+                else:
+                    results.append({
+                        "url": url,
+                        "title": "",
+                        "content": "",
+                        "error": doc.get("error", "Unknown error"),
+                        "success": False
+                    })
+
+            except Exception as e:
+                # エラー時はエラー情報を記録
+                print(f"[_fetch_documents] Error for URL '{url}': {e}")
+                results.append({
+                    "url": url,
+                    "title": "",
+                    "content": "",
+                    "error": str(e),
+                    "success": False
+                })
+
+        return results
 
     async def _return_none(self, key: str) -> None:
         """何もしない (プレースホルダー)"""
@@ -179,22 +282,48 @@ class InformationExecutor:
             sections.append("\n## プロジェクト仕様書\n")
             sections.append(use_case)
 
-        # 3. Web検索結果 (将来)
+        # 3. Web検索結果
         web_results = collected_info.get("web_search_results")
         if web_results:
             sections.append("\n## 技術情報 (Web検索)\n")
             for result in web_results:
-                sections.append(
-                    f"- **{result.get('title')}**: {result.get('summary')}\n"
-                )
+                url = result.get('url', '')
+                title = result.get('title', result.get('query', 'Unknown'))
+                snippet = result.get('snippet', '')
+                content = result.get('content', '')
 
-        # 4. ドキュメント (将来)
+                if url:
+                    sections.append(f"### [{title}]({url})\n")
+                else:
+                    sections.append(f"### {title}\n")
+
+                if snippet:
+                    sections.append(f"{snippet}\n\n")
+                elif content:
+                    sections.append(f"{content[:300]}...\n\n")
+
+        # 4. 公式ドキュメント
         docs = collected_info.get("document_contents")
         if docs:
             sections.append("\n## 公式ドキュメント\n")
             for doc in docs:
-                sections.append(
-                    f"### {doc.get('title')}\n{doc.get('content')[:500]}\n"
-                )
+                if not doc.get("success", True):
+                    continue  # 取得失敗したドキュメントはスキップ
+
+                url = doc.get('url', '')
+                title = doc.get('title', url)
+                content = doc.get('content', '')
+                description = doc.get('description', '')
+
+                if url:
+                    sections.append(f"### [{title}]({url})\n")
+                else:
+                    sections.append(f"### {title}\n")
+
+                if description:
+                    sections.append(f"*{description}*\n\n")
+
+                if content:
+                    sections.append(f"{content[:500]}...\n\n")
 
         return "\n".join(sections) if sections else "特に参照情報はありません。"
