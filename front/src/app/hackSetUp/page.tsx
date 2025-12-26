@@ -7,7 +7,6 @@ import { useSession } from "next-auth/react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { generateQuestions,saveQuestions } from "@/libs/service/qa";
 import { postProject } from "@/libs/modelAPI/project";
-import { postProjectMember } from "@/libs/modelAPI/project_member";
 import { getMemberByGithubName } from "@/libs/modelAPI/member";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
@@ -30,36 +29,28 @@ export default function Home() {
     // endDateとendTimeを結合してDateオブジェクトを作成
     const endDateTime = `${endDate}T${endTime}:00`;
     try {
-      // 入力データを整形
+      // 作成者のmember_idを取得
+      let creatorMemberId: string | undefined;
+      if (session?.user?.name) {
+        try {
+          const member = await getMemberByGithubName(session.user.name);
+          creatorMemberId = member.member_id;
+        } catch (err) {
+          console.error('メンバー情報取得エラー:', err);
+          // メンバーが見つからない場合はundefinedのまま
+        }
+      }
+
+      // 入力データを整形（作成者IDを含む）
       const projectData = {
         title: title,
         idea: idea,
         start_date: startDate,
         end_date: endDateTime,
+        creator_member_id: creatorMemberId,
       };
 
       const projectId = await postProject(projectData);
-
-      // プロジェクト作成者をプロジェクトメンバーとして登録
-      if (session?.user?.name) {
-        try {
-          // GitHubネームからメンバー情報を取得
-          const member = await getMemberByGithubName(session.user.name);
-
-          // プロジェクトメンバーとして登録
-          await postProjectMember({
-            project_id: projectId,
-            member_id: member.member_id,
-            member_name: member.member_name,
-          });
-
-          console.log('プロジェクト作成者をメンバーとして登録しました:', member.member_name);
-        } catch (memberError) {
-          console.error('プロジェクトメンバー登録エラー:', memberError);
-          // メンバー登録に失敗してもプロジェクト作成は続行
-          // 後からヘッダーの「メンバー追加」機能で追加可能
-        }
-      }
 
       // プロジェクト作成後、質問を投稿
       const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}`;

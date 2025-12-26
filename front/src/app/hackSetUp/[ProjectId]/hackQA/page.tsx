@@ -2,24 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import useSWR from "swr";
 import { ChevronRight, Terminal, Database, Cpu, Plus, X, Edit2,Trash2 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import { getProject } from "@/libs/modelAPI/project";
 import Header from "@/components/Session/Header";
 import { getQAsByProjectId, patchQA, postQA,deleteQA} from "@/libs/modelAPI/qa";
-import { QAType } from "@/types/modelTypes";
+import { QAType, ChatAction } from "@/types/modelTypes";
 import Loading from "@/components/PageLoading";
-import {generateSummary , saveSummary} from "@/libs/service/summary";
 import { useSession } from "next-auth/react";
+import { AgentChatWidget } from "@/components/chat";
 
 export default function HackQA() {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [idea, setIdea] = useState<string>("");
-  const [qas, setQas] = useState<QAType[]>([]);
-  const [loading, setLoading] = useState(true);
   const [processingNext, setProcessingNext] = useState(false);
   const [showAddQA, setShowAddQA] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
@@ -28,36 +26,29 @@ export default function HackQA() {
   const { darkMode } = useDarkMode();
   const projectId = pathname.split("/")[2];
 
+  // SWR: プロジェクトデータ取得（キャッシュ有効）
+  const { data: projectData, error: projectError } = useSWR(
+    projectId ? `project-${projectId}` : null,
+    () => getProject(projectId),
+    { revalidateOnFocus: false }
+  );
+
+  // SWR: QAデータ取得（キャッシュ有効）
+  const { data: qas, mutate: mutateQAs } = useSWR(
+    projectId ? `qas-${projectId}` : null,
+    () => getQAsByProjectId(projectId),
+    { revalidateOnFocus: false }
+  );
+
+  const idea = projectData?.idea || "";
+  const loading = !projectData && !projectError;
+
+  // ログインユーザーをプロジェクトメンバーに自動追加（初回のみ）
   useEffect(() => {
-    const fetchData = async () => {
-      if (!projectId) return;
-
-      try {
-        setLoading(true);
-
-        // プロジェクトデータの取得
-        const projectData = await getProject(projectId);
-        setIdea(projectData.idea || "");
-
-        // Q&Aデータの取得
-        const qaData = await getQAsByProjectId(projectId);
-        console.log("Fetched QAs:", qaData);
-        setQas(qaData || []);
-
-        // ログインユーザーをプロジェクトメンバーに自動追加
-        if (session?.user?.name) {
-          await ensureUserIsProjectMember(projectId, session.user.name);
-        }
-      } catch (error) {
-        console.error("データの取得に失敗:", error);
-        setIdea("プロジェクトのアイデアが取得できませんでした");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [projectId, session]);
+    if (projectId && session?.user?.name) {
+      ensureUserIsProjectMember(projectId, session.user.name);
+    }
+  }, [projectId, session?.user?.name]);
 
   // ログインユーザーがプロジェクトメンバーに登録されているか確認し、未登録なら追加
   const ensureUserIsProjectMember = async (projectId: string, githubName: string) => {
@@ -122,15 +113,20 @@ export default function HackQA() {
       // APIで更新
       await patchQA(editingQA.id, { [editingQA.field]: editingQA.value });
       
-      // ローカルステートを更新
-      setQas(qas.map(qa => 
-        qa.qa_id === editingQA.id 
-          ? { ...qa, [editingQA.field]: editingQA.value }
-          : qa
-      ));
+      // 楽観的更新：ローカルキャッシュを即時更新
+      mutateQAs(
+        (currentQAs) => currentQAs?.map(qa => 
+          qa.qa_id === editingQA.id 
+            ? { ...qa, [editingQA.field]: editingQA.value }
+            : qa
+        ),
+        { revalidate: false }
+      );
     } catch (error) {
       console.error("保存に失敗:", error);
       alert("保存に失敗しました");
+      // エラー時は再取得
+      mutateQAs();
     } finally {
       setEditingQA(null);
     }
@@ -151,14 +147,13 @@ export default function HackQA() {
         is_ai: false,
         importance: 1,
         source_doc_id: null,
-        follows_qa_id: qas.length > 0 ? qas[qas.length - 1].qa_id : null, // 直前のQ&AのIDを設定
+        follows_qa_id: qas && qas.length > 0 ? qas[qas.length - 1].qa_id : null,
       };
 
       await postQA(newQA);
       
-      // 作成されたQ&Aを取得して表示を更新
-      const qaData = await getQAsByProjectId(projectId);
-      setQas(qaData);
+      // SWRキャッシュを再検証して最新データを取得
+      mutateQAs();
       
       setNewQuestion("");
       setNewAnswer("");
@@ -177,12 +172,8 @@ export default function HackQA() {
     if (editingQA) {
       await handleEndEdit();
     }
-    // summaryを作成する。
-    const summary = await generateSummary(projectId);
-    await saveSummary(projectId,summary);
-    setProcessingNext(false);
-    // summaryQAへ移動
-
+    
+    // すぐにsummaryQAへ移動（生成処理はsummaryQA側で行う）
     router.push(`/hackSetUp/${projectId}/summaryQA`);
   };
 
@@ -190,12 +181,17 @@ export default function HackQA() {
     try {
       await deleteQA(qaId);
       
-      // ローカルステートを更新
-      setQas(qas.filter(qa => qa.qa_id !== qaId));
+      // 楽観的更新：ローカルキャッシュから即時削除
+      mutateQAs(
+        (currentQAs) => currentQAs?.filter(qa => qa.qa_id !== qaId),
+        { revalidate: false }
+      );
     }
     catch (error) {
       console.error("Q&Aの削除に失敗:", error);
       alert("Q&Aの削除に失敗しました");
+      // エラー時は再取得
+      mutateQAs();
     }
   }
   if (loading) {
@@ -569,6 +565,32 @@ export default function HackQA() {
           <HackthonSupportAgent />
         </div>
       </main>
+
+      {/* AI Chat Widget */}
+      <AgentChatWidget
+        projectId={projectId}
+        pageContext="hackQA"
+        pageSpecificContext={{
+          qas: qas || [],
+          idea: idea,
+        }}
+        onAction={async (action: ChatAction) => {
+          if (action.action_type === 'add_question') {
+            const payload = action.payload as { question?: string };
+            if (payload.question) {
+              await postQA({
+                project_id: projectId,
+                question: payload.question,
+                answer: null,
+                is_ai: false,
+                importance: 0,
+              });
+              // SWRキャッシュを再検証
+              mutateQAs();
+            }
+          }
+        }}
+      />
     </>
   );
 }

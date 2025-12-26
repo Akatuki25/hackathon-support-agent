@@ -568,10 +568,10 @@ export default function EnvSetupPage() {
                       },
                       code: ({ className, children }) => {
                         const isInline = !className;
-                        const codeString = String(children).replace(/\n$/, '');
+                        const codeString = String(children ?? '').replace(/\n$/, '');
 
                         if (isInline) {
-                          return <InlineCode darkMode={darkMode}>{children}</InlineCode>;
+                          return <InlineCode darkMode={darkMode}>{codeString}</InlineCode>;
                         }
 
                         return (
@@ -582,7 +582,7 @@ export default function EnvSetupPage() {
                       },
                     } as Components}
                   >
-                    {currentContent}
+                    {String(currentContent ?? '')}
                   </ReactMarkdown>
                 </div>
               </div>

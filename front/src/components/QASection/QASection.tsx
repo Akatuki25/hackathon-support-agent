@@ -177,13 +177,13 @@ export default function QASection({
 
   return (
     <div
-      className={`h-full backdrop-blur-lg rounded-xl p-4 shadow-xl border transition-all flex flex-col ${
+      className={`h-full max-h-[80vh] backdrop-blur-lg rounded-xl p-4 shadow-xl border transition-all flex flex-col overflow-hidden ${
         darkMode
           ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
           : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
       }`}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 flex-shrink-0">
         <h2
           className={`text-lg font-medium flex items-center ${
             darkMode ? "text-cyan-400" : "text-purple-700"
@@ -453,40 +453,43 @@ export default function QASection({
       </div>
 
       {questions.length > 0 && (
-        <div className="mt-3 flex justify-center">
+        <div className={`flex-shrink-0 pt-3 pb-1 flex justify-center ${
+          darkMode ? "bg-gray-800/80" : "bg-white/80"
+        }`}>
           <button
             onClick={() => saveQA(questions)}
             disabled={savingQA}
-            className={`px-4 py-1.5 text-sm flex items-center rounded-lg shadow focus:outline-none transform transition ${
-              savingQA || saveSuccess
-                ? "cursor-not-allowed"
-                : "hover:-translate-y-0.5"
-            } ${
-              saveSuccess
+            className={`
+              px-5 py-2 text-sm font-medium flex items-center gap-2
+              rounded-lg border backdrop-blur-sm
+              transition-all duration-300 ease-out
+              focus:outline-none focus:ring-2 focus:ring-offset-2
+              ${savingQA || saveSuccess ? "cursor-not-allowed" : "hover:scale-105 hover:-translate-y-0.5"}
+              ${saveSuccess
                 ? darkMode
-                  ? "bg-green-700 text-white"
-                  : "bg-green-600 text-white"
+                  ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-lg shadow-emerald-500/30"
+                  : "bg-emerald-500/20 border-emerald-500 text-emerald-600 shadow-lg shadow-emerald-500/20"
                 : darkMode
-                  ? "bg-green-600 hover:bg-green-700 text-white focus:ring-2 focus:ring-green-400"
-                  : "bg-green-500 hover:bg-green-600 text-white focus:ring-2 focus:ring-green-400"
-            } ${
-              savingQA && (darkMode ? "bg-green-700 opacity-70" : "bg-green-600 opacity-70")
-            }`}
+                  ? "bg-cyan-500/10 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/30 focus:ring-cyan-500/50"
+                  : "bg-purple-500/10 border-purple-500/50 text-purple-600 hover:bg-purple-500/20 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 focus:ring-purple-500/50"
+              }
+              ${savingQA && "animate-pulse opacity-80"}
+            `}
           >
             {saveSuccess ? (
               <>
-                <CheckCircle size={14} className="mr-1 text-white" />
-                保存完了
+                <CheckCircle size={16} className="text-current" />
+                <span>保存完了</span>
               </>
             ) : savingQA ? (
               <>
-                <Loader2 size={14} className="mr-1 animate-spin" />
-                保存中...
+                <Loader2 size={16} className="animate-spin" />
+                <span>保存中...</span>
               </>
             ) : (
               <>
-                <CheckCircle size={14} className="mr-1" />
-                回答を保存
+                <CheckCircle size={16} />
+                <span>回答を保存</span>
               </>
             )}
           </button>

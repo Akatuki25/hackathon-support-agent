@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Terminal, ChevronRight, Loader2 } from "lucide-react";
+import { Terminal, ChevronRight, Loader2, MessageSquare, FileText } from "lucide-react";
+import useSWR from "swr";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
@@ -10,11 +11,11 @@ import Loading from "@/components/PageLoading";
 import SpecificationEditor from "@/components/SpecificationEditor/SpecificationEditor";
 import QASection from "@/components/QASection/QASection";
 import { getProjectDocument } from "@/libs/modelAPI/document";
-import { ProjectDocumentType } from "@/types/modelTypes";
-import { evaluateSummary } from "@/libs/service/summary";
-import { QAType } from "@/types/modelTypes";
- 
-type FlowState = 'loading' | 'ready';
+import { ProjectDocumentType, QAType, ChatAction } from "@/types/modelTypes";
+import { evaluateSummary, generateSummaryWithFeedback } from "@/libs/service/summary";
+import { AgentChatWidget } from "@/components/chat";
+
+type FocusMode = 'questions' | 'specification';
 
 export default function SummaryQA() {
   const router = useRouter();
@@ -22,65 +23,51 @@ export default function SummaryQA() {
   const projectId = pathname.split("/")[2];
   const { darkMode } = useDarkMode();
 
-  const [flowState, setFlowState] = useState<FlowState>('loading');
   const [processingNext, setProcessingNext] = useState(false);
-  const [projectDocument, setProjectDocument] = useState<ProjectDocumentType | null>(null);
-  const [score, setScore] = useState<number>(0);
-  const [question, setQuestion] = useState<QAType[]>([]);
-  const [mvpFeasible, setMvpFeasible] = useState<boolean>(false);
+  // 追加質問がある場合は質問フォーカス、なければ仕様書フォーカス
+  const [focusMode, setFocusMode] = useState<FocusMode>('questions');
 
-  // 初期処理：document取得
-  useEffect(() => {
-    const initializeFlow = async () => {
-      if (!projectId) return;
-      
+  // SWRでプロジェクトドキュメント取得（なければ生成）
+  const { data: projectDocument, mutate: mutateDocument, isLoading: isDocLoading } = useSWR(
+    projectId ? `document-${projectId}` : null,
+    async () => {
       try {
-        // プロジェクトドキュメントを取得
-        try {
-          const document = await getProjectDocument(projectId);
-          setProjectDocument(document);
-        } catch (error) {
-          console.warn("プロジェクトドキュメントが見つかりません:", error);
+        const doc = await getProjectDocument(projectId);
+        // specificationがあればそのまま返す
+        if (doc?.specification) {
+          return doc;
         }
-
-        // 評価を取得
-        try {
-          const evaluation = await evaluateSummary(projectId);
-          console.log("=== 評価結果の詳細 ===");
-          console.log("評価結果全体:", evaluation);
-          console.log("スコア:", evaluation.score_0_100);
-          console.log("MVP可能性:", evaluation.mvp_feasible);
-          console.log("信頼度:", evaluation.confidence);
-          console.log("追加質問の数:", evaluation.qa?.length || 0);
-          console.log("追加質問の内容:", evaluation.qa);
-          if (evaluation.qa && evaluation.qa.length > 0) {
-            evaluation.qa.forEach((q, idx) => {
-              console.log(`質問${idx + 1}:`, q.question);
-              console.log(`回答${idx + 1}:`, q.answer);
-            });
-          }
-          console.log("===================");
-
-          setQuestion(evaluation.qa || []);
-          setScore(evaluation.score_0_100 || 0);
-          setMvpFeasible(evaluation.mvp_feasible || false);
-        } catch (error) {
-          console.warn("評価の取得に失敗:", error);
-          // デフォルト値を設定
-          setQuestion([]);
-          setScore(0);
-          setMvpFeasible(false);
-        }
-
-        setFlowState('ready');
-      } catch (error) {
-        console.error("初期処理に失敗:", error);
-        setFlowState('ready');
+      } catch {
+        // ドキュメントがない場合は生成
       }
-    };
+      // 仕様書を生成
+      await generateSummaryWithFeedback(projectId);
+      // 生成後にドキュメントを再取得
+      return await getProjectDocument(projectId);
+    },
+    { revalidateOnFocus: false }
+  );
 
-    initializeFlow();
-  }, [projectId]);
+  // SWRで評価データ取得（ドキュメントがあれば）
+  const { data: evaluation, mutate: mutateEvaluation, isLoading: isEvalLoading } = useSWR(
+    projectDocument?.specification ? `evaluation-${projectId}` : null,
+    async () => {
+      const result = await evaluateSummary(projectId);
+      // 追加質問がなければ仕様書フォーカスに
+      if (!result.qa || result.qa.length === 0) {
+        setFocusMode('specification');
+      }
+      return result;
+    },
+    { revalidateOnFocus: false }
+  );
+
+  const isLoading = isDocLoading || isEvalLoading;
+
+  // 評価データから各値を取得
+  const question = evaluation?.qa || [];
+  const score = evaluation?.score_0_100 || 0;
+  const mvpFeasible = evaluation?.mvp_feasible || false;
 
 
   // 次へ進む
@@ -93,19 +80,42 @@ export default function SummaryQA() {
   };
 
   // 評価更新のハンドラー
-  const handleEvaluationUpdate = (evaluation: { qa: QAType[]; score_0_100: number; mvp_feasible: boolean }) => {
-    setQuestion(evaluation.qa);
-    setScore(evaluation.score_0_100);
-    setMvpFeasible(evaluation.mvp_feasible);
+  const handleEvaluationUpdate = (newEvaluation: { qa: QAType[]; score_0_100: number; mvp_feasible: boolean }) => {
+    mutateEvaluation({
+      confidence: evaluation?.confidence ?? 0,
+      ...evaluation,
+      ...newEvaluation
+    }, false);
   };
 
-  // ドキュメント更新のハンドラー（確信度フィードバックも更新）
+  // ドキュメント更新のハンドラー
   const handleDocumentUpdate = async (document: ProjectDocumentType) => {
-    setProjectDocument(document);
+    mutateDocument(document, false);
+  };
+
+  // 質問更新のハンドラー
+  const handleQuestionsUpdate = (updatedQuestions: QAType[]) => {
+    if (evaluation) {
+      mutateEvaluation({ ...evaluation, qa: updatedQuestions }, false);
+    }
+  };
+
+  // AIチャットアクションのハンドラー
+  const handleChatAction = async (action: ChatAction) => {
+    if (action.action_type === 'regenerate_questions') {
+      // 追加質問を再生成（SWRでrevalidate）
+      const newEvaluation = await evaluateSummary(projectId);
+      mutateEvaluation(newEvaluation, false);
+
+      // 新しい追加質問があればフォーカスを切り替え
+      if (newEvaluation.qa && newEvaluation.qa.length > 0) {
+        setFocusMode('questions');
+      }
+    }
   };
 
   // ローディング状態の処理
-  if (flowState === 'loading') {
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -134,17 +144,83 @@ export default function SummaryQA() {
             <p
               className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
             >
-              仕様書を確認・編集し、追加質問に回答してください
+              {focusMode === 'questions'
+                ? '追加質問に回答すると、仕様書がより具体的になります'
+                : '仕様書を確認・編集してください'}
             </p>
           </div>
 
-          {/* 3分割レイアウト - 1:4:2比率最適化 */}
-          <div className="flex gap-6 min-h-[80vh]">
-            {/* 仕様書編集エリア - 確信度フィードバック含む（5/7幅） */}
-            <div className="flex-1" style={{ flexBasis: '71%' }}>
+          {/* フォーカス切り替えタブ */}
+          <div className="flex justify-center mb-6">
+            <div className={`inline-flex rounded-lg p-1 ${
+              darkMode ? "bg-gray-800" : "bg-gray-100"
+            }`}>
+              <button
+                onClick={() => setFocusMode('specification')}
+                className={`flex items-center px-4 py-2 rounded-lg transition-all ${
+                  focusMode === 'specification'
+                    ? darkMode
+                      ? "bg-cyan-600 text-white"
+                      : "bg-purple-600 text-white"
+                    : darkMode
+                      ? "text-gray-400 hover:text-gray-200"
+                      : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <FileText size={18} className="mr-2" />
+                仕様書
+              </button>
+              <button
+                onClick={() => question.length > 0 && setFocusMode('questions')}
+                disabled={question.length === 0}
+                className={`flex items-center px-4 py-2 rounded-lg transition-all ${
+                  question.length === 0
+                    ? darkMode
+                      ? "text-gray-600 cursor-not-allowed"
+                      : "text-gray-400 cursor-not-allowed"
+                    : focusMode === 'questions'
+                      ? darkMode
+                        ? "bg-cyan-600 text-white"
+                        : "bg-purple-600 text-white"
+                      : darkMode
+                        ? "text-gray-400 hover:text-gray-200"
+                        : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <MessageSquare size={18} className="mr-2" />
+                追加質問
+                {question.length > 0 ? (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    focusMode === 'questions'
+                      ? "bg-white/20"
+                      : darkMode
+                        ? "bg-cyan-600 text-white"
+                        : "bg-purple-600 text-white"
+                  }`}>
+                    {question.filter(q => !q.answer).length}件未回答
+                  </span>
+                ) : (
+                  <span className={`ml-2 text-xs ${darkMode ? "text-gray-600" : "text-gray-400"}`}>
+                    (なし)
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* フォーカスに応じたレイアウト */}
+          <div className="flex gap-6 min-h-[70vh]">
+            {/* 仕様書編集エリア（左側） */}
+            <div
+              className={`transition-all duration-300 ${
+                focusMode === 'specification'
+                  ? 'flex-[1_1_65%] opacity-100'
+                  : 'flex-[0_0_320px] opacity-70 hover:opacity-100'
+              }`}
+            >
               <SpecificationEditor
                 projectId={projectId}
-                projectDocument={projectDocument}
+                projectDocument={projectDocument ?? null}
                 score={score}
                 mvpFeasible={mvpFeasible}
                 onDocumentUpdate={handleDocumentUpdate}
@@ -152,12 +228,18 @@ export default function SummaryQA() {
               />
             </div>
 
-            {/* 右サイド - QAセクション（2/7幅） */}
-            <div className="flex-shrink-0" style={{ flexBasis: '29%' }}>
+            {/* 追加質問エリア（右側） */}
+            <div
+              className={`transition-all duration-300 ${
+                focusMode === 'questions'
+                  ? 'flex-[1_1_65%] opacity-100'
+                  : 'flex-[0_0_320px] opacity-70 hover:opacity-100'
+              }`}
+            >
               <QASection
                 projectId={projectId}
                 questions={question}
-                onQuestionsUpdate={setQuestion}
+                onQuestionsUpdate={handleQuestionsUpdate}
               />
             </div>
           </div>
@@ -204,6 +286,21 @@ export default function SummaryQA() {
           <HackthonSupportAgent />
         </div>
       </main>
+
+      {/* AI Chat Widget */}
+      {projectId && (
+        <AgentChatWidget
+          projectId={projectId}
+          pageContext="summaryQA"
+          pageSpecificContext={{
+            focus_mode: focusMode,
+            unanswered_count: question.filter(q => !q.answer).length,
+            total_questions: question.length,
+            specification: projectDocument?.specification || '',
+          }}
+          onAction={handleChatAction}
+        />
+      )}
     </>
   );
 }

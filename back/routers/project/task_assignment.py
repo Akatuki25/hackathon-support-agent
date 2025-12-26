@@ -42,15 +42,13 @@ async def get_task_assignment(task_assignment_id: uuid.UUID, db: Session = Depen
 @router.get("/task_assignment/task/{task_id}", summary="タスクIDからタスク割り当て取得")
 async def get_task_assignments_by_task_id(task_id: uuid.UUID, db: Session = Depends(get_db)):
     db_task_assignments = db.query(TaskAssignment).filter(TaskAssignment.task_id == task_id).all()
-    if not db_task_assignments:
-        raise HTTPException(status_code=404, detail="Task assignments not found for this task")
+    # 割り当てがない場合は空リストを返す（404ではなく）
     return db_task_assignments
 
 @router.get("/task_assignment/project_member/{project_member_id}", summary="プロジェクトメンバーIDからタスク割り当て取得")
 async def get_task_assignments_by_project_member_id(project_member_id: uuid.UUID, db: Session = Depends(get_db)):
     db_task_assignments = db.query(TaskAssignment).filter(TaskAssignment.project_member_id == project_member_id).all()
-    if not db_task_assignments:
-        raise HTTPException(status_code=404, detail="Task assignments not found for this project member")
+    # 割り当てがない場合は空リストを返す（404ではなく）
     return db_task_assignments
 
 @router.put("/task_assignment/{task_assignment_id}", summary="タスク割り当て更新")

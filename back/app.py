@@ -10,7 +10,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
-from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, chatHanson, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chatHanson, env_setup_agent
+from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, chatHanson, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chatHanson, env_setup_agent, chat
+
+# ページコンテキスト対応チャットハンドラを登録（ChatRouterにデコレータで自動登録）
+from services.chat.handlers import (
+    QAAdviceHandler,
+    FunctionHandler,
+    SpecReviewHandler,
+    FrameworkHandler,
+    KanbanHandler,
+    TaskDetailHandler,
+)
 
 # データベース初期化
 from database import engine, Base
@@ -84,6 +94,9 @@ app.include_router(task_hands_on.router)
 
 # Environment Setup Agent
 app.include_router(env_setup_agent.router, prefix="/api/env_setup", tags=["EnvSetupAgent"])
+
+# Page Context Chat (ページコンテキスト対応チャット)
+app.include_router(chat.router, prefix="/api/chat", tags=["PageContextChat"])
 
 # 適宜追加
 

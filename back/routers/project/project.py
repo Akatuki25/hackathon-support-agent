@@ -6,15 +6,16 @@ from sqlalchemy.orm import Session
 import uuid
 from pydantic import BaseModel
 from database import SessionLocal
-from models.project_base import ProjectBase
+from models.project_base import ProjectBase, ProjectMember, MemberBase
 
 router = APIRouter()
     
 class ProjectBaseType(BaseModel):
-    title:str
+    title: str
     idea: str
     start_date: date
     end_date: datetime
+    creator_member_id: Optional[str] = None  # プロジェクト作成者のmember_id
 
 class ProjectPatch(BaseModel):
     title: Optional[str] = None
@@ -35,6 +36,23 @@ async def create_project(project: ProjectBaseType, db: Session = Depends(get_db)
         end_date=project.end_date,
     )
     db.add(db_project)
+    
+    # 作成者をプロジェクトメンバーとして登録（同一トランザクション）
+    if project.creator_member_id:
+        # メンバーの存在確認
+        member = db.query(MemberBase).filter(
+            MemberBase.member_id == project.creator_member_id
+        ).first()
+        
+        if member:
+            db_project_member = ProjectMember(
+                project_member_id=uuid.uuid4(),
+                project_id=project_id,
+                member_id=member.member_id,
+                member_name=member.member_name,
+            )
+            db.add(db_project_member)
+    
     db.commit()
     db.refresh(db_project)
     return {"project_id": project_id, "message": "プロジェクトが作成されました"}
