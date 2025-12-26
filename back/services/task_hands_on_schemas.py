@@ -143,6 +143,27 @@ class ImplementationTip(BaseModel):
     )
 
 
+class Reference(BaseModel):
+    """参考資料"""
+
+    title: str = Field(
+        description="資料のタイトル (例: 'React 公式ドキュメント (日本語)')"
+    )
+
+    url: str = Field(
+        description="資料のURL"
+    )
+
+    type: str = Field(
+        description="資料の種類: 'official_doc' (公式ドキュメント), 'tutorial' (入門チュートリアル), 'reference' (リファレンス), 'example' (サンプルコード)"
+    )
+
+    description: str = Field(
+        default="",
+        description="この資料が役立つ理由や内容の説明"
+    )
+
+
 class TaskHandsOnOutput(BaseModel):
     """TaskHandsOn 生成の最終出力"""
 
@@ -213,6 +234,16 @@ command here
 - 避けるべきアンチパターン
 - セキュリティ上の注意点
 - パフォーマンス最適化のヒント"""
+    )
+
+    references: List[Reference] = Field(
+        default_factory=list,
+        description="""参考資料 (公式ドキュメント、入門チュートリアル、リファレンス)。
+日本語資料を優先:
+- 公式ドキュメント (日本語版がある場合は必ず日本語版)
+- Zenn, Qiita などの信頼性の高い日本語チュートリアル
+- 技術の基礎から学べる入門記事
+- GitHubのサンプルリポジトリ"""
     )
 
     estimated_time_minutes: int = Field(

@@ -176,3 +176,27 @@ export const previewHandsOnGeneration = async (
   const response = await axios.post<HandsOnPreviewResponse>(`${baseUrl}/preview`, request);
   return response.data;
 };
+
+export interface UpdateHandsOnRequest {
+  field: 'implementation_steps' | 'technical_context' | 'prerequisites';
+  content: string;
+}
+
+export interface UpdateHandsOnResponse {
+  success: boolean;
+  task_id: string;
+  updated_field: string;
+  message: string;
+}
+
+/**
+ * ハンズオンの特定フィールドを更新（AI補足用）
+ */
+export const updateTaskHandsOn = async (
+  taskId: string,
+  request: UpdateHandsOnRequest,
+): Promise<UpdateHandsOnResponse> => {
+  const baseUrl = ensureBaseUrl();
+  const response = await axios.patch<UpdateHandsOnResponse>(`${baseUrl}/${taskId}`, request);
+  return response.data;
+};

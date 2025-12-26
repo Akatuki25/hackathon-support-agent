@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import useSWR from "swr";
 import {
   Lightbulb,
   Clock,
   Search,
-  Users,
+  Plus,
 } from "lucide-react";
 import { ProjectType } from "@/types/modelTypes";
 import { getProject } from "@/libs/modelAPI/project";
@@ -16,79 +17,50 @@ import { getMemberByGithubName } from "@/libs/modelAPI/member";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Session/Header";
 
+// メンバーのプロジェクト一覧を取得するfetcher
+const fetchMemberProjects = async (githubName: string): Promise<ProjectType[]> => {
+  // 1. GitHubNameからmember_idを取得
+  const member = await getMemberByGithubName(githubName);
+  if (!member?.member_id) return [];
+
+  // 2. member_idからproject_member一覧を取得
+  const projectMembers = await getProjectMembersByMemberId(member.member_id);
+  if (!projectMembers || projectMembers.length === 0) return [];
+
+  // 3. 各project_idからプロジェクト詳細を取得
+  const projectPromises = projectMembers.map(pm =>
+    getProject(String(pm.project_id)).catch(() => null)
+  );
+  const projects = await Promise.all(projectPromises);
+
+  // nullを除外
+  return projects.filter((p): p is ProjectType => p !== null);
+};
+
 export default function MemberProjectPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { darkMode } = useDarkMode();
-  const [memberProjects, setMemberProjects] = useState<ProjectType[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProjects, setFilteredProjects] = useState<ProjectType[]>([]);
 
-  useEffect(() => {
-    if (status === "loading") return;
+  // SWRでプロジェクト一覧を取得（キャッシュ有効）
+  const { data: memberProjects = [], isLoading } = useSWR(
+    session?.user?.name ? `member-projects-${session.user.name}` : null,
+    () => fetchMemberProjects(session!.user!.name!),
+    { revalidateOnFocus: false }
+  );
 
-    if (!session?.user?.name) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchMemberProjects = async () => {
-      try {
-        setLoading(true);
-
-        // 1. GitHubNameからmember_idを取得
-        const member = await getMemberByGithubName(session.user!.name!);
-
-        if (!member?.member_id) {
-          setMemberProjects([]);
-          setFilteredProjects([]);
-          setLoading(false);
-          return;
-        }
-
-        // 2. member_idからproject_member一覧を取得
-        const projectMembers = await getProjectMembersByMemberId(member.member_id);
-
-        if (!projectMembers || projectMembers.length === 0) {
-          setMemberProjects([]);
-          setFilteredProjects([]);
-          setLoading(false);
-          return;
-        }
-
-        // 3. 各project_idからプロジェクト詳細を取得
-        const projectPromises = projectMembers.map(pm =>
-          getProject(String(pm.project_id)).catch(() => null)
-        );
-        const projects = await Promise.all(projectPromises);
-
-        // nullを除外
-        const validProjects = projects.filter((p): p is ProjectType => p !== null);
-
-        setMemberProjects(validProjects);
-        setFilteredProjects(validProjects);
-      } catch (error) {
-        console.error("メンバープロジェクトの取得エラー:", error);
-        setMemberProjects([]);
-        setFilteredProjects([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMemberProjects();
-  }, [session, status]);
-
-  // 検索フィルタリング
-  useEffect(() => {
-    const filtered = memberProjects.filter(
+  // 検索フィルタリング（useMemoで最適化）
+  const filteredProjects = useMemo(() => {
+    if (!searchTerm) return memberProjects;
+    return memberProjects.filter(
       (project) =>
         project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.idea.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-    setFilteredProjects(filtered);
   }, [searchTerm, memberProjects]);
+
+  const loading = status === "loading" || isLoading;
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "未設定";
@@ -307,40 +279,51 @@ export default function MemberProjectPage() {
             </div>
           </div>
 
-          {filteredProjects.length === 0 ? (
-            <div
-              className={`text-center p-12 rounded-lg backdrop-blur-xl border ${
-                darkMode
-                  ? "bg-gray-800/30 border-cyan-500/30 shadow-lg shadow-cyan-500/20"
-                  : "bg-white/60 border-purple-300/30"
-              }`}
-            >
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {/* 新規プロジェクト作成カード */}
               <div
-                className={`w-20 h-20 mx-auto mb-6 rounded-full border-2 flex items-center justify-center ${
+                onClick={() => router.push("/hackSetUp")}
+                className={`relative p-6 rounded-lg backdrop-blur-xl border transition-all duration-300 hover:scale-105 group overflow-hidden cursor-pointer flex flex-col items-center justify-center min-h-[280px] ${
                   darkMode
-                    ? "border-cyan-500/50 text-cyan-400"
-                    : "border-purple-500/50 text-purple-600"
-                }`}
+                    ? "bg-gray-800/30 border-dashed border-cyan-500/50 hover:border-cyan-400/80 hover:bg-cyan-500/10 shadow-lg shadow-cyan-500/10"
+                    : "bg-white/60 border-dashed border-purple-400/50 hover:border-purple-500/80 hover:bg-purple-500/10"
+                } shadow-lg hover:shadow-2xl`}
               >
-                <Users className="w-10 h-10" />
+                <div
+                  className={`absolute top-0 left-0 right-0 h-px ${
+                    darkMode
+                      ? "bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"
+                      : "bg-gradient-to-r from-transparent via-purple-400/50 to-transparent"
+                  } translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000`}
+                ></div>
+
+                <div
+                  className={`w-16 h-16 rounded-full border-2 flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 ${
+                    darkMode
+                      ? "border-cyan-500/50 text-cyan-400 group-hover:border-cyan-400 group-hover:bg-cyan-500/20"
+                      : "border-purple-500/50 text-purple-600 group-hover:border-purple-500 group-hover:bg-purple-500/20"
+                  }`}
+                >
+                  <Plus className="w-8 h-8" />
+                </div>
+
+                <h2
+                  className={`text-xl font-bold font-mono tracking-wider mb-2 ${
+                    darkMode ? "text-cyan-400" : "text-purple-600"
+                  }`}
+                >
+                  NEW_PROJECT
+                </h2>
+
+                <p
+                  className={`text-sm font-mono text-center ${
+                    darkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  {/* 新しいプロジェクトを作成 */}
+                </p>
               </div>
-              <h3
-                className={`text-2xl font-mono font-bold mb-3 ${
-                  darkMode ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {searchTerm ? "NO_SEARCH_RESULTS" : "NO_PROJECTS_FOUND"}
-              </h3>
-              <p
-                className={`${darkMode ? "text-gray-400" : "text-gray-500"} font-mono`}
-              >
-                {searchTerm
-                  ? `// "${searchTerm}" に一致するプロジェクトが見つかりません`
-                  : "// 参加しているプロジェクトがありません"}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+
               {filteredProjects.map((project, index) => {
                 const projectStatus = getProjectStatus(
                   project.start_date,
@@ -519,8 +502,7 @@ export default function MemberProjectPage() {
                   </div>
                 );
               })}
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </>

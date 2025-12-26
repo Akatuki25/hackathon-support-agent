@@ -88,6 +88,28 @@ class DeleteHandsOnResponse(BaseModel):
     message: str
 
 
+class UpdateHandsOnRequest(BaseModel):
+    """ハンズオン部分更新リクエスト"""
+    field: str  # 更新対象フィールド名
+    content: str  # 更新内容
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "field": "implementation_steps",
+                "content": "1. まず〇〇をインストール\n2. 次に..."
+            }
+        }
+
+
+class UpdateHandsOnResponse(BaseModel):
+    """ハンズオン更新レスポンス"""
+    success: bool
+    task_id: str
+    updated_field: str
+    message: str
+
+
 # =====================================================
 # エンドポイント
 # =====================================================
@@ -230,6 +252,55 @@ async def get_task_hands_on(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/{task_id}", response_model=UpdateHandsOnResponse)
+async def update_task_hands_on(
+    task_id: str,
+    request: UpdateHandsOnRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    ハンズオンの特定フィールドを更新（AI補足用）
+
+    許可されるフィールド:
+    - implementation_steps: 実装手順
+    - technical_context: 技術的背景
+    - prerequisites: 前提条件
+    """
+    ALLOWED_FIELDS = {"implementation_steps", "technical_context", "prerequisites"}
+
+    if request.field not in ALLOWED_FIELDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Field '{request.field}' is not allowed. Allowed: {ALLOWED_FIELDS}"
+        )
+
+    try:
+        task_uuid = UUID(task_id)
+
+        # ハンズオンを取得
+        hands_on = db.query(TaskHandsOn).filter_by(task_id=task_uuid).first()
+        if not hands_on:
+            raise HTTPException(status_code=404, detail="Hands-on not found for this task")
+
+        # フィールドを更新
+        setattr(hands_on, request.field, request.content)
+        hands_on.is_user_edited = True  # 編集フラグを立てる
+        db.commit()
+
+        return UpdateHandsOnResponse(
+            success=True,
+            task_id=task_id,
+            updated_field=request.field,
+            message=f"Field '{request.field}' updated successfully"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 

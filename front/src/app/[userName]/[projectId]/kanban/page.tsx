@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, GitBranch } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -11,13 +12,16 @@ import {
   type DragEvent,
   type KeyboardEventHandler,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
 import { TaskType, TaskStatusEnum, TaskAssignmentType, ProjectMemberType } from '@/types/modelTypes';
-import { getProjectMembersByProjectId } from '@/libs/modelAPI/project_member';
+import { getProjectMembersByProjectId, postProjectMember } from '@/libs/modelAPI/project_member';
+import { getMemberByGithubName } from '@/libs/modelAPI/member';
 import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
 import CyberHeader from '@/components/Session/Header';
 import axios from 'axios';
+import { AgentChatWidget } from '@/components/chat';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const triggeredHandsOnProjects = new Set<string>();
@@ -208,21 +212,14 @@ function KanbanNavigation({ projectId, userName, isUpdating, darkMode }: KanbanN
     ? 'mt-2 text-xs text-cyan-300 animate-pulse'
     : 'mt-2 text-xs text-purple-600 animate-pulse';
 
-  const primaryButtonClass = darkMode
-    ? 'border border-cyan-500/40 bg-slate-950/60 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-    : 'border border-purple-200 bg-white/80 text-purple-600 shadow-sm';
+  // 戻るボタン（目立つスタイル）
+  const backButtonClass = darkMode
+    ? 'border-2 border-cyan-400 bg-cyan-500/20 text-cyan-100 shadow-[0_0_20px_rgba(6,182,212,0.4)]'
+    : 'border-2 border-purple-500 bg-purple-500 text-white shadow-lg';
 
-  const primaryButtonHoverClass = darkMode
-    ? 'hover:border-cyan-300/60 hover:text-cyan-100 hover:shadow-[0_0_16px_rgba(6,182,212,0.35)]'
-    : 'hover:border-purple-400 hover:text-purple-700';
-
-  const kanbanButtonClass = darkMode
-    ? 'border border-fuchsia-500/40 bg-slate-950/60 text-fuchsia-200 shadow-[0_0_12px_rgba(217,70,239,0.25)]'
-    : 'border border-purple-200 bg-purple-500 text-white shadow-sm';
-
-  const kanbanButtonHoverClass = darkMode
-    ? 'hover:border-fuchsia-300/60 hover:text-fuchsia-100 hover:shadow-[0_0_16px_rgba(217,70,239,0.35)]'
-    : 'hover:bg-purple-600';
+  const backButtonHoverClass = darkMode
+    ? 'hover:bg-cyan-500/30 hover:border-cyan-300 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]'
+    : 'hover:bg-purple-600 hover:border-purple-600';
 
   return (
     <div className={containerClass}>
@@ -236,20 +233,15 @@ function KanbanNavigation({ projectId, userName, isUpdating, darkMode }: KanbanN
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href={overviewHref}
-            className={`${primaryButtonClass} ${primaryButtonHoverClass} inline-flex items-center gap-2 rounded px-3 py-2 text-xs font-semibold transition-all duration-200`}
-          >
-            プロジェクト概要
-          </Link>
-          <Link
-            href="./kanban"
-            className={`${kanbanButtonClass} ${kanbanButtonHoverClass} inline-flex items-center gap-2 rounded px-3 py-2 text-xs font-semibold transition-all duration-200`}
-          >
-            カンバン
-          </Link>
-        </div>
+        {/* 戻るボタン - 右側に目立つように配置 */}
+        <Link
+          href={overviewHref}
+          className={`${backButtonClass} ${backButtonHoverClass} inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all duration-200`}
+        >
+          <ArrowLeft size={18} />
+          <GitBranch size={16} />
+          <span>依存グラフに戻る</span>
+        </Link>
       </header>
 
       {isUpdating && <p className={updatingClass}>更新中...</p>}
@@ -523,6 +515,7 @@ function MemberColumn({
 export default function KanbanBoardPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const projectId = params?.projectId as string | undefined;
   const userName = params?.userName as string | undefined;
   const { darkMode } = useDarkMode();
@@ -533,6 +526,45 @@ export default function KanbanBoardPage() {
   const [projectMembers, setProjectMembers] = useState<ProjectMemberType[]>([]);
   const [taskAssignments, setTaskAssignments] = useState<Record<string, TaskAssignmentType[]>>({});
   const draggingTaskIdRef = useRef<string | null>(null);
+
+  // ログインユーザーをプロジェクトメンバーに自動追加
+  const ensureUserIsProjectMember = useCallback(async (projectId: string, githubName: string) => {
+    try {
+      // プロジェクトメンバーを取得
+      const members = await getProjectMembersByProjectId(projectId);
+      
+      // ログインユーザーのメンバー情報を取得
+      const currentMember = await getMemberByGithubName(githubName);
+
+      // 既にメンバーに含まれているかチェック
+      const isAlreadyMember = members.some(
+        (pm) => pm.member_id === currentMember.member_id
+      );
+
+      if (!isAlreadyMember) {
+        // プロジェクトメンバーに追加
+        await postProjectMember({
+          project_id: projectId,
+          member_id: currentMember.member_id,
+          member_name: currentMember.member_name,
+        });
+        console.log(`ユーザー ${githubName} をプロジェクトメンバーに追加しました`);
+        
+        // メンバーリストを再取得
+        const updatedMembers = await getProjectMembersByProjectId(projectId);
+        setProjectMembers(updatedMembers);
+      }
+    } catch (error) {
+      console.error("プロジェクトメンバー追加エラー:", error);
+    }
+  }, []);
+
+  // ログインユーザーをプロジェクトメンバーに追加（初回のみ）
+  useEffect(() => {
+    if (projectId && session?.user?.name) {
+      ensureUserIsProjectMember(projectId, session.user.name);
+    }
+  }, [projectId, session?.user?.name, ensureUserIsProjectMember]);
 
   // メンバーごとのスタイルを生成
   const columnStyles = useMemo(() => {
@@ -821,6 +853,14 @@ export default function KanbanBoardPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Chat Widget */}
+      {projectId && (
+        <AgentChatWidget
+          projectId={projectId}
+          pageContext="kanban"
+        />
+      )}
     </div>
   );
 }

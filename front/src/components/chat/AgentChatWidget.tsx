@@ -1,18 +1,33 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Bot, Loader2, GripVertical } from 'lucide-react';
-import { chatWithHanson } from '@/libs/service/chatHanson';
+import { X, Send, Bot, Loader2, GripVertical, CheckCircle, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import {
+  sendPageChatMessageStream,
+  PAGE_PLACEHOLDERS,
+  PAGE_INITIAL_MESSAGES,
+} from '@/libs/service/pageChat';
+import type {
+  PageContext,
+  ChatMessageType,
+  ChatAction,
+} from '@/types/modelTypes';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  actions?: ChatAction[];
 }
 
-interface AgentChatWidgetProps {
+export interface AgentChatWidgetProps {
   projectId: string;
+  pageContext?: PageContext;
+  pageSpecificContext?: Record<string, unknown>;
+  onAction?: (action: ChatAction) => void | Promise<void>;
+  initialMessage?: string;
+  placeholder?: string;
 }
 
 const MIN_WIDTH = 320;
@@ -22,16 +37,33 @@ const MAX_HEIGHT = 800;
 const DEFAULT_WIDTH = 384;
 const DEFAULT_HEIGHT = 500;
 
-export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
+export function AgentChatWidget({
+  projectId,
+  pageContext,
+  pageSpecificContext,
+  onAction,
+  initialMessage,
+  placeholder,
+}: AgentChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [actionStatus, setActionStatus] = useState<{
+    actionId: string;
+    status: 'pending' | 'success' | 'error';
+  } | null>(null);
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
   const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
+
+  // Get placeholder and initial message based on pageContext
+  const displayPlaceholder = placeholder ||
+    (pageContext ? PAGE_PLACEHOLDERS[pageContext] : 'メッセージを入力...');
+  const displayInitialMessage = initialMessage ||
+    (pageContext ? PAGE_INITIAL_MESSAGES[pageContext] : 'こんにちは！ハッカソン開発について何でも聞いてください。');
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -77,11 +109,12 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
     };
   }, [isResizing]);
 
-  // Build chat history string from messages
-  const buildChatHistory = (): string => {
-    return messages
-      .map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n');
+  // Build chat history from messages
+  const buildChatHistory = (): ChatMessageType[] => {
+    return messages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
   };
 
   const handleSendMessage = async () => {
@@ -94,22 +127,82 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
       timestamp: new Date(),
     };
 
+    const assistantMessageId = `assistant-${Date.now()}`;
+
     setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const chatHistory = buildChatHistory();
-      const response = await chatWithHanson(projectId, userMessage.content, chatHistory, false);
+      const history = buildChatHistory();
 
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: response.answer,
-        timestamp: new Date(),
-      };
+      // Use streaming API if pageContext is provided
+      if (pageContext) {
+        // 空のアシスタントメッセージを追加（ストリーミング表示用）
+        const initialAssistantMessage: Message = {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, initialAssistantMessage]);
 
-      setMessages((prev) => [...prev, assistantMessage]);
+        // ストリーミングでメッセージを受信
+        await sendPageChatMessageStream(
+          projectId,
+          pageContext,
+          userMessage.content,
+          history,
+          pageSpecificContext,
+          // onChunk: テキストチャンクを受信するたびにメッセージを更新
+          (chunk) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: msg.content + chunk }
+                  : msg
+              )
+            );
+          },
+          // onDone: 完了時にアクションを追加
+          (actions) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, actions }
+                  : msg
+              )
+            );
+          },
+          // onError: エラー時
+          (error) => {
+            console.error('Stream error:', error);
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: msg.content || 'エラーが発生しました。' }
+                  : msg
+              )
+            );
+          }
+        );
+      } else {
+        // Fallback to legacy API
+        const { chatWithHanson } = await import('@/libs/service/chatHanson');
+        const chatHistory = messages
+          .map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+          .join('\n');
+        const response = await chatWithHanson(projectId, userMessage.content, chatHistory, false);
+
+        const assistantMessage: Message = {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: response.answer,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: Message = {
@@ -129,6 +222,81 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // Handle action button click
+  const handleActionClick = async (action: ChatAction, messageId: string) => {
+    if (!onAction) return;
+
+    const actionId = `${messageId}-${action.action_type}`;
+    setActionStatus({ actionId, status: 'pending' });
+
+    try {
+      await onAction(action);
+      setActionStatus({ actionId, status: 'success' });
+      setTimeout(() => setActionStatus(null), 2000);
+    } catch (error) {
+      console.error('Action error:', error);
+      setActionStatus({ actionId, status: 'error' });
+      setTimeout(() => setActionStatus(null), 3000);
+    }
+  };
+
+  // Render action buttons
+  const renderActionButtons = (message: Message) => {
+    if (!message.actions || message.actions.length === 0 || !onAction) {
+      return null;
+    }
+
+    return (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {message.actions.map((action, index) => {
+          const actionId = `${message.id}-${action.action_type}`;
+          const isCurrentAction = actionStatus?.actionId === actionId;
+          const status = isCurrentAction ? actionStatus.status : null;
+
+          return (
+            <button
+              key={index}
+              onClick={() => handleActionClick(action, message.id)}
+              disabled={status === 'pending'}
+              className={`
+                inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg
+                transition-all duration-200
+                ${status === 'success'
+                  ? 'bg-green-500/20 text-green-300 border border-green-500/40'
+                  : status === 'error'
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                    : status === 'pending'
+                      ? 'bg-gray-700/50 text-gray-400 border border-gray-600/40 cursor-wait'
+                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400/60'
+                }
+              `}
+            >
+              {status === 'success' && <CheckCircle size={12} />}
+              {status === 'error' && <AlertCircle size={12} />}
+              {status === 'pending' && <Loader2 size={12} className="animate-spin" />}
+              {action.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Get title based on pageContext
+  const getChatTitle = () => {
+    if (!pageContext) return 'Hanson AI';
+    const titles: Record<PageContext, string> = {
+      hackQA: 'Q&A アドバイザー',
+      summaryQA: 'レビューアシスタント',
+      functionSummary: '機能要件アシスタント',
+      functionStructuring: '機能設計アシスタント',
+      selectFramework: '技術選定アドバイザー',
+      kanban: 'タスク分担アドバイザー',
+      taskDetail: '実装サポート',
+    };
+    return titles[pageContext];
   };
 
   return (
@@ -173,8 +341,10 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-cyan-400 rounded-full border-2 border-gray-900"></span>
               </div>
               <div>
-                <h3 className="font-bold text-white">Hanson AI</h3>
-                <p className="text-xs text-cyan-300">開発サポートエージェント</p>
+                <h3 className="font-bold text-white">{getChatTitle()}</h3>
+                <p className="text-xs text-cyan-300">
+                  {pageContext ? `${pageContext} モード` : '開発サポートエージェント'}
+                </p>
               </div>
             </div>
             <button
@@ -191,8 +361,7 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
             {messages.length === 0 && (
               <div className="text-center text-gray-400 py-8">
                 <Bot size={48} className="mx-auto mb-4 text-cyan-400/50" />
-                <p className="text-sm">こんにちは！</p>
-                <p className="text-sm">ハッカソン開発について何でも聞いてください。</p>
+                <p className="text-sm whitespace-pre-line">{displayInitialMessage}</p>
               </div>
             )}
             {messages.map((message) => (
@@ -208,9 +377,12 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
                   }`}
                 >
                   {message.role === 'assistant' ? (
-                    <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-cyan-200 prose-a:text-cyan-400 prose-strong:text-white [&_pre]:bg-gray-950 [&_pre]:border [&_pre]:border-cyan-500/40 [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:relative [&_pre]:before:content-['CODE'] [&_pre]:before:absolute [&_pre]:before:top-0 [&_pre]:before:right-0 [&_pre]:before:bg-cyan-500/30 [&_pre]:before:text-cyan-300 [&_pre]:before:text-[10px] [&_pre]:before:px-2 [&_pre]:before:py-0.5 [&_pre]:before:rounded-bl-md [&_pre]:before:rounded-tr-lg [&_pre]:before:font-mono [&_code]:text-cyan-300 [&_code]:bg-gray-900/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-sm [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-all">
-                      <ReactMarkdown>{String(message.content ?? '')}</ReactMarkdown>
-                    </div>
+                    <>
+                      <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-cyan-200 prose-a:text-cyan-400 prose-strong:text-white [&_pre]:bg-gray-950 [&_pre]:border [&_pre]:border-cyan-500/40 [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:relative [&_pre]:before:content-['CODE'] [&_pre]:before:absolute [&_pre]:before:top-0 [&_pre]:before:right-0 [&_pre]:before:bg-cyan-500/30 [&_pre]:before:text-cyan-300 [&_pre]:before:text-[10px] [&_pre]:before:px-2 [&_pre]:before:py-0.5 [&_pre]:before:rounded-bl-md [&_pre]:before:rounded-tr-lg [&_pre]:before:font-mono [&_code]:text-cyan-300 [&_code]:bg-gray-900/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-sm [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-all">
+                        <ReactMarkdown>{String(message.content ?? '')}</ReactMarkdown>
+                      </div>
+                      {renderActionButtons(message)}
+                    </>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                   )}
@@ -242,7 +414,7 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="メッセージを入力..."
+                placeholder={displayPlaceholder}
                 disabled={isLoading}
                 className="flex-1 bg-gray-800/80 border border-cyan-500/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all disabled:opacity-50"
               />

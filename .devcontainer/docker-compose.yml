@@ -39,6 +39,9 @@ services:
       - /workspaces/hackathon_support_agent/front/node_modules
     env_file:
       - ../front/.env
+    environment:
+      # Server-side API calls (NextAuth callbacks, etc.) need Docker network hostname
+      - API_URL=http://backend:8000
     working_dir: /workspaces/hackathon_support_agent/front
     depends_on:
       - backend
