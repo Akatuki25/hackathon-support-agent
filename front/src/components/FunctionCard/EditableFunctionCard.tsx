@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Edit3, Save, X, Trash2 } from "lucide-react";
 
@@ -11,7 +9,6 @@ interface EditableFunctionCardProps {
   category: string;
   priority: string;
   extractionConfidence: number;
-  darkMode: boolean;
   onUpdate: (functionId: string, updates: {
     function_name?: string;
     description?: string;
@@ -37,6 +34,18 @@ const PRIORITY_OPTIONS = [
   { value: 'Wont', label: 'Wont (不要)' },
 ];
 
+// Helper function to get priority badge classes
+const getPriorityBadgeClass = (priority: string) => {
+  switch (priority) {
+    case 'Must':
+      return "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300";
+    case 'Should':
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300";
+    default:
+      return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300";
+  }
+};
+
 export default function EditableFunctionCard({
   functionId,
   functionCode,
@@ -45,7 +54,6 @@ export default function EditableFunctionCard({
   category,
   priority,
   extractionConfidence,
-  darkMode,
   onUpdate,
   onDelete,
 }: EditableFunctionCardProps) {
@@ -59,7 +67,7 @@ export default function EditableFunctionCard({
 
   const handleSave = async () => {
     if (isSaving) return;
-    
+
     setIsSaving(true);
     try {
       await onUpdate(functionId, {
@@ -102,30 +110,20 @@ export default function EditableFunctionCard({
   };
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      darkMode 
-        ? "bg-gray-800 border-gray-600" 
-        : "bg-white border-gray-200"
-    } ${isDeleting ? 'opacity-50' : ''}`}>
+    <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600 ${isDeleting ? 'opacity-50' : ''}`}>
       {/* ヘッダー（機能コードとアクションボタン） */}
       <div className="flex items-start justify-between mb-2">
-        <span className={`text-xs font-mono px-2 py-1 rounded ${
-          darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
-        }`}>
+        <span className="text-xs font-mono px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
           {functionCode}
         </span>
-        
+
         <div className="flex gap-1">
           {!isEditing && (
             <>
               <button
                 onClick={() => setIsEditing(true)}
                 disabled={isDeleting}
-                className={`p-1.5 rounded transition-colors ${
-                  darkMode 
-                    ? "hover:bg-gray-700 text-gray-400 hover:text-blue-400" 
-                    : "hover:bg-gray-100 text-gray-600 hover:text-blue-600"
-                }`}
+                className="p-1.5 rounded transition-colors hover:bg-gray-100 text-gray-600 hover:text-blue-600 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-blue-400"
                 title="編集"
               >
                 <Edit3 size={16} />
@@ -133,11 +131,7 @@ export default function EditableFunctionCard({
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className={`p-1.5 rounded transition-colors ${
-                  darkMode 
-                    ? "hover:bg-gray-700 text-gray-400 hover:text-red-400" 
-                    : "hover:bg-gray-100 text-gray-600 hover:text-red-600"
-                }`}
+                className="p-1.5 rounded transition-colors hover:bg-gray-100 text-gray-600 hover:text-red-600 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-red-400"
                 title="削除"
               >
                 <Trash2 size={16} />
@@ -149,11 +143,7 @@ export default function EditableFunctionCard({
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className={`p-1.5 rounded transition-colors ${
-                  darkMode 
-                    ? "hover:bg-gray-700 text-gray-400 hover:text-green-400" 
-                    : "hover:bg-gray-100 text-gray-600 hover:text-green-600"
-                }`}
+                className="p-1.5 rounded transition-colors hover:bg-gray-100 text-gray-600 hover:text-green-600 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-green-400"
                 title="保存"
               >
                 <Save size={16} />
@@ -161,11 +151,7 @@ export default function EditableFunctionCard({
               <button
                 onClick={handleCancel}
                 disabled={isSaving}
-                className={`p-1.5 rounded transition-colors ${
-                  darkMode 
-                    ? "hover:bg-gray-700 text-gray-400 hover:text-red-400" 
-                    : "hover:bg-gray-100 text-gray-600 hover:text-red-600"
-                }`}
+                className="p-1.5 rounded transition-colors hover:bg-gray-100 text-gray-600 hover:text-red-600 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-red-400"
                 title="キャンセル"
               >
                 <X size={16} />
@@ -177,9 +163,7 @@ export default function EditableFunctionCard({
 
       {/* 機能名 */}
       {!isEditing ? (
-        <h4 className={`text-lg font-bold mb-2 ${
-          darkMode ? "text-gray-100" : "text-gray-900"
-        }`}>
+        <h4 className="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">
           {functionName}
         </h4>
       ) : (
@@ -187,31 +171,21 @@ export default function EditableFunctionCard({
           type="text"
           value={editedName}
           onChange={(e) => setEditedName(e.target.value)}
-          className={`w-full px-3 py-2 rounded border mb-2 text-lg font-bold ${
-            darkMode 
-              ? "bg-gray-700 border-gray-600 text-gray-100" 
-              : "bg-white border-gray-300 text-gray-900"
-          }`}
+          className="w-full px-3 py-2 rounded border mb-2 text-lg font-bold bg-white border-gray-300 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
           placeholder="機能名"
         />
       )}
 
       {/* 説明 */}
       {!isEditing ? (
-        <p className={`text-sm mb-3 ${
-          darkMode ? "text-gray-300" : "text-gray-700"
-        }`}>
+        <p className="text-sm mb-3 text-gray-700 dark:text-gray-300">
           {description}
         </p>
       ) : (
         <textarea
           value={editedDescription}
           onChange={(e) => setEditedDescription(e.target.value)}
-          className={`w-full px-3 py-2 rounded border mb-3 text-sm resize-y ${
-            darkMode 
-              ? "bg-gray-700 border-gray-600 text-gray-300" 
-              : "bg-white border-gray-300 text-gray-700"
-          }`}
+          className="w-full px-3 py-2 rounded border mb-3 text-sm resize-y bg-white border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
           rows={3}
           placeholder="機能説明"
         />
@@ -221,18 +195,10 @@ export default function EditableFunctionCard({
       <div className="flex flex-wrap gap-2 text-sm">
         {!isEditing ? (
           <>
-            <span className={`px-2 py-1 rounded ${
-              darkMode ? "bg-blue-900/20 text-blue-300" : "bg-blue-100 text-blue-700"
-            }`}>
+            <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
               {CATEGORY_OPTIONS.find(c => c.value === category)?.label || category}
             </span>
-            <span className={`px-2 py-1 rounded ${
-              priority === 'Must' 
-                ? darkMode ? "bg-red-900/20 text-red-300" : "bg-red-100 text-red-700"
-                : priority === 'Should'
-                ? darkMode ? "bg-yellow-900/20 text-yellow-300" : "bg-yellow-100 text-yellow-700"
-                : darkMode ? "bg-green-900/20 text-green-300" : "bg-green-100 text-green-700"
-            }`}>
+            <span className={`px-2 py-1 rounded ${getPriorityBadgeClass(priority)}`}>
               {priority}
             </span>
           </>
@@ -241,11 +207,7 @@ export default function EditableFunctionCard({
             <select
               value={editedCategory}
               onChange={(e) => setEditedCategory(e.target.value)}
-              className={`px-2 py-1 rounded border ${
-                darkMode 
-                  ? "bg-gray-700 border-gray-600 text-gray-300" 
-                  : "bg-white border-gray-300 text-gray-700"
-              }`}
+              className="px-2 py-1 rounded border bg-white border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
             >
               {CATEGORY_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -254,11 +216,7 @@ export default function EditableFunctionCard({
             <select
               value={editedPriority}
               onChange={(e) => setEditedPriority(e.target.value)}
-              className={`px-2 py-1 rounded border ${
-                darkMode 
-                  ? "bg-gray-700 border-gray-600 text-gray-300" 
-                  : "bg-white border-gray-300 text-gray-700"
-              }`}
+              className="px-2 py-1 rounded border bg-white border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
             >
               {PRIORITY_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -266,15 +224,12 @@ export default function EditableFunctionCard({
             </select>
           </>
         )}
-        
+
         {/* 信頼度表示（常に表示） */}
-        <span className={`px-2 py-1 rounded text-xs ${
-          darkMode ? "bg-gray-700 text-gray-400" : "bg-gray-200 text-gray-600"
-        }`}>
+        <span className="px-2 py-1 rounded text-xs bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
           信頼度: {Math.round(extractionConfidence * 100)}%
         </span>
       </div>
     </div>
   );
 }
-

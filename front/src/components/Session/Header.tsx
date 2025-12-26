@@ -1,6 +1,5 @@
 "use client";
 
-import { useDarkMode } from "@/hooks/useDarkMode";
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
@@ -22,7 +21,6 @@ import { getProjectMembersByProjectId, postProjectMember, deleteProjectMember } 
 import axios from "axios";
 
 export default function CyberHeader() {
-  const { darkMode } = useDarkMode();
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -106,31 +104,21 @@ export default function CyberHeader() {
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div
-          className={`relative w-full max-w-2xl mx-4 rounded-lg border shadow-2xl ${
-            darkMode
-              ? "bg-gray-900/95 border-cyan-500/30"
-              : "bg-white/95 border-purple-300/30"
-          }`}
+          className="relative w-full max-w-2xl mx-4 rounded-lg border shadow-2xl bg-white/95 border-purple-300/30 dark:bg-gray-900/95 dark:border-cyan-500/30"
         >
           {/* Header */}
           <div
-            className={`px-6 py-4 border-b flex items-center justify-between ${
-              darkMode ? "border-cyan-500/20" : "border-purple-300/20"
-            }`}
+            className="px-6 py-4 border-b flex items-center justify-between border-purple-300/20 dark:border-cyan-500/20"
           >
             <div className="flex items-center space-x-3">
-              <Settings className={darkMode ? "text-cyan-400" : "text-purple-600"} size={24} />
-              <h2 className={`text-xl font-bold ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>
+              <Settings className="text-purple-600 dark:text-cyan-400" size={24} />
+              <h2 className="text-xl font-bold text-purple-600 dark:text-cyan-400">
                 {settingsMode === "member" ? "プロジェクトメンバー追加" : "プロフィール編集"}
               </h2>
             </div>
             <button
               onClick={() => setIsSettingsOpen(false)}
-              className={`p-2 rounded-lg transition ${
-                darkMode
-                  ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
-                  : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
-              }`}
+              className="p-2 rounded-lg transition hover:bg-purple-500/10 text-gray-600 hover:text-purple-600 dark:hover:bg-cyan-500/10 dark:text-gray-300 dark:hover:text-cyan-400"
             >
               <X size={20} />
             </button>
@@ -138,17 +126,13 @@ export default function CyberHeader() {
 
           {/* Tab Navigation - Only show when projectId exists */}
           {projectId && (
-            <div className={`px-6 pt-4 flex space-x-2 border-b ${darkMode ? "border-cyan-500/20" : "border-purple-300/20"}`}>
+            <div className="px-6 pt-4 flex space-x-2 border-b border-purple-300/20 dark:border-cyan-500/20">
               <button
                 onClick={() => setSettingsMode("profile")}
                 className={`px-4 py-2 font-mono font-bold text-sm rounded-t-lg transition ${
                   settingsMode === "profile"
-                    ? darkMode
-                      ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
-                      : "bg-purple-500/20 text-purple-600 border-b-2 border-purple-600"
-                    : darkMode
-                    ? "text-gray-400 hover:text-cyan-400"
-                    : "text-gray-500 hover:text-purple-600"
+                    ? "bg-purple-500/20 text-purple-600 border-b-2 border-purple-600 dark:bg-cyan-500/20 dark:text-cyan-400 dark:border-cyan-400"
+                    : "text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-cyan-400"
                 }`}
               >
                 プロフィール編集
@@ -157,12 +141,8 @@ export default function CyberHeader() {
                 onClick={() => setSettingsMode("member")}
                 className={`px-4 py-2 font-mono font-bold text-sm rounded-t-lg transition ${
                   settingsMode === "member"
-                    ? darkMode
-                      ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
-                      : "bg-purple-500/20 text-purple-600 border-b-2 border-purple-600"
-                    : darkMode
-                    ? "text-gray-400 hover:text-cyan-400"
-                    : "text-gray-500 hover:text-purple-600"
+                    ? "bg-purple-500/20 text-purple-600 border-b-2 border-purple-600 dark:bg-cyan-500/20 dark:text-cyan-400 dark:border-cyan-400"
+                    : "text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-cyan-400"
                 }`}
               >
                 メンバー追加
@@ -173,9 +153,9 @@ export default function CyberHeader() {
           {/* Body */}
           <div className="px-6 py-6">
             {settingsMode === "member" && projectId ? (
-              <ProjectMemberForm projectId={projectId} darkMode={darkMode} onClose={() => setIsSettingsOpen(false)} />
+              <ProjectMemberForm projectId={projectId} onClose={() => setIsSettingsOpen(false)} />
             ) : (
-              <MemberEditForm darkMode={darkMode} onClose={() => setIsSettingsOpen(false)} session={session} />
+              <MemberEditForm onClose={() => setIsSettingsOpen(false)} session={session} />
             )}
           </div>
         </div>
@@ -187,7 +167,7 @@ export default function CyberHeader() {
     <>
       <header className="absolute z-100 w-full">
         {/* Cyber glow effect */}
-        <div className={`absolute inset-0 `}></div>
+        <div className="absolute inset-0"></div>
 
         <div className="container mx-auto px-6 py-6 relative">
           <div className="flex items-center justify-between">
@@ -197,19 +177,11 @@ export default function CyberHeader() {
               className="flex items-center space-x-4 group cursor-pointer"
             >
               <div
-                className={`relative w-12 h-12 rounded-lg ${
-                  darkMode
-                    ? "bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500"
-                    : "bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500"
-                } flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
+                className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
               >
                 {/* Inner glow effect */}
                 <div
-                  className={`absolute inset-1 rounded ${
-                    darkMode
-                      ? "bg-gradient-to-br from-cyan-400/20 to-pink-400/20"
-                      : "bg-gradient-to-br from-purple-400/20 to-blue-400/20"
-                  } blur-sm`}
+                  className="absolute inset-1 rounded bg-gradient-to-br from-purple-400/20 to-blue-400/20 dark:from-cyan-400/20 dark:to-pink-400/20 blur-sm"
                 ></div>
                 <Terminal
                   className="text-white font-bold text-lg relative z-10"
@@ -217,50 +189,32 @@ export default function CyberHeader() {
                 />
                 {/* Corner brackets */}
                 <div
-                  className={`absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 ${
-                    darkMode ? "border-cyan-400" : "border-purple-300"
-                  }`}
+                  className="absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 border-purple-300 dark:border-cyan-400"
                 ></div>
                 <div
-                  className={`absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 ${
-                    darkMode ? "border-pink-400" : "border-blue-300"
-                  }`}
+                  className="absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 border-blue-300 dark:border-pink-400"
                 ></div>
                 <div
-                  className={`absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 ${
-                    darkMode ? "border-pink-400" : "border-blue-300"
-                  }`}
+                  className="absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 border-blue-300 dark:border-pink-400"
                 ></div>
                 <div
-                  className={`absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 ${
-                    darkMode ? "border-cyan-400" : "border-purple-300"
-                  }`}
+                  className="absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 border-purple-300 dark:border-cyan-400"
                 ></div>
               </div>
 
               <div className="flex flex-col">
                 <span
-                  className={`text-xl font-bold tracking-widest ${
-                    darkMode
-                      ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400"
-                      : "text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600"
-                  } filter drop-shadow-lg`}
+                  className="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-cyan-400 dark:to-pink-400 filter drop-shadow-lg"
                 >
                   Hackathon
                 </span>
                 <span
-                  className={`text-1xl font-bold tracking-widest ${
-                    darkMode
-                      ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400"
-                      : "text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600"
-                  } filter drop-shadow-lg`}
+                  className="text-1xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-cyan-400 dark:to-pink-400 filter drop-shadow-lg"
                 >
                   SupportAgent
                 </span>
                 <span
-                  className={`text-xs font-mono tracking-wider ${
-                    darkMode ? "text-cyan-300/70" : "text-purple-500/70"
-                  }`}
+                  className="text-xs font-mono tracking-wider text-purple-500/70 dark:text-cyan-300/70"
                 >
                   {"// SYSTEM_ONLINE"}
                 </span>
@@ -271,27 +225,15 @@ export default function CyberHeader() {
             <div className="flex items-center space-x-4">
               {status === "loading" && (
                 <div
-                  className={`relative px-6 py-3 rounded-lg backdrop-blur-sm border ${
-                    darkMode
-                      ? "bg-gray-900/50 border-cyan-500/30 text-cyan-400"
-                      : "bg-white/50 border-purple-300/30 text-purple-600"
-                  } shadow-lg overflow-hidden`}
+                  className="relative px-6 py-3 rounded-lg backdrop-blur-sm border bg-white/50 border-purple-300/30 text-purple-600 dark:bg-gray-900/50 dark:border-cyan-500/30 dark:text-cyan-400 shadow-lg overflow-hidden"
                 >
                   {/* Scanning line effect */}
                   <div
-                    className={`absolute inset-0 ${
-                      darkMode
-                        ? "bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent"
-                        : "bg-gradient-to-r from-transparent via-purple-400/10 to-transparent"
-                    } translate-x-[-100%] animate-pulse`}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/10 to-transparent dark:via-cyan-400/10 translate-x-[-100%] animate-pulse"
                   ></div>
                   <div className="flex items-center space-x-3 relative">
                     <div
-                      className={`animate-spin rounded-full h-5 w-5 border-2 ${
-                        darkMode
-                          ? "border-cyan-400 border-t-transparent"
-                          : "border-purple-600 border-t-transparent"
-                      }`}
+                      className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent dark:border-cyan-400 dark:border-t-transparent"
                     ></div>
                     <span className="text-sm font-mono font-bold tracking-wider">
                       LOADING...
@@ -304,19 +246,11 @@ export default function CyberHeader() {
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={handleSignIn}
-                    className={`group relative px-6 py-3 rounded-lg font-mono font-bold text-sm tracking-wider transition-all duration-300 overflow-hidden ${
-                      darkMode
-                        ? "bg-gray-900/50 hover:bg-gray-800/70 text-gray-300 hover:text-cyan-400 border border-gray-600/50 hover:border-cyan-500/70"
-                        : "bg-white/50 hover:bg-gray-50/70 text-gray-600 hover:text-purple-600 border border-gray-300/50 hover:border-purple-400/70"
-                    } backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105`}
+                    className="group relative px-6 py-3 rounded-lg font-mono font-bold text-sm tracking-wider transition-all duration-300 overflow-hidden bg-white/50 hover:bg-gray-50/70 text-gray-600 hover:text-purple-600 border border-gray-300/50 hover:border-purple-400/70 dark:bg-gray-900/50 dark:hover:bg-gray-800/70 dark:text-gray-300 dark:hover:text-cyan-400 dark:border-gray-600/50 dark:hover:border-cyan-500/70 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     {/* Cyber scan line */}
                     <div
-                      className={`absolute inset-0 ${
-                        darkMode
-                          ? "bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent"
-                          : "bg-gradient-to-r from-transparent via-purple-400/20 to-transparent"
-                      } translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700`}
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent dark:via-cyan-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"
                     ></div>
                     <div className="flex items-center space-x-2 relative">
                       <Shield className="w-4 h-4" />
@@ -324,14 +258,10 @@ export default function CyberHeader() {
                     </div>
                     {/* Corner brackets */}
                     <div
-                      className={`absolute top-1 left-1 w-2 h-2 border-l border-t ${
-                        darkMode ? "border-cyan-400/50" : "border-purple-400/50"
-                      } opacity-0 group-hover:opacity-100 transition-opacity`}
+                      className="absolute top-1 left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity"
                     ></div>
                     <div
-                      className={`absolute top-1 right-1 w-2 h-2 border-r border-t ${
-                        darkMode ? "border-cyan-400/50" : "border-purple-400/50"
-                      } opacity-0 group-hover:opacity-100 transition-opacity`}
+                      className="absolute top-1 right-1 w-2 h-2 border-r border-t border-purple-400/50 dark:border-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity"
                     ></div>
                   </button>
                 </div>
@@ -344,17 +274,11 @@ export default function CyberHeader() {
                 >
                   <button
                     onClick={handleMenuToggle}
-                    className={`relative px-6 py-3 rounded-lg backdrop-blur-sm border transition-all duration-300 ${
-                      darkMode
-                        ? "bg-gray-900/50 border-cyan-500/30 hover:border-cyan-400/50"
-                        : "bg-white/50 border-purple-300/30 hover:border-purple-400/50"
-                    } shadow-lg overflow-hidden hover:shadow-xl group`}
+                    className="relative px-6 py-3 rounded-lg backdrop-blur-sm border transition-all duration-300 bg-white/50 border-purple-300/30 hover:border-purple-400/50 dark:bg-gray-900/50 dark:border-cyan-500/30 dark:hover:border-cyan-400/50 shadow-lg overflow-hidden hover:shadow-xl group"
                   >
                     {/* Status indicator */}
                     <div
-                      className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
-                        darkMode ? "bg-green-400" : "bg-green-500"
-                      } animate-pulse`}
+                      className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse"
                     ></div>
                     <div className="flex items-center space-x-3">
                       <div className="relative">
@@ -363,26 +287,16 @@ export default function CyberHeader() {
                           alt="Profile"
                           width={40}
                           height={40}
-                          className={`w-10 h-10 rounded-lg border-2 transition-all duration-300 ${
-                            darkMode
-                              ? "border-cyan-500/50 group-hover:border-cyan-400"
-                              : "border-purple-500/50 group-hover:border-purple-400"
-                          }`}
+                          className="w-10 h-10 rounded-lg border-2 transition-all duration-300 border-purple-500/50 group-hover:border-purple-400 dark:border-cyan-500/50 dark:group-hover:border-cyan-400"
                         />
                         {/* Cyber frame */}
                         <div
-                          className={`absolute -inset-1 border transition-all duration-300 ${
-                            darkMode
-                              ? "border-cyan-400/30 group-hover:border-cyan-400/50"
-                              : "border-purple-400/30 group-hover:border-purple-400/50"
-                          } rounded-lg`}
+                          className="absolute -inset-1 border transition-all duration-300 border-purple-400/30 group-hover:border-purple-400/50 dark:border-cyan-400/30 dark:group-hover:border-cyan-400/50 rounded-lg"
                         ></div>
                       </div>
                       <div className="hidden sm:block">
                         <p
-                          className={`text-sm font-mono font-bold tracking-wider ${
-                            darkMode ? "text-cyan-400" : "text-purple-600"
-                          }`}
+                          className="text-sm font-mono font-bold tracking-wider text-purple-600 dark:text-cyan-400"
                         >
                           USER_
                           {session.user?.name
@@ -391,16 +305,14 @@ export default function CyberHeader() {
                         </p>
                         <div className="flex items-center space-x-1">
                           <span
-                            className={`text-xs font-mono ${
-                              darkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
+                            className="text-xs font-mono text-gray-500 dark:text-gray-400"
                           >
                             {"// ONLINE"}
                           </span>
                           <ChevronDown
                             className={`w-3 h-3 transition-transform duration-300 ${
                               isMenuOpen ? "rotate-180" : ""
-                            } ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                            } text-purple-600 dark:text-cyan-400`}
                           />
                         </div>
                       </div>
@@ -408,7 +320,7 @@ export default function CyberHeader() {
                         <ChevronDown
                           className={`w-4 h-4 transition-transform duration-300 ${
                             isMenuOpen ? "rotate-180" : ""
-                          } ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                          } text-purple-600 dark:text-cyan-400`}
                         />
                       </div>
                     </div>
@@ -417,19 +329,11 @@ export default function CyberHeader() {
                   {/* Dropdown Menu */}
                   {isMenuOpen && (
                     <div
-                      className={`absolute top-full right-0 mt-2 w-64 rounded-lg backdrop-blur-md border shadow-xl z-50 overflow-hidden ${
-                        darkMode
-                          ? "bg-gray-900/90 border-cyan-500/30"
-                          : "bg-white/90 border-purple-300/30"
-                      }`}
+                      className="absolute top-full right-0 mt-2 w-64 rounded-lg backdrop-blur-md border shadow-xl z-50 overflow-hidden bg-white/90 border-purple-300/30 dark:bg-gray-900/90 dark:border-cyan-500/30"
                     >
                       {/* Menu Header */}
                       <div
-                        className={`px-4 py-3 border-b ${
-                          darkMode
-                            ? "border-cyan-500/20"
-                            : "border-purple-300/20"
-                        }`}
+                        className="px-4 py-3 border-b border-purple-300/20 dark:border-cyan-500/20"
                       >
                         <div className="flex items-center space-x-3">
                           <Image
@@ -437,24 +341,16 @@ export default function CyberHeader() {
                             alt="Profile"
                             width={32}
                             height={32}
-                            className={`w-8 h-8 rounded border ${
-                              darkMode
-                                ? "border-cyan-500/50"
-                                : "border-purple-500/50"
-                            }`}
+                            className="w-8 h-8 rounded border border-purple-500/50 dark:border-cyan-500/50"
                           />
                           <div>
                             <p
-                              className={`text-sm font-mono font-bold ${
-                                darkMode ? "text-cyan-400" : "text-purple-600"
-                              }`}
+                              className="text-sm font-mono font-bold text-purple-600 dark:text-cyan-400"
                             >
                               {session.user?.name}
                             </p>
                             <p
-                              className={`text-xs font-mono ${
-                                darkMode ? "text-gray-400" : "text-gray-500"
-                              }`}
+                              className="text-xs font-mono text-gray-500 dark:text-gray-400"
                             >
                               {session.user?.email}
                             </p>
@@ -469,28 +365,16 @@ export default function CyberHeader() {
                             setIsMenuOpen(false);
                             router.push("/dashbord/memberProject");
                           }}
-                          className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
-                            darkMode
-                              ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
-                              : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
-                          }`}
+                          className="w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 hover:bg-purple-500/10 text-gray-600 hover:text-purple-600 dark:hover:bg-cyan-500/10 dark:text-gray-300 dark:hover:text-cyan-400"
                         >
                           <div className="relative">
                             <FolderOpen className="w-5 h-5" />
                             {/* Cyber brackets */}
                             <div
-                              className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
-                                darkMode
-                                  ? "border-cyan-400/50"
-                                  : "border-purple-400/50"
-                              }`}
+                              className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"
                             ></div>
                             <div
-                              className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
-                                darkMode
-                                  ? "border-cyan-400/50"
-                                  : "border-purple-400/50"
-                              }`}
+                              className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"
                             ></div>
                           </div>
                           <div>
@@ -498,9 +382,7 @@ export default function CyberHeader() {
                               ALL_PROJECTS
                             </span>
                             <p
-                              className={`text-xs font-mono ${
-                                darkMode ? "text-gray-500" : "text-gray-400"
-                              }`}
+                              className="text-xs font-mono text-gray-400 dark:text-gray-500"
                             >
                               {"// View all projects"}
                             </p>
@@ -509,28 +391,16 @@ export default function CyberHeader() {
 
                         <button
                           onClick={() => handleSettings("profile")}
-                          className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
-                            darkMode
-                              ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
-                              : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
-                          }`}
+                          className="w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 hover:bg-purple-500/10 text-gray-600 hover:text-purple-600 dark:hover:bg-cyan-500/10 dark:text-gray-300 dark:hover:text-cyan-400"
                         >
                           <div className="relative">
                             <Edit className="w-5 h-5" />
                             {/* Cyber brackets */}
                             <div
-                              className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
-                                darkMode
-                                  ? "border-cyan-400/50"
-                                  : "border-purple-400/50"
-                              }`}
+                              className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"
                             ></div>
                             <div
-                              className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
-                                darkMode
-                                  ? "border-cyan-400/50"
-                                  : "border-purple-400/50"
-                              }`}
+                              className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"
                             ></div>
                           </div>
                           <div>
@@ -538,9 +408,7 @@ export default function CyberHeader() {
                               PROFILE
                             </span>
                             <p
-                              className={`text-xs font-mono ${
-                                darkMode ? "text-gray-500" : "text-gray-400"
-                              }`}
+                              className="text-xs font-mono text-gray-400 dark:text-gray-500"
                             >
                               {"// Edit profile"}
                             </p>
@@ -550,28 +418,16 @@ export default function CyberHeader() {
                         {projectId && (
                           <button
                             onClick={() => handleSettings("member")}
-                            className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
-                              darkMode
-                                ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
-                                : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
-                            }`}
+                            className="w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 hover:bg-purple-500/10 text-gray-600 hover:text-purple-600 dark:hover:bg-cyan-500/10 dark:text-gray-300 dark:hover:text-cyan-400"
                           >
                             <div className="relative">
                               <UserPlus className="w-5 h-5" />
                               {/* Cyber brackets */}
                               <div
-                                className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
-                                  darkMode
-                                    ? "border-cyan-400/50"
-                                    : "border-purple-400/50"
-                                }`}
+                                className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"
                               ></div>
                               <div
-                                className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
-                                  darkMode
-                                    ? "border-cyan-400/50"
-                                    : "border-purple-400/50"
-                                }`}
+                                className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"
                               ></div>
                             </div>
                             <div>
@@ -579,9 +435,7 @@ export default function CyberHeader() {
                                 ADD_MEMBER
                               </span>
                               <p
-                                className={`text-xs font-mono ${
-                                  darkMode ? "text-gray-500" : "text-gray-400"
-                                }`}
+                                className="text-xs font-mono text-gray-400 dark:text-gray-500"
                               >
                                 {"// Add project member"}
                               </p>
@@ -590,35 +444,21 @@ export default function CyberHeader() {
                         )}
 
                         <div
-                          className={`mx-4 my-2 h-px ${
-                            darkMode ? "bg-cyan-500/20" : "bg-purple-300/20"
-                          }`}
+                          className="mx-4 my-2 h-px bg-purple-300/20 dark:bg-cyan-500/20"
                         ></div>
 
                         <button
                           onClick={handleLogout}
-                          className={`w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 ${
-                            darkMode
-                              ? "hover:bg-red-500/10 text-gray-300 hover:text-red-400"
-                              : "hover:bg-red-500/10 text-gray-600 hover:text-red-600"
-                          }`}
+                          className="w-full px-4 py-3 text-left flex items-center space-x-3 transition-all duration-200 hover:bg-red-500/10 text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400"
                         >
                           <div className="relative">
                             <LogOut className="w-5 h-5" />
                             {/* Warning brackets */}
                             <div
-                              className={`absolute -top-1 -left-1 w-2 h-2 border-l border-t ${
-                                darkMode
-                                  ? "border-red-400/50"
-                                  : "border-red-500/50"
-                              }`}
+                              className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-red-500/50 dark:border-red-400/50"
                             ></div>
                             <div
-                              className={`absolute -bottom-1 -right-1 w-2 h-2 border-r border-b ${
-                                darkMode
-                                  ? "border-red-400/50"
-                                  : "border-red-500/50"
-                              }`}
+                              className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-red-500/50 dark:border-red-400/50"
                             ></div>
                           </div>
                           <div>
@@ -626,9 +466,7 @@ export default function CyberHeader() {
                               LOGOUT
                             </span>
                             <p
-                              className={`text-xs font-mono ${
-                                darkMode ? "text-gray-500" : "text-gray-400"
-                              }`}
+                              className="text-xs font-mono text-gray-400 dark:text-gray-500"
                             >
                               {"// End session"}
                             </p>
@@ -638,16 +476,10 @@ export default function CyberHeader() {
 
                       {/* Menu Footer */}
                       <div
-                        className={`px-4 py-2 border-t ${
-                          darkMode
-                            ? "border-cyan-500/20 bg-gray-800/50"
-                            : "border-purple-300/20 bg-gray-50/50"
-                        }`}
+                        className="px-4 py-2 border-t border-purple-300/20 bg-gray-50/50 dark:border-cyan-500/20 dark:bg-gray-800/50"
                       >
                         <p
-                          className={`text-xs font-mono text-center ${
-                            darkMode ? "text-gray-500" : "text-gray-400"
-                          }`}
+                          className="text-xs font-mono text-center text-gray-400 dark:text-gray-500"
                         >
                           {"// SYSTEM_ACCESS_GRANTED"}
                         </p>
@@ -670,11 +502,9 @@ export default function CyberHeader() {
 // ProjectMemberForm コンポーネント
 const ProjectMemberForm = ({
   projectId,
-  darkMode,
   onClose,
 }: {
   projectId: string;
-  darkMode: boolean;
   onClose: () => void;
 }) => {
   const [githubNames, setGithubNames] = useState<string[]>([]);
@@ -906,39 +736,27 @@ const ProjectMemberForm = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 既存メンバー表示 */}
         {isLoadingMembers ? (
-          <div className={`text-center py-4 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>
+          <div className="text-center py-4 text-purple-600 dark:text-cyan-400">
             読み込み中...
           </div>
         ) : existingMembers.length > 0 ? (
           <div>
             <label
-              className={`block text-sm font-mono font-bold mb-2 ${
-                darkMode ? "text-cyan-400" : "text-purple-600"
-              }`}
+              className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
             >
               現在のメンバー
             </label>
-            <div className={`min-h-[50px] p-2 rounded-lg border mb-4 flex flex-wrap gap-2 ${
-              darkMode
-                ? "bg-gray-800/50 border-cyan-500/20"
-                : "bg-white/50 border-purple-300/20"
-            }`}>
+            <div className="min-h-[50px] p-2 rounded-lg border mb-4 flex flex-wrap gap-2 bg-white/50 border-purple-300/20 dark:bg-gray-800/50 dark:border-cyan-500/20">
               {existingMembers.map((member) => (
                 <div
                   key={member.project_member_id}
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-mono ${
-                    darkMode
-                      ? "bg-green-500/20 text-green-300 border border-green-500/50"
-                      : "bg-green-500/20 text-green-700 border border-green-400/50"
-                  }`}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-mono bg-green-500/20 text-green-700 border border-green-400/50 dark:text-green-300 dark:border-green-500/50"
                 >
                   <span>{member.github_name}</span>
                   <button
                     type="button"
                     onClick={() => removeExistingMember(member.project_member_id)}
-                    className={`ml-2 hover:opacity-70 ${
-                      darkMode ? "text-green-400" : "text-green-600"
-                    }`}
+                    className="ml-2 hover:opacity-70 text-green-600 dark:text-green-400"
                   >
                     <X size={14} />
                   </button>
@@ -950,35 +768,23 @@ const ProjectMemberForm = ({
 
         <div className="relative">
           <label
-            className={`block text-sm font-mono font-bold mb-2 ${
-              darkMode ? "text-cyan-400" : "text-purple-600"
-            }`}
+            className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
           >
             メンバーを追加
           </label>
 
           {/* 追加予定のチップ表示エリア */}
-          <div className={`min-h-[50px] p-2 rounded-lg border mb-2 flex flex-wrap gap-2 ${
-            darkMode
-              ? "bg-gray-800 border-cyan-500/30"
-              : "bg-white border-purple-300/30"
-          }`}>
+          <div className="min-h-[50px] p-2 rounded-lg border mb-2 flex flex-wrap gap-2 bg-white border-purple-300/30 dark:bg-gray-800 dark:border-cyan-500/30">
             {githubNames.map((name, index) => (
               <div
                 key={index}
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-mono ${
-                  darkMode
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50"
-                    : "bg-purple-500/20 text-purple-700 border border-purple-400/50"
-                }`}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-mono bg-purple-500/20 text-purple-700 border border-purple-400/50 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/50"
               >
                 <span>{name}</span>
                 <button
                   type="button"
                   onClick={() => removeGithubName(name)}
-                  className={`ml-2 hover:opacity-70 ${
-                    darkMode ? "text-cyan-400" : "text-purple-600"
-                  }`}
+                  className="ml-2 hover:opacity-70 text-purple-600 dark:text-cyan-400"
                 >
                   <X size={14} />
                 </button>
@@ -993,32 +799,18 @@ const ProjectMemberForm = ({
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="GitHubユーザー名を入力してEnter"
-            className={`w-full px-4 py-2 rounded-lg border ${
-              darkMode
-                ? "bg-gray-800 border-cyan-500/30 text-gray-300 focus:border-cyan-400 placeholder-gray-500"
-                : "bg-white border-purple-300/30 text-gray-600 focus:border-purple-400 placeholder-gray-400"
-            } focus:outline-none focus:ring-2 ${
-              darkMode ? "focus:ring-cyan-400/50" : "focus:ring-purple-400/50"
-            }`}
+            className="w-full px-4 py-2 rounded-lg border bg-white border-purple-300/30 text-gray-600 focus:border-purple-400 placeholder-gray-400 dark:bg-gray-800 dark:border-cyan-500/30 dark:text-gray-300 dark:focus:border-cyan-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-400/50 dark:focus:ring-cyan-400/50"
           />
 
           {/* サジェスト */}
           {suggestions.length > 0 && (
-            <div className={`absolute z-10 w-full mt-1 rounded-lg border shadow-lg ${
-              darkMode
-                ? "bg-gray-800 border-cyan-500/30"
-                : "bg-white border-purple-300/30"
-            }`}>
+            <div className="absolute z-10 w-full mt-1 rounded-lg border shadow-lg bg-white border-purple-300/30 dark:bg-gray-800 dark:border-cyan-500/30">
               {suggestions.map((suggestion, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => addGithubName(suggestion)}
-                  className={`w-full px-4 py-2 text-left font-mono text-sm transition ${
-                    darkMode
-                      ? "hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400"
-                      : "hover:bg-purple-500/10 text-gray-600 hover:text-purple-600"
-                  } ${index === 0 ? "rounded-t-lg" : ""} ${
+                  className={`w-full px-4 py-2 text-left font-mono text-sm transition hover:bg-purple-500/10 text-gray-600 hover:text-purple-600 dark:hover:bg-cyan-500/10 dark:text-gray-300 dark:hover:text-cyan-400 ${index === 0 ? "rounded-t-lg" : ""} ${
                     index === suggestions.length - 1 ? "rounded-b-lg" : ""
                   }`}
                 >
@@ -1033,11 +825,7 @@ const ProjectMemberForm = ({
           <button
             type="button"
             onClick={onClose}
-            className={`px-6 py-2 rounded-lg font-mono font-bold transition ${
-              darkMode
-                ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
-                : "bg-gray-200 hover:bg-gray-300 text-gray-600"
-            }`}
+            className="px-6 py-2 rounded-lg font-mono font-bold transition bg-gray-200 hover:bg-gray-300 text-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300"
           >
             キャンセル
           </button>
@@ -1047,10 +835,8 @@ const ProjectMemberForm = ({
             className={`px-6 py-2 rounded-lg font-mono font-bold flex items-center space-x-2 transition ${
               loading || githubNames.length === 0
                 ? "opacity-50 cursor-not-allowed"
-                : darkMode
-                ? "bg-cyan-600 hover:bg-cyan-700 text-white"
-                : "bg-purple-600 hover:bg-purple-700 text-white"
-            }`}
+                : ""
+            } bg-purple-600 hover:bg-purple-700 text-white dark:bg-cyan-600 dark:hover:bg-cyan-700`}
           >
             <UserPlus size={16} />
             <span>{loading ? "追加中..." : `追加 (${githubNames.length})`}</span>
@@ -1061,17 +847,11 @@ const ProjectMemberForm = ({
       {/* Success Message */}
       {showSuccessMessage && (
         <div
-          className={`fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] ${
-            darkMode
-              ? "bg-green-900/90 border-green-500/50 text-green-300"
-              : "bg-green-100/90 border-green-400/50 text-green-800"
-          }`}
+          className="fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] bg-green-100/90 border-green-400/50 text-green-800 dark:bg-green-900/90 dark:border-green-500/50 dark:text-green-300"
         >
           <div className="flex items-center space-x-3">
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                darkMode ? "bg-green-500/20" : "bg-green-500/20"
-              }`}
+              className="w-6 h-6 rounded-full flex items-center justify-center bg-green-500/20"
             >
               <span className="text-xl">✓</span>
             </div>
@@ -1085,11 +865,9 @@ const ProjectMemberForm = ({
 
 // MemberEditForm コンポーネント
 const MemberEditForm = ({
-  darkMode,
   onClose,
   session,
 }: {
-  darkMode: boolean;
   onClose: () => void;
   session: Session | null;
 }) => {
@@ -1153,7 +931,7 @@ const MemberEditForm = ({
   };
 
   if (isLoading) {
-    return <div className={darkMode ? "text-cyan-400" : "text-purple-600"}>読み込み中...</div>;
+    return <div className="text-purple-600 dark:text-cyan-400">読み込み中...</div>;
   }
 
   return (
@@ -1161,9 +939,7 @@ const MemberEditForm = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
-            className={`block text-sm font-mono font-bold mb-2 ${
-              darkMode ? "text-cyan-400" : "text-purple-600"
-            }`}
+            className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
           >
             名前
           </label>
@@ -1172,21 +948,13 @@ const MemberEditForm = ({
             value={memberName}
             onChange={(e) => setMemberName(e.target.value)}
             required
-            className={`w-full px-4 py-2 rounded-lg border ${
-              darkMode
-                ? "bg-gray-800 border-cyan-500/30 text-gray-300 focus:border-cyan-400"
-                : "bg-white border-purple-300/30 text-gray-600 focus:border-purple-400"
-            } focus:outline-none focus:ring-2 ${
-              darkMode ? "focus:ring-cyan-400/50" : "focus:ring-purple-400/50"
-            }`}
+            className="w-full px-4 py-2 rounded-lg border bg-white border-purple-300/30 text-gray-600 focus:border-purple-400 dark:bg-gray-800 dark:border-cyan-500/30 dark:text-gray-300 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 dark:focus:ring-cyan-400/50"
           />
         </div>
 
         <div>
           <label
-            className={`block text-sm font-mono font-bold mb-2 ${
-              darkMode ? "text-cyan-400" : "text-purple-600"
-            }`}
+            className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
           >
             スキル
           </label>
@@ -1195,13 +963,7 @@ const MemberEditForm = ({
             onChange={(e) => setMemberSkill(e.target.value)}
             required
             rows={4}
-            className={`w-full px-4 py-2 rounded-lg border ${
-              darkMode
-                ? "bg-gray-800 border-cyan-500/30 text-gray-300 focus:border-cyan-400"
-                : "bg-white border-purple-300/30 text-gray-600 focus:border-purple-400"
-            } focus:outline-none focus:ring-2 ${
-              darkMode ? "focus:ring-cyan-400/50" : "focus:ring-purple-400/50"
-            }`}
+            className="w-full px-4 py-2 rounded-lg border bg-white border-purple-300/30 text-gray-600 focus:border-purple-400 dark:bg-gray-800 dark:border-cyan-500/30 dark:text-gray-300 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 dark:focus:ring-cyan-400/50"
           />
         </div>
 
@@ -1209,11 +971,7 @@ const MemberEditForm = ({
           <button
             type="button"
             onClick={onClose}
-            className={`px-6 py-2 rounded-lg font-mono font-bold transition ${
-              darkMode
-                ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
-                : "bg-gray-200 hover:bg-gray-300 text-gray-600"
-            }`}
+            className="px-6 py-2 rounded-lg font-mono font-bold transition bg-gray-200 hover:bg-gray-300 text-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300"
           >
             キャンセル
           </button>
@@ -1223,10 +981,8 @@ const MemberEditForm = ({
             className={`px-6 py-2 rounded-lg font-mono font-bold flex items-center space-x-2 transition ${
               loading
                 ? "opacity-50 cursor-not-allowed"
-                : darkMode
-                ? "bg-cyan-600 hover:bg-cyan-700 text-white"
-                : "bg-purple-600 hover:bg-purple-700 text-white"
-            }`}
+                : ""
+            } bg-purple-600 hover:bg-purple-700 text-white dark:bg-cyan-600 dark:hover:bg-cyan-700`}
           >
             <Edit size={16} />
             <span>{loading ? "更新中..." : "更新"}</span>
@@ -1237,17 +993,11 @@ const MemberEditForm = ({
       {/* Success Message */}
       {showSuccessMessage && (
         <div
-          className={`fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] ${
-            darkMode
-              ? "bg-green-900/90 border-green-500/50 text-green-300"
-              : "bg-green-100/90 border-green-400/50 text-green-800"
-          }`}
+          className="fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] bg-green-100/90 border-green-400/50 text-green-800 dark:bg-green-900/90 dark:border-green-500/50 dark:text-green-300"
         >
           <div className="flex items-center space-x-3">
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                darkMode ? "bg-green-500/20" : "bg-green-500/20"
-              }`}
+              className="w-6 h-6 rounded-full flex items-center justify-center bg-green-500/20"
             >
               <span className="text-xl">✓</span>
             </div>

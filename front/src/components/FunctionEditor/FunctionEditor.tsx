@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { RefreshCcw, Loader2, FileText, TrendingUp } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { SpecificationFeedback } from "@/types/modelTypes";
 import SpecificationFeedbackModal from "@/components/SpecificationFeedbackModal/SpecificationFeedbackModal";
 import {
@@ -45,7 +44,6 @@ export default function FunctionEditor({
   onQuestionsUpdate,
   onConfidenceUpdate
 }: FunctionEditorProps) {
-  const { darkMode } = useDarkMode();
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
@@ -150,26 +148,27 @@ export default function FunctionEditor({
     }
   }, [functionDocument, projectId, onDocumentUpdate]);
 
+  // Helper function to get confidence badge classes
+  const getConfidenceBadgeClass = () => {
+    if (overallConfidence >= 0.8) {
+      return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400";
+    }
+    if (overallConfidence >= 0.6) {
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400";
+    }
+    return "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400";
+  };
+
   // ヘッダーアクション
   const headerActions = (
     <div className="flex items-center space-x-2">
-      <div className={`px-3 py-1 rounded-full text-sm ${
-        overallConfidence >= 0.8
-          ? darkMode ? "bg-green-900/50 text-green-400" : "bg-green-100 text-green-700"
-          : overallConfidence >= 0.6
-          ? darkMode ? "bg-yellow-900/50 text-yellow-400" : "bg-yellow-100 text-yellow-700"
-          : darkMode ? "bg-red-900/50 text-red-400" : "bg-red-100 text-red-700"
-      }`}>
+      <div className={`px-3 py-1 rounded-full text-sm ${getConfidenceBadgeClass()}`}>
         {overallConfidence >= 0.8 ? "高確信" : overallConfidence >= 0.6 ? "中確信" : "要改善"}
       </div>
-      <div className={`px-3 py-1 rounded-full text-sm ${
-        darkMode ? "bg-cyan-900/50 text-cyan-400" : "bg-purple-100 text-purple-700"
-      }`}>
+      <div className="px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-700 dark:bg-cyan-900/50 dark:text-cyan-400">
         確信度: {(overallConfidence * 100).toFixed(0)}%
       </div>
-      <div className={`px-3 py-1 rounded-full text-sm ${
-        darkMode ? "bg-blue-900/50 text-blue-400" : "bg-blue-100 text-blue-700"
-      }`}>
+      <div className="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400">
         要件数: {requirements.length}
       </div>
     </div>
@@ -185,12 +184,8 @@ export default function FunctionEditor({
           regenerating
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
-        } ${
-          darkMode
-            ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-            : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-        } ${
-          regenerating && (darkMode ? "bg-cyan-600" : "from-purple-600 to-blue-700")
+        } bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 ${
+          regenerating ? "from-purple-600 to-blue-700 dark:bg-cyan-600" : ""
         }`}
       >
         {regenerating ? (
@@ -213,12 +208,8 @@ export default function FunctionEditor({
           loadingFeedback || !functionDocument
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
-        } ${
-          darkMode
-            ? "bg-teal-500 hover:bg-teal-600 text-gray-900 focus:ring-2 focus:ring-teal-400"
-            : "bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white focus:ring-2 focus:ring-teal-400"
-        } ${
-          loadingFeedback && (darkMode ? "bg-teal-600" : "from-teal-600 to-emerald-700")
+        } bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white focus:ring-2 focus:ring-teal-400 dark:bg-teal-500 dark:hover:bg-teal-600 dark:text-gray-900 dark:focus:ring-teal-400 dark:from-teal-500 dark:to-teal-500 ${
+          loadingFeedback ? "from-teal-600 to-emerald-700 dark:bg-teal-600" : ""
         }`}
       >
         {loadingFeedback ? (
@@ -238,11 +229,7 @@ export default function FunctionEditor({
 
   return (
     <div
-      className={`flex-1 backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
-        darkMode
-          ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
-          : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
-      }`}
+      className="flex-1 backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20"
     >
       <BaseEditor
         content={functionDocument}

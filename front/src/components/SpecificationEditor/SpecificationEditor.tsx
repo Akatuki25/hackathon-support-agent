@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useEffect } from "react";
 import { RefreshCcw, Loader2, Edit3 } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { ProjectDocumentType, SpecificationFeedback } from "@/types/modelTypes";
 import { patchProjectDocument } from "@/libs/modelAPI/document";
 import { evaluateSummary, getSpecificationFeedback, generateSummaryWithFeedback } from "@/libs/service/summary";
@@ -35,7 +34,6 @@ export default function SpecificationEditor({
   onDocumentUpdate,
   onEvaluationUpdate
 }: SpecificationEditorProps) {
-  const { darkMode } = useDarkMode();
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
@@ -132,9 +130,7 @@ export default function SpecificationEditor({
         className={`px-4 py-2 flex items-center rounded-lg text-sm transition ${
           loadingFeedback || !projectDocument?.specification
             ? "cursor-not-allowed opacity-50"
-            : darkMode
-              ? "bg-gray-700 hover:bg-gray-600 text-cyan-400"
-              : "bg-gray-100 hover:bg-gray-200 text-purple-700"
+            : "bg-gray-100 hover:bg-gray-200 text-purple-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-cyan-400"
         }`}
       >
         {loadingFeedback ? (
@@ -157,12 +153,8 @@ export default function SpecificationEditor({
           regenerating
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
-        } ${
-          darkMode
-            ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-            : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-        } ${
-          regenerating && (darkMode ? "bg-cyan-600" : "from-purple-600 to-blue-700")
+        } bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 ${
+          regenerating ? "from-purple-600 to-blue-700 dark:bg-cyan-600" : ""
         }`}
       >
         {regenerating ? (
@@ -199,23 +191,17 @@ export default function SpecificationEditor({
 
       {/* インラインフィードバック表示 */}
       {specificationFeedback && (
-        <div className={`rounded-lg border p-6 space-y-4 ${
-          darkMode
-            ? "bg-gray-800/50 border-cyan-500/30"
-            : "bg-white/80 border-purple-500/30"
-        }`}>
-          <h3 className={`text-lg font-bold flex items-center ${
-            darkMode ? "text-cyan-300" : "text-purple-700"
-          }`}>
+        <div className="rounded-lg border p-6 space-y-4 bg-white/80 border-purple-500/30 dark:bg-gray-800/50 dark:border-cyan-500/30">
+          <h3 className="text-lg font-bold flex items-center text-purple-700 dark:text-cyan-300">
             📊 仕様書ガイドライン
           </h3>
 
           {/* 総合評価 */}
           <div className="space-y-2">
-            <h4 className={`font-semibold ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>
+            <h4 className="font-semibold text-purple-600 dark:text-cyan-400">
               総合評価
             </h4>
-            <p className={darkMode ? "text-gray-300" : "text-gray-700"}>
+            <p className="text-gray-700 dark:text-gray-300">
               {specificationFeedback.summary}
             </p>
           </div>
@@ -223,10 +209,10 @@ export default function SpecificationEditor({
           {/* 強み */}
           {specificationFeedback.strengths && specificationFeedback.strengths.length > 0 && (
             <div className="space-y-2">
-              <h4 className={`font-semibold ${darkMode ? "text-green-400" : "text-green-600"}`}>
+              <h4 className="font-semibold text-green-600 dark:text-green-400">
                 ✅ 強み
               </h4>
-              <ul className={`list-disc list-inside space-y-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+              <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
                 {specificationFeedback.strengths.map((strength, index) => (
                   <li key={index}>{strength}</li>
                 ))}
@@ -237,10 +223,10 @@ export default function SpecificationEditor({
           {/* 改善提案 */}
           {specificationFeedback.suggestions && specificationFeedback.suggestions.length > 0 && (
             <div className="space-y-2">
-              <h4 className={`font-semibold ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}>
+              <h4 className="font-semibold text-yellow-600 dark:text-yellow-400">
                 💡 改善提案
               </h4>
-              <ul className={`list-disc list-inside space-y-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+              <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
                 {specificationFeedback.suggestions.map((suggestion, index) => (
                   <li key={index}>{suggestion}</li>
                 ))}

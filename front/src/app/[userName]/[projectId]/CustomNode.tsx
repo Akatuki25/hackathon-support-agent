@@ -2,7 +2,6 @@
 import { Handle, Position, NodeProps, useReactFlow } from "@xyflow/react";
 import { Plus, Check } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 
 type NodeCategory = '環境構築' | 'フロントエンド' | 'バックエンド' | 'DB設計' | 'AI設計' | 'デプロイ' | 'スライド資料作成' | 'default';
 
@@ -15,6 +14,58 @@ interface NodeData {
   assignee?: string;
 }
 
+// Category color configurations for light and dark modes using Tailwind classes
+const categoryColors: Record<NodeCategory, { bg: string; border: string; text: string; glow: string }> = {
+  '環境構築': {
+    bg: 'bg-gray-300/80 dark:bg-gray-600/60',
+    border: 'border-gray-500/60 dark:border-gray-400/60',
+    text: 'text-gray-700 dark:text-gray-200',
+    glow: 'shadow-gray-500/30 dark:shadow-gray-400/30'
+  },
+  'フロントエンド': {
+    bg: 'bg-cyan-300/80 dark:bg-cyan-600/60',
+    border: 'border-cyan-500/60 dark:border-cyan-400/60',
+    text: 'text-cyan-700 dark:text-cyan-200',
+    glow: 'shadow-cyan-500/30 dark:shadow-cyan-400/30'
+  },
+  'バックエンド': {
+    bg: 'bg-blue-300/80 dark:bg-blue-600/60',
+    border: 'border-blue-500/60 dark:border-blue-400/60',
+    text: 'text-blue-700 dark:text-blue-200',
+    glow: 'shadow-blue-500/30 dark:shadow-blue-400/30'
+  },
+  'DB設計': {
+    bg: 'bg-teal-300/80 dark:bg-teal-600/60',
+    border: 'border-teal-500/60 dark:border-teal-400/60',
+    text: 'text-teal-700 dark:text-teal-200',
+    glow: 'shadow-teal-500/30 dark:shadow-teal-400/30'
+  },
+  'AI設計': {
+    bg: 'bg-purple-300/80 dark:bg-purple-600/60',
+    border: 'border-purple-500/60 dark:border-purple-400/60',
+    text: 'text-purple-700 dark:text-purple-200',
+    glow: 'shadow-purple-500/30 dark:shadow-purple-400/30'
+  },
+  'デプロイ': {
+    bg: 'bg-yellow-300/80 dark:bg-yellow-600/60',
+    border: 'border-yellow-500/60 dark:border-yellow-400/60',
+    text: 'text-yellow-700 dark:text-yellow-200',
+    glow: 'shadow-yellow-500/30 dark:shadow-yellow-400/30'
+  },
+  'スライド資料作成': {
+    bg: 'bg-emerald-300/80 dark:bg-emerald-600/60',
+    border: 'border-emerald-500/60 dark:border-emerald-400/60',
+    text: 'text-emerald-700 dark:text-emerald-200',
+    glow: 'shadow-emerald-500/30 dark:shadow-emerald-400/30'
+  },
+  'default': {
+    bg: 'bg-purple-50/80 dark:bg-gray-700/60',
+    border: 'border-purple-300/60 dark:border-cyan-500/60',
+    text: 'text-gray-700 dark:text-gray-200',
+    glow: 'shadow-purple-500/30 dark:shadow-cyan-500/30'
+  }
+};
+
 export function TextUpdaterNode({ data, id, selected }: NodeProps) {
   const nodeData = data as unknown as NodeData;
   const [label, setLabel] = useState(nodeData?.label || 'Node');
@@ -25,7 +76,6 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
   const [startTime] = useState(nodeData?.startTime || '');
   const [estimatedHours, setEstimatedHours] = useState(nodeData?.estimatedHours || 1);
   const [assignee] = useState(nodeData?.assignee || '');
-  const { darkMode } = useDarkMode();
   const { getNodes, setNodes, getEdges, setEdges } = useReactFlow();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -43,68 +93,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
     }
   }, [isEditing, label]);
 
-  const getCategoryColors = () => {
-    switch (category) {
-      case '環境構築':
-        return {
-          bg: darkMode ? 'bg-gray-600/60' : 'bg-gray-300/80',
-          border: darkMode ? 'border-gray-400/60' : 'border-gray-500/60',
-          text: darkMode ? 'text-gray-200' : 'text-gray-700',
-          glow: darkMode ? 'shadow-gray-400/30' : 'shadow-gray-500/30'
-        };
-      case 'フロントエンド':
-        return {
-          bg: darkMode ? 'bg-cyan-600/60' : 'bg-cyan-300/80',
-          border: darkMode ? 'border-cyan-400/60' : 'border-cyan-500/60',
-          text: darkMode ? 'text-cyan-200' : 'text-cyan-700',
-          glow: darkMode ? 'shadow-cyan-400/30' : 'shadow-cyan-500/30'
-        };
-      case 'バックエンド':
-        return {
-          bg: darkMode ? 'bg-blue-600/60' : 'bg-blue-300/80',
-          border: darkMode ? 'border-blue-400/60' : 'border-blue-500/60',
-          text: darkMode ? 'text-blue-200' : 'text-blue-700',
-          glow: darkMode ? 'shadow-blue-400/30' : 'shadow-blue-500/30'
-        };
-      case 'DB設計':
-        return {
-          bg: darkMode ? 'bg-teal-600/60' : 'bg-teal-300/80',
-          border: darkMode ? 'border-teal-400/60' : 'border-teal-500/60',
-          text: darkMode ? 'text-teal-200' : 'text-teal-700',
-          glow: darkMode ? 'shadow-teal-400/30' : 'shadow-teal-500/30'
-        };
-      case 'AI設計':
-        return {
-          bg: darkMode ? 'bg-purple-600/60' : 'bg-purple-300/80',
-          border: darkMode ? 'border-purple-400/60' : 'border-purple-500/60',
-          text: darkMode ? 'text-purple-200' : 'text-purple-700',
-          glow: darkMode ? 'shadow-purple-400/30' : 'shadow-purple-500/30'
-        };
-      case 'デプロイ':
-        return {
-          bg: darkMode ? 'bg-yellow-600/60' : 'bg-yellow-300/80',
-          border: darkMode ? 'border-yellow-400/60' : 'border-yellow-500/60',
-          text: darkMode ? 'text-yellow-200' : 'text-yellow-700',
-          glow: darkMode ? 'shadow-yellow-400/30' : 'shadow-yellow-500/30'
-        };
-      case 'スライド資料作成':
-        return {
-          bg: darkMode ? 'bg-emerald-600/60' : 'bg-emerald-300/80',
-          border: darkMode ? 'border-emerald-400/60' : 'border-emerald-500/60',
-          text: darkMode ? 'text-emerald-200' : 'text-emerald-700',
-          glow: darkMode ? 'shadow-emerald-400/30' : 'shadow-emerald-500/30'
-        };
-      default:
-        return {
-          bg: darkMode ? 'bg-gray-700/60' : 'bg-purple-50/80',
-          border: darkMode ? 'border-cyan-500/60' : 'border-purple-300/60',
-          text: darkMode ? 'text-gray-200' : 'text-gray-700',
-          glow: darkMode ? 'shadow-cyan-500/30' : 'shadow-purple-500/30'
-        };
-    }
-  };
-
-  const colors = getCategoryColors();
+  const colors = categoryColors[category];
 
   // Calculate end time based on start time and estimated hours
   const getEndTime = () => {
@@ -159,17 +148,13 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
         relative group min-w-[180px] max-w-[250px] p-2 rounded-lg border transition-all duration-300 cursor-pointer
         backdrop-blur-sm transform hover:scale-[1.02] hover:z-10
         ${completed
-          ? darkMode
-            ? 'bg-green-900/50 border-green-400/50 hover:border-green-300/70 shadow-md shadow-green-500/20'
-            : 'bg-green-50/70 border-green-400/50 hover:border-green-500/70 shadow-md shadow-green-500/20'
-          : `${colors.bg} ${colors.border} hover:${colors.border.replace('/60', '/80')} shadow-sm ${colors.glow}`
+          ? 'bg-green-50/70 dark:bg-green-900/50 border-green-400/50 hover:border-green-500/70 dark:hover:border-green-300/70 shadow-md shadow-green-500/20'
+          : `${colors.bg} ${colors.border} shadow-sm ${colors.glow}`
         }
         ${selected
           ? completed
-            ? darkMode
-              ? 'border-green-300 shadow-lg shadow-green-400/30 ring-1 ring-green-400/20'
-              : 'border-green-500 shadow-lg shadow-green-500/30 ring-1 ring-green-500/20'
-            : `border-current shadow-lg ${colors.glow.replace('/30', '/40')} ring-1 ring-current/20`
+            ? 'border-green-500 dark:border-green-300 shadow-lg shadow-green-500/30 dark:shadow-green-400/30 ring-1 ring-green-500/20 dark:ring-green-400/20'
+            : `border-current shadow-lg ring-1 ring-current/20`
           : ''
         }
       `}
@@ -184,15 +169,16 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
               e.stopPropagation();
               addNewNode();
             }}
-            className={`
+            className="
               w-6 h-6 rounded-full border transition-all duration-300
               flex items-center justify-center hover:scale-110 active:scale-95
               backdrop-blur-md text-xs
-              ${darkMode
-                ? 'bg-cyan-500/20 border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/30 hover:border-cyan-300/50'
-                : 'bg-blue-500/20 border-blue-400/30 text-blue-600 hover:bg-blue-400/30 hover:border-blue-300/50'
-              }
-            `}
+              bg-blue-500/20 dark:bg-cyan-500/20
+              border-blue-400/30 dark:border-cyan-400/30
+              text-blue-600 dark:text-cyan-300
+              hover:bg-blue-400/30 dark:hover:bg-cyan-400/30
+              hover:border-blue-300/50 dark:hover:border-cyan-300/50
+            "
           >
             <Plus size={12} />
           </button>
@@ -211,12 +197,8 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
             w-5 h-5 rounded border-2 transition-all duration-200
             flex items-center justify-center flex-shrink-0
             ${completed
-              ? darkMode
-                ? 'bg-green-500 border-green-400 text-white'
-                : 'bg-green-500 border-green-400 text-white'
-              : darkMode
-                ? 'border-cyan-400/50 hover:border-cyan-400 bg-gray-800/50'
-                : 'border-purple-400/50 hover:border-purple-400 bg-white/50'
+              ? 'bg-green-500 border-green-400 text-white'
+              : 'border-purple-400/50 dark:border-cyan-400/50 hover:border-purple-400 dark:hover:border-cyan-400 bg-white/50 dark:bg-gray-800/50'
             }
           `}
         >
@@ -232,7 +214,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
           }}
           onClick={(e) => e.stopPropagation()}
           className={`
-            text-xs px-1.5 py-0.5 rounded border bg-current/10 border-current/30 
+            text-xs px-1.5 py-0.5 rounded border bg-current/10 border-current/30
             text-center font-medium nodrag w-16 ml-2 mr-16
             ${colors.text} appearance-none cursor-pointer
           `}
@@ -270,11 +252,12 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
           }}
           onBlur={() => setIsEditing(false)}
           onClick={(e) => e.stopPropagation()}
-          className={`w-full p-1 text-xs rounded border transition-all resize-none break-words min-h-[24px] max-h-[60px] overflow-hidden ${
-            darkMode
-              ? 'bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400'
-              : 'bg-white border-purple-300 text-gray-800 focus:border-purple-500'
-          } focus:outline-none nodrag`}
+          className="w-full p-1 text-xs rounded border transition-all resize-none break-words min-h-[24px] max-h-[60px] overflow-hidden
+            bg-white dark:bg-gray-800
+            border-purple-300 dark:border-cyan-500/50
+            text-gray-800 dark:text-cyan-100
+            focus:border-purple-500 dark:focus:border-cyan-400
+            focus:outline-none nodrag"
           placeholder="タスク名..."
           autoFocus
           rows={1}
@@ -287,14 +270,8 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
           }}
           className={`p-1 text-xs cursor-pointer rounded transition-all break-words whitespace-pre-wrap leading-snug ${
             completed
-              ? 'line-through opacity-70'
-              : ''
-          } ${
-            completed
-              ? darkMode
-                ? 'text-green-300 hover:bg-green-900/30'
-                : 'text-green-700 hover:bg-green-100/50'
-              : `${colors.text} hover:${colors.bg.replace('/60', '/80')}`
+              ? 'line-through opacity-70 text-green-700 dark:text-green-300 hover:bg-green-100/50 dark:hover:bg-green-900/30'
+              : `${colors.text}`
           }`}
         >
           {label || 'クリックして編集'}
@@ -313,7 +290,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
             <span className={`${colors.text} opacity-40`}>--:--</span>
           )}
         </div>
-        
+
         {/* Minimal assignee */}
         <div>
           {assignee}
@@ -348,25 +325,23 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
         type="source"
         position={Position.Right}
         id="output"
-        className={`
+        className="
           w-2 h-2 !border-2 hover:scale-125 transition-all
-          ${darkMode
-            ? '!bg-cyan-400 !border-cyan-300 hover:!bg-cyan-300'
-            : '!bg-purple-500 !border-purple-400 hover:!bg-purple-400'
-          }
-        `}
+          !bg-purple-500 dark:!bg-cyan-400
+          !border-purple-400 dark:!border-cyan-300
+          hover:!bg-purple-400 dark:hover:!bg-cyan-300
+        "
       />
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className={`
+        className="
           w-2 h-2 !border-2 hover:scale-125 transition-all
-          ${darkMode
-            ? '!bg-purple-400 !border-purple-300 hover:!bg-purple-300'
-            : '!bg-blue-500 !border-blue-400 hover:!bg-blue-400'
-          }
-        `}
+          !bg-blue-500 dark:!bg-purple-400
+          !border-blue-400 dark:!border-purple-300
+          hover:!bg-blue-400 dark:hover:!bg-purple-300
+        "
       />
 
     </div>

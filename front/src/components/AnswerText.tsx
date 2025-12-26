@@ -1,7 +1,4 @@
-"use client";
-
 import React from "react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 
 // APIから返される質問オブジェクトの型定義
 export type Question = {
@@ -23,19 +20,12 @@ const AnswerText: React.FC<AnswerTextProps> = ({
   answers,
   handleAnswerChange,
 }) => {
-  const { darkMode } = useDarkMode();
   return (
     <div
       key={index}
-      className={`p-4 rounded-lg ${
-        darkMode ? "bg-gray-700 bg-opacity-50" : "bg-white bg-opacity-80"
-      } transition-all`}
+      className="p-4 rounded-lg bg-white bg-opacity-80 dark:bg-gray-700 dark:bg-opacity-50 transition-all"
     >
-      <p
-        className={`mb-3 font-medium ${
-          darkMode ? "text-pink-300" : "text-blue-700"
-        }`}
-      >
+      <p className="mb-3 font-medium text-blue-700 dark:text-pink-300">
         {index + 1}. {question.Question}
       </p>
       <textarea
@@ -49,11 +39,7 @@ const AnswerText: React.FC<AnswerTextProps> = ({
         }}
         placeholder="回答を入力してください..."
         rows={3}
-        className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-          darkMode
-            ? "bg-gray-800 text-gray-100 border-cyan-500 focus:ring-1 focus:ring-pink-400"
-            : "bg-white text-gray-800 border-purple-500 focus:ring-1 focus:ring-blue-400"
-        }`}
+        className="w-full p-3 rounded border-l-4 focus:outline-none transition-all bg-white text-gray-800 border-purple-500 focus:ring-1 focus:ring-blue-400 dark:bg-gray-800 dark:text-gray-100 dark:border-cyan-500 dark:focus:ring-1 dark:focus:ring-pink-400"
       />
     </div>
   );

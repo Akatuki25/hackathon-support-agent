@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { useDarkMode } from '@/hooks/useDarkMode';
+import { useEffect, useState } from 'react';
 import { useTask } from '@/libs/modelAPI/task';
 import {
   fetchTaskHandsOn,
@@ -33,7 +32,6 @@ export default function TaskHandsOnPage() {
   const projectId = params?.projectId as string | undefined;
   const taskId = params?.taskId as string | undefined;
   const userName = params?.userName as string | undefined;
-  const { darkMode } = useDarkMode();
 
   const [handsOnState, setHandsOnState] = useState<HandsOnState>({ status: 'idle' });
 
@@ -110,30 +108,22 @@ export default function TaskHandsOnPage() {
     };
   }, [taskId]);
 
-  const pageBackgroundClass = useMemo(
-    () =>
-      darkMode
-        ? 'min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-6 text-slate-100'
-        : 'min-h-screen bg-gray-100 p-6 text-gray-800',
-    [darkMode],
-  );
+  const pageBackgroundClass = 'min-h-screen bg-gray-100 p-6 text-gray-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 dark:text-slate-100';
 
-  const panelClass = useMemo(
-    () =>
-      darkMode
-        ? 'mx-auto flex max-w-4xl flex-col gap-6 rounded-lg border border-cyan-500/20 bg-slate-950/60 p-6 shadow-[0_0_32px_rgba(6,182,212,0.18)] backdrop-blur'
-        : 'mx-auto flex max-w-4xl flex-col gap-6 rounded-lg border border-slate-100 bg-white p-6 shadow-sm',
-    [darkMode],
-  );
+  const panelClass = 'mx-auto flex max-w-4xl flex-col gap-6 rounded-lg border border-slate-100 bg-white p-6 shadow-sm dark:border-cyan-500/20 dark:bg-slate-950/60 dark:shadow-[0_0_32px_rgba(6,182,212,0.18)] dark:backdrop-blur';
 
-  const sectionTitleClass = darkMode ? 'text-lg font-semibold text-cyan-200' : 'text-lg font-semibold text-blue-700';
-  const sectionBodyClass = darkMode ? 'text-sm text-slate-200' : 'text-sm text-gray-700';
-  const badgeClass = darkMode
-    ? 'rounded border border-cyan-500/40 bg-slate-900/70 px-2 py-1 text-xs text-cyan-200'
-    : 'rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-600';
-  const backLinkClass = darkMode
-    ? 'inline-flex items-center gap-1 text-sm text-cyan-200 underline-offset-4 hover:text-cyan-100 hover:underline'
-    : 'inline-flex items-center gap-1 text-sm text-blue-600 underline-offset-4 hover:text-blue-500 hover:underline';
+  const sectionTitleClass = 'text-lg font-semibold text-blue-700 dark:text-cyan-200';
+  const sectionBodyClass = 'text-sm text-gray-700 dark:text-slate-200';
+  const badgeClass = 'rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-600 dark:border-cyan-500/40 dark:bg-slate-900/70 dark:text-cyan-200';
+  const backLinkClass = 'inline-flex items-center gap-1 text-sm text-blue-600 underline-offset-4 hover:text-blue-500 hover:underline dark:text-cyan-200 dark:hover:text-cyan-100';
+
+  // Style classes for hands-on content (combined light dark: dark)
+  const contentBgClass = 'bg-gray-50 border border-gray-200 dark:bg-slate-900/80 dark:border-cyan-500/20';
+  const textClass = 'text-gray-700 dark:text-slate-200';
+  const headingClass = 'text-blue-700 font-semibold dark:text-cyan-300';
+  const codeBlockClass = 'bg-gray-800 text-green-300 dark:bg-black/60 dark:text-green-200';
+  const listClass = 'text-gray-600 dark:text-slate-300';
+  const linkClass = 'text-blue-600 hover:text-blue-700 dark:text-cyan-400 dark:hover:text-cyan-300';
 
   const handsOnContent = (() => {
     switch (handsOnState.status) {
@@ -143,13 +133,6 @@ export default function TaskHandsOnPage() {
       case 'success': {
         const { payload } = handsOnState;
         const handsOn = payload.hands_on;
-
-        const contentBgClass = darkMode ? 'bg-slate-900/80 border border-cyan-500/20' : 'bg-gray-50 border border-gray-200';
-        const textClass = darkMode ? 'text-slate-200' : 'text-gray-700';
-        const headingClass = darkMode ? 'text-cyan-300 font-semibold' : 'text-blue-700 font-semibold';
-        const codeBlockClass = darkMode ? 'bg-black/60 text-green-200' : 'bg-gray-800 text-green-300';
-        const listClass = darkMode ? 'text-slate-300' : 'text-gray-600';
-        const linkClass = darkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-blue-600 hover:text-blue-700';
 
         return (
           <div className="space-y-6">

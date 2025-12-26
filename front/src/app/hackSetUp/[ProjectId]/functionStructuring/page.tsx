@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Boxes, ChevronRight, Loader2, Bot, CheckCircle, AlertCircle, ArrowRight, Edit3, Plus, Trash2, Terminal } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
@@ -113,7 +112,6 @@ export default function FunctionStructuring() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const projectId = pathname.split("/")[2];
-  const { darkMode } = useDarkMode();
   const { data: session, status } = useSession();
 
   // セットアップフェーズ関連の状態
@@ -566,31 +564,29 @@ export default function FunctionStructuring() {
       </div>
 
       <main className={`relative z-10 min-h-screen`}>
-        {/* サイバーグリッド背景 */}
-        {darkMode && (
-          <>
-            <div className="-z-10 absolute inset-0 bg-[linear-gradient(to_right,#4f46e520_1px,transparent_1px),linear-gradient(to_bottom,#4f46e520_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-            <div className="-z-10 absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
-            <div className="-z-10 absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-[120px] animate-pulse" style={{animationDelay: '1s'}} />
-          </>
-        )}
+        {/* サイバーグリッド背景（ダークモード時のみ表示） */}
+        <div className="hidden dark:block">
+          <div className="-z-10 absolute inset-0 bg-[linear-gradient(to_right,#4f46e520_1px,transparent_1px),linear-gradient(to_bottom,#4f46e520_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+          <div className="-z-10 absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="-z-10 absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-[120px] animate-pulse [animation-delay:1s]" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4 mt-5">
               <Boxes
-                className={`mr-2 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" : "text-purple-600"}`}
+                className="mr-2 text-purple-600 dark:text-cyan-400 dark:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]"
               />
               <h1
-                className={`text-3xl font-bold tracking-wider ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.5)]" : "text-purple-700"}`}
+                className="text-3xl font-bold tracking-wider text-purple-700 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.5)]"
               >
                 機能
-                <span className={darkMode ? "text-pink-500 drop-shadow-[0_0_12px_rgba(236,72,153,0.5)]" : "text-blue-600"}>
+                <span className="text-blue-600 dark:text-pink-500 dark:drop-shadow-[0_0_12px_rgba(236,72,153,0.5)]">
                   _構造化
                 </span>
               </h1>
             </div>
             <p
-              className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+              className="text-lg text-gray-700 dark:text-gray-300"
             >
               プロジェクトの機能を分析し、カテゴリ別に整理します
             </p>
@@ -598,24 +594,20 @@ export default function FunctionStructuring() {
 
           {/* フレームワーク選択保存中 */}
           {setupPhase === 'saving-framework' && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2x transition-all mb-8 ${
-              darkMode
-                ? "bg-slate-800/90"
-                : "bg-white/60 "
-            }`}>
+            <div className="backdrop-blur-xl rounded-xl p-8 shadow-2x transition-all mb-8 bg-white/60 dark:bg-slate-800/90">
               <div className="text-center">
-                <Terminal size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
-                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+                <Terminal size={48} className="mx-auto mb-4 text-purple-600 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" />
+                <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
                   フレームワーク選択を保存中
                 </h2>
                 <div className="flex items-center justify-center mb-4">
                   <Loader2 className="animate-spin mr-2" size={20} />
-                  <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
+                  <span className="text-gray-700 dark:text-gray-300">
                     選択された技術スタックをデータベースに保存しています...
                   </span>
                 </div>
                 {frameworkData && (
-                  <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     選択技術: {frameworkData.selectedTechnologies.join(', ')}
                   </div>
                 )}
@@ -625,23 +617,19 @@ export default function FunctionStructuring() {
 
           {/* 処理中の表示 */}
           {(processingState === 'structuring' || setupPhase === 'structuring-functions') && (
-            <div className={`backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 ${
-              darkMode
-                ? "bg-slate-800/10 border-cyan-400/40 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
-                : "bg-white/40 border-purple-500/40 shadow-purple-300/30"
-            }`}>
+            <div className="backdrop-blur-xl rounded-xl p-8 shadow-2xl border transition-all mb-8 bg-white/40 border-purple-500/40 shadow-purple-300/30 dark:bg-slate-800/10 dark:border-cyan-400/40 dark:shadow-[0_0_30px_rgba(34,211,238,0.2)]">
               <div className="text-center">
-                <Bot size={48} className={`mx-auto mb-4 ${darkMode ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" : "text-purple-600"}`} />
-                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+                <Bot size={48} className="mx-auto mb-4 text-purple-600 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" />
+                <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
                   AI機能構造化エージェント実行中
                 </h2>
                 <div className="flex items-center justify-center mb-4">
                   <Loader2 className="animate-spin mr-2" size={20} />
-                  <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
+                  <span className="text-gray-700 dark:text-gray-300">
                     {agentProgress}
                   </span>
                 </div>
-                <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   複数段階のバリデーションにより高品質な構造化を実行中...
                 </div>
               </div>
@@ -650,26 +638,18 @@ export default function FunctionStructuring() {
 
           {/* エラー表示 */}
           {processingState === 'error' && (
-            <div className={` rounded-xl p-8 transition-all mb-8 ${
-              darkMode
-                ? "bg-red-900/5 "
-                : "bg-red-50/60"
-            }`}>
+            <div className="rounded-xl p-8 transition-all mb-8 bg-red-50/60 dark:bg-red-900/5">
               <div className="text-center">
                 <AlertCircle size={48} className="mx-auto mb-4 text-red-500" />
-                <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-red-400" : "text-red-700"}`}>
+                <h2 className="text-xl font-bold mb-4 text-red-700 dark:text-red-400">
                   機能構造化エラー
                 </h2>
-                <div className={`mb-4 text-left max-w-2xl mx-auto whitespace-pre-line ${darkMode ? "text-red-300" : "text-red-600"}`}>
+                <div className="mb-4 text-left max-w-2xl mx-auto whitespace-pre-line text-red-600 dark:text-red-300">
                   {error}
                 </div>
                 <button
                   onClick={handleStructureFunctions}
-                  className={`px-6 py-2 rounded-full transition-colors ${
-                    darkMode
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-red-500 hover:bg-red-600 text-white"
-                  }`}
+                  className="px-6 py-2 rounded-full transition-colors bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700"
                 >
                   再実行
                 </button>
@@ -679,21 +659,17 @@ export default function FunctionStructuring() {
 
           {/* セットアップエラー/警告表示 */}
           {setupError && setupError.canContinue && (
-            <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
-              darkMode
-                ? "bg-yellow-900/5 border-yellow-400/40 shadow-[0_0_20px_rgba(251,191,36,0.15)]"
-                : "bg-yellow-50/60 border-yellow-300/60 shadow-yellow-200/40"
-            }`}>
+            <div className="backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 bg-yellow-50/60 border-yellow-300/60 shadow-yellow-200/40 dark:bg-yellow-900/5 dark:border-yellow-400/40 dark:shadow-[0_0_20px_rgba(251,191,36,0.15)]">
               <div className="flex items-start">
-                <AlertCircle size={24} className={`mr-3 mt-1 flex-shrink-0 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`} />
+                <AlertCircle size={24} className="mr-3 mt-1 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
                 <div className="flex-1">
-                  <h3 className={`text-lg font-bold mb-2 ${darkMode ? "text-yellow-400" : "text-yellow-700"}`}>
+                  <h3 className="text-lg font-bold mb-2 text-yellow-700 dark:text-yellow-400">
                     警告: 一部の処理でエラーが発生しました
                   </h3>
-                  <div className={`text-sm whitespace-pre-line ${darkMode ? "text-yellow-300" : "text-yellow-700"}`}>
+                  <div className="text-sm whitespace-pre-line text-yellow-700 dark:text-yellow-300">
                     {setupError.message}
                   </div>
-                  <div className={`text-sm mt-2 ${darkMode ? "text-yellow-200" : "text-yellow-600"}`}>
+                  <div className="text-sm mt-2 text-yellow-600 dark:text-yellow-200">
                     処理を続行しています...
                   </div>
                 </div>
@@ -706,18 +682,14 @@ export default function FunctionStructuring() {
             <>
               {/* 部分的成功の警告 */}
               {error && (
-                <div className={`backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 ${
-                  darkMode
-                    ? "bg-yellow-900/5 border-yellow-400/40 shadow-[0_0_20px_rgba(251,191,36,0.15)]"
-                    : "bg-yellow-50/60 border-yellow-300/60 shadow-yellow-200/40"
-                }`}>
+                <div className="backdrop-blur-xl rounded-xl p-6 shadow-xl border transition-all mb-6 bg-yellow-50/60 border-yellow-300/60 shadow-yellow-200/40 dark:bg-yellow-900/5 dark:border-yellow-400/40 dark:shadow-[0_0_20px_rgba(251,191,36,0.15)]">
                   <div className="flex items-start">
-                    <AlertCircle size={24} className={`mr-3 mt-1 flex-shrink-0 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`} />
+                    <AlertCircle size={24} className="mr-3 mt-1 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
                     <div className="flex-1">
-                      <h3 className={`text-lg font-bold mb-2 ${darkMode ? "text-yellow-400" : "text-yellow-700"}`}>
+                      <h3 className="text-lg font-bold mb-2 text-yellow-700 dark:text-yellow-400">
                         部分的な成功
                       </h3>
-                      <div className={`text-sm whitespace-pre-line ${darkMode ? "text-yellow-300" : "text-yellow-700"}`}>
+                      <div className="text-sm whitespace-pre-line text-yellow-700 dark:text-yellow-300">
                         {error}
                       </div>
                     </div>
@@ -725,17 +697,13 @@ export default function FunctionStructuring() {
                 </div>
               )}
 
-              <div className={`transition-all mb-8 ${
-                darkMode
-                  ? "bg-transparent "
-                  : "bg-white/10"
-              }`}>
+              <div className="transition-all mb-8 bg-white/10 dark:bg-transparent">
                 <div className="text-center mb-6">
-                  <CheckCircle size={48} className={`mx-auto mb-4 ${darkMode ? "text-green-400 drop-shadow-[0_0_12px_rgba(74,222,128,0.6)]" : "text-green-600"}`} />
-                  <h2 className={`text-xl font-bold mb-2 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+                  <CheckCircle size={48} className="mx-auto mb-4 text-green-600 dark:text-green-400 dark:drop-shadow-[0_0_12px_rgba(74,222,128,0.6)]" />
+                  <h2 className="text-xl font-bold mb-2 text-purple-700 dark:text-cyan-300">
                     機能構造化完了
                   </h2>
-                  <p className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  <p className="text-gray-700 dark:text-gray-300">
                     {structuringResult.total_functions}個の機能を{Object.keys(CATEGORY_LABELS).length}カテゴリに分類し、
                     {structuringResult.total_dependencies}個の依存関係を分析しました
                   </p>
@@ -745,11 +713,7 @@ export default function FunctionStructuring() {
                 <div className="flex justify-end mb-4">
                   <button
                     onClick={handleOpenAddFunction}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md ${
-                      darkMode
-                        ? "bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                        : "bg-purple-100/70 hover:bg-purple-200/70 border border-purple-300 text-purple-700"
-                    }`}
+                    className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md bg-purple-100/70 hover:bg-purple-200/70 border border-purple-300 text-purple-700 dark:bg-cyan-500/10 dark:hover:bg-cyan-500/20 dark:border-cyan-400/40 dark:text-cyan-400 dark:shadow-[0_0_15px_rgba(34,211,238,0.2)] dark:hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                   >
                     <Plus size={18} />
                     新しい機能を追加
@@ -788,17 +752,11 @@ export default function FunctionStructuring() {
                               return (
                                 <div
                                   key={func.function_id}
-                                  className={`p-3 rounded-lg border backdrop-blur-md transition-all group ${
-                                    darkMode
-                                      ? "bg-slate-800/20 border-slate-600/40 hover:bg-slate-700/30 hover:border-slate-500/60 hover:shadow-[0_0_10px_rgba(100,116,139,0.2)]"
-                                      : "bg-white/50 border-gray-200/60 hover:bg-white/70"
-                                  }`}
+                                  className="p-3 rounded-lg border backdrop-blur-md transition-all group bg-white/50 border-gray-200/60 hover:bg-white/70 dark:bg-slate-800/20 dark:border-slate-600/40 dark:hover:bg-slate-700/30 dark:hover:border-slate-500/60 dark:hover:shadow-[0_0_10px_rgba(100,116,139,0.2)]"
                                 >
                                   <div>
                                       <div className="flex items-start justify-between gap-2 mb-2">
-                                        <h4 className={`font-semibold text-sm flex-1 min-w-0 ${
-                                          darkMode ? "text-gray-100" : "text-gray-900"
-                                        }`}>
+                                        <h4 className="font-semibold text-sm flex-1 min-w-0 text-gray-900 dark:text-gray-100">
                                           {func.function_code}: {func.function_name}
                                         </h4>
                                         <div className="flex items-center space-x-1 flex-shrink-0">
@@ -807,25 +765,21 @@ export default function FunctionStructuring() {
                                           </span>
                                           <button
                                             onClick={() => handleEditFunction(func)}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-200 text-gray-600"
-                                            }`}
+                                            className="p-1 rounded transition-colors hover:bg-gray-200 text-gray-600 dark:hover:bg-gray-700 dark:text-gray-400"
                                             title="編集"
                                           >
                                             <Edit3 size={12} />
                                           </button>
                                           <button
                                             onClick={() => handleDeleteFunction(func.function_id)}
-                                            className={`p-1 rounded transition-colors ${
-                                              darkMode ? "hover:bg-red-700 text-red-400" : "hover:bg-red-100 text-red-600"
-                                            }`}
+                                            className="p-1 rounded transition-colors hover:bg-red-100 text-red-600 dark:hover:bg-red-700 dark:text-red-400"
                                             title="削除"
                                           >
                                             <Trash2 size={12} />
                                           </button>
                                         </div>
                                       </div>
-                                      <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                      <p className="text-xs text-gray-600 dark:text-gray-400">
                                         {func.description}
                                       </p>
 
@@ -833,13 +787,11 @@ export default function FunctionStructuring() {
                                       <div className="mt-2 space-y-1">
                                         {/* 信頼度 */}
                                         <div className="flex items-center justify-between">
-                                          <span className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-600"}`}>
+                                          <span className="text-xs text-gray-600 dark:text-gray-500">
                                             信頼度:
                                           </span>
                                           <div className="flex items-center">
-                                            <div className={`w-16 h-2 rounded-full mr-2 ${
-                                              darkMode ? "bg-gray-700" : "bg-gray-200"
-                                            }`}>
+                                            <div className="w-16 h-2 rounded-full mr-2 bg-gray-200 dark:bg-gray-700">
                                               <div
                                                 className={`h-2 rounded-full ${
                                                   func.extraction_confidence > 0.8
@@ -851,9 +803,7 @@ export default function FunctionStructuring() {
                                                 style={{ width: `${func.extraction_confidence * 100}%` }}
                                               />
                                             </div>
-                                            <span className={`text-xs ${
-                                              darkMode ? "text-gray-400" : "text-gray-600"
-                                            }`}>
+                                            <span className="text-xs text-gray-600 dark:text-gray-400">
                                               {Math.round(func.extraction_confidence * 100)}%
                                             </span>
                                           </div>
@@ -862,20 +812,16 @@ export default function FunctionStructuring() {
                                         {/* 依存関係情報 */}
                                         {(func.dependencies.incoming.length > 0 || func.dependencies.outgoing.length > 0) && (
                                           <div className="flex items-center flex-wrap gap-1 text-xs">
-                                            <span className={`${darkMode ? "text-gray-500" : "text-gray-600"}`}>
+                                            <span className="text-gray-600 dark:text-gray-500">
                                               依存関係:
                                             </span>
                                             {func.dependencies.incoming.length > 0 && (
-                                              <span className={`px-1 py-0.5 rounded text-xs whitespace-nowrap ${
-                                                darkMode ? "bg-blue-900/20 text-blue-300" : "bg-blue-100 text-blue-700"
-                                              }`}>
+                                              <span className="px-1 py-0.5 rounded text-xs whitespace-nowrap bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                                                 入力 {func.dependencies.incoming.length}
                                               </span>
                                             )}
                                             {func.dependencies.outgoing.length > 0 && (
-                                              <span className={`px-1 py-0.5 rounded text-xs whitespace-nowrap ${
-                                                darkMode ? "bg-purple-900/20 text-purple-300" : "bg-purple-100 text-purple-700"
-                                              }`}>
+                                              <span className="px-1 py-0.5 rounded text-xs whitespace-nowrap bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
                                                 出力 {func.dependencies.outgoing.length}
                                               </span>
                                             )}
@@ -884,27 +830,25 @@ export default function FunctionStructuring() {
 
                                         {/* 実装順序 */}
                                         <div className="flex items-center flex-wrap gap-1 text-xs">
-                                          <span className={`${darkMode ? "text-gray-500" : "text-gray-600"}`}>
+                                          <span className="text-gray-600 dark:text-gray-500">
                                             実装順序:
                                           </span>
-                                          <span className={`px-1 py-0.5 rounded text-xs whitespace-nowrap ${
-                                            darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
-                                          }`}>
+                                          <span className="px-1 py-0.5 rounded text-xs whitespace-nowrap bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                                             #{func.implementation_order}
                                           </span>
                                         </div>
 
                                         {/* 推定工数 */}
                                         <div className="flex items-center flex-wrap gap-1 text-xs">
-                                          <span className={`${darkMode ? "text-gray-500" : "text-gray-600"}`}>
+                                          <span className="text-gray-600 dark:text-gray-500">
                                             推定工数:
                                           </span>
                                           <span className={`px-1 py-0.5 rounded text-xs whitespace-nowrap ${
                                             func.estimated_effort === 'low'
-                                              ? darkMode ? "bg-green-900/20 text-green-300" : "bg-green-100 text-green-700"
+                                              ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300"
                                               : func.estimated_effort === 'high'
-                                              ? darkMode ? "bg-red-900/20 text-red-300" : "bg-red-100 text-red-700"
-                                              : darkMode ? "bg-yellow-900/20 text-yellow-300" : "bg-yellow-100 text-yellow-700"
+                                              ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300"
                                           }`}>
                                             {func.estimated_effort === 'low' ? '低' : func.estimated_effort === 'high' ? '高' : '中'}
                                           </span>
@@ -924,14 +868,8 @@ export default function FunctionStructuring() {
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* 実装順序 */}
                   {structuringResult.implementation_order && structuringResult.implementation_order.length > 0 && (
-                    <div className={`p-4 rounded-lg border backdrop-blur-lg ${
-                      darkMode
-                        ? "bg-slate-800/10 border-slate-600/40 shadow-[0_0_15px_rgba(100,116,139,0.1)]"
-                        : "bg-gray-50/60 border-gray-200/60"
-                    }`}>
-                      <h3 className={`text-lg font-bold mb-3 flex items-center ${
-                        darkMode ? "text-gray-100" : "text-gray-900"
-                      }`}>
+                    <div className="p-4 rounded-lg border backdrop-blur-lg bg-gray-50/60 border-gray-200/60 dark:bg-slate-800/10 dark:border-slate-600/40 dark:shadow-[0_0_15px_rgba(100,116,139,0.1)]">
+                      <h3 className="text-lg font-bold mb-3 flex items-center text-gray-900 dark:text-gray-100">
                         <ArrowRight size={20} className="mr-2" />
                         推奨実装順序
                       </h3>
@@ -941,12 +879,8 @@ export default function FunctionStructuring() {
                             key={item.function_id}
                             className={`p-3 rounded-lg border backdrop-blur-md transition-all ${
                               item.can_start
-                                ? darkMode
-                                  ? "bg-green-900/10 border-green-600/40 shadow-[0_0_10px_rgba(74,222,128,0.1)] hover:shadow-[0_0_15px_rgba(74,222,128,0.15)]"
-                                  : "bg-green-50/60 border-green-200/60"
-                                : darkMode
-                                  ? "bg-yellow-900/10 border-yellow-600/40 shadow-[0_0_10px_rgba(251,191,36,0.1)] hover:shadow-[0_0_15px_rgba(251,191,36,0.15)]"
-                                  : "bg-yellow-50/60 border-yellow-200/60"
+                                ? "bg-green-50/60 border-green-200/60 dark:bg-green-900/10 dark:border-green-600/40 dark:shadow-[0_0_10px_rgba(74,222,128,0.1)] dark:hover:shadow-[0_0_15px_rgba(74,222,128,0.15)]"
+                                : "bg-yellow-50/60 border-yellow-200/60 dark:bg-yellow-900/10 dark:border-yellow-600/40 dark:shadow-[0_0_10px_rgba(251,191,36,0.1)] dark:hover:shadow-[0_0_15px_rgba(251,191,36,0.15)]"
                             }`}
                           >
                             <div className="flex items-center justify-between gap-2">
@@ -958,9 +892,7 @@ export default function FunctionStructuring() {
                                 }`}>
                                   {item.order}
                                 </span>
-                                <span className={`font-medium ${
-                                  darkMode ? "text-gray-100" : "text-gray-900"
-                                }`}>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
                                   {item.function_code}: {item.function_name}
                                 </span>
                               </div>
@@ -971,16 +903,14 @@ export default function FunctionStructuring() {
                               </span>
                             </div>
                             {!item.can_start && item.blocked_by.length > 0 && (
-                              <p className={`text-xs mt-1 ${
-                                darkMode ? "text-yellow-300" : "text-yellow-700"
-                              }`}>
+                              <p className="text-xs mt-1 text-yellow-700 dark:text-yellow-300">
                                 待機中: {item.blocked_by.join(", ")} の完了が必要
                               </p>
                             )}
                           </div>
                         ))}
                         {structuringResult.implementation_order.length > 5 && (
-                          <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             他 {structuringResult.implementation_order.length - 5} 個の機能...
                           </p>
                         )}
@@ -989,23 +919,15 @@ export default function FunctionStructuring() {
                   )}
 
                   {/* サマリー情報 */}
-                  <div className={`p-4 rounded-lg border backdrop-blur-lg ${
-                    darkMode
-                      ? "bg-gray-800/10 border-gray-600/40 shadow-[0_0_15px_rgba(156,163,175,0.1)]"
-                      : "bg-gray-50/60 border-gray-200/60"
-                  }`}>
-                    <h3 className={`text-lg font-bold mb-3 flex items-center ${
-                      darkMode ? "text-gray-100" : "text-gray-900"
-                    }`}>
+                  <div className="p-4 rounded-lg border backdrop-blur-lg bg-gray-50/60 border-gray-200/60 dark:bg-gray-800/10 dark:border-gray-600/40 dark:shadow-[0_0_15px_rgba(156,163,175,0.1)]">
+                    <h3 className="text-lg font-bold mb-3 flex items-center text-gray-900 dark:text-gray-100">
                       <CheckCircle size={20} className="mr-2" />
                       構造化サマリー
                     </h3>
 
                     {/* カテゴリ別統計 */}
                     <div className="mb-4">
-                      <h4 className={`text-sm font-semibold mb-2 ${
-                        darkMode ? "text-gray-200" : "text-gray-800"
-                      }`}>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
                         カテゴリ別分布
                       </h4>
                       <div className="grid grid-cols-2 gap-2">
@@ -1021,9 +943,7 @@ export default function FunctionStructuring() {
 
                     {/* 優先度別統計 */}
                     <div className="mb-4">
-                      <h4 className={`text-sm font-semibold mb-2 ${
-                        darkMode ? "text-gray-200" : "text-gray-800"
-                      }`}>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
                         優先度別分布
                       </h4>
                       <div className="space-y-1">
@@ -1034,7 +954,7 @@ export default function FunctionStructuring() {
                             } ${PRIORITY_COLORS[priority as keyof typeof PRIORITY_COLORS].text}`}>
                               {PRIORITY_LABELS[priority]}
                             </span>
-                            <span className={`text-xs whitespace-nowrap ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                            <span className="text-xs whitespace-nowrap text-gray-700 dark:text-gray-300">
                               {count}個
                             </span>
                           </div>
@@ -1045,17 +965,17 @@ export default function FunctionStructuring() {
                     {/* MVP準備状況 */}
                     <div className={`p-2 rounded backdrop-blur-sm ${
                       structuringResult.summary.priorities.mvp_ready
-                        ? darkMode ? "bg-green-900/20 border border-green-600/50" : "bg-green-50/80 border border-green-200"
-                        : darkMode ? "bg-yellow-900/20 border border-yellow-600/50" : "bg-yellow-50/80 border border-yellow-200"
+                        ? "bg-green-50/80 border border-green-200 dark:bg-green-900/20 dark:border-green-600/50"
+                        : "bg-yellow-50/80 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-600/50"
                     }`}>
                       <p className={`text-xs font-medium ${
                         structuringResult.summary.priorities.mvp_ready
-                          ? darkMode ? "text-green-300" : "text-green-700"
-                          : darkMode ? "text-yellow-300" : "text-yellow-700"
+                          ? "text-green-700 dark:text-green-300"
+                          : "text-yellow-700 dark:text-yellow-300"
                       }`}>
                         {structuringResult.summary.priorities.mvp_ready
-                          ? "✅ MVP準備完了"
-                          : "⚠️ MVP機能が不足"}
+                          ? "MVP準備完了"
+                          : "MVP機能が不足"}
                       </p>
                     </div>
                   </div>
@@ -1063,30 +983,20 @@ export default function FunctionStructuring() {
 
                 {/* 依存関係詳細 */}
                 {structuringResult.total_dependencies > 0 && (
-                  <div className={`mt-6 p-4 rounded-lg border backdrop-blur-lg ${
-                    darkMode
-                      ? "bg-gray-800/10 border-gray-600/40 shadow-[0_0_15px_rgba(156,163,175,0.1)]"
-                      : "bg-gray-50/60 border-gray-200/60"
-                  }`}>
-                    <h3 className={`text-lg font-bold mb-3 flex items-center ${
-                      darkMode ? "text-gray-100" : "text-gray-900"
-                    }`}>
+                  <div className="mt-6 p-4 rounded-lg border backdrop-blur-lg bg-gray-50/60 border-gray-200/60 dark:bg-gray-800/10 dark:border-gray-600/40 dark:shadow-[0_0_15px_rgba(156,163,175,0.1)]">
+                    <h3 className="text-lg font-bold mb-3 flex items-center text-gray-900 dark:text-gray-100">
                       <ArrowRight size={20} className="mr-2" />
                       機能間依存関係詳細 ({structuringResult.total_dependencies})
                     </h3>
 
                     {/* 依存関係タイプ別統計 */}
                     <div className="mb-4">
-                      <h4 className={`text-sm font-semibold mb-2 ${
-                        darkMode ? "text-gray-200" : "text-gray-800"
-                      }`}>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
                         依存関係タイプ
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(structuringResult.summary.dependency_analysis.types).map(([type, count]) => (
-                          <span key={type} className={`px-2 py-1 rounded-full text-xs whitespace-nowrap backdrop-blur-sm ${
-                            darkMode ? "bg-blue-900/20 text-blue-300" : "bg-blue-100 text-blue-700"
-                          }`}>
+                          <span key={type} className="px-2 py-1 rounded-full text-xs whitespace-nowrap backdrop-blur-sm bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                             {type}: {count}
                           </span>
                         ))}
@@ -1096,13 +1006,13 @@ export default function FunctionStructuring() {
                     {/* 複雑度スコア */}
                     <div className={`p-2 rounded backdrop-blur-sm ${
                       structuringResult.summary.dependency_analysis.complexity_score > 0.5
-                        ? darkMode ? "bg-orange-900/20 border border-orange-600/50" : "bg-orange-50/80 border border-orange-200"
-                        : darkMode ? "bg-green-900/20 border border-green-600/50" : "bg-green-50/80 border border-green-200"
+                        ? "bg-orange-50/80 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-600/50"
+                        : "bg-green-50/80 border border-green-200 dark:bg-green-900/20 dark:border-green-600/50"
                     }`}>
                       <p className={`text-xs font-medium ${
                         structuringResult.summary.dependency_analysis.complexity_score > 0.5
-                          ? darkMode ? "text-orange-300" : "text-orange-700"
-                          : darkMode ? "text-green-300" : "text-green-700"
+                          ? "text-orange-700 dark:text-orange-300"
+                          : "text-green-700 dark:text-green-300"
                       }`}>
                         複雑度スコア: {structuringResult.summary.dependency_analysis.complexity_score.toFixed(2)}
                         {structuringResult.summary.dependency_analysis.complexity_score > 0.5
@@ -1113,46 +1023,38 @@ export default function FunctionStructuring() {
 
                     {/* 具体的な依存関係一覧 */}
                     <div className="mt-4">
-                      <h4 className={`text-sm font-semibold mb-2 ${
-                        darkMode ? "text-gray-200" : "text-gray-800"
-                      }`}>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
                         具体的な依存関係
                       </h4>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
                         {structuringResult.dependencies.slice(0, 10).map((dep) => (
-                          <div key={dep.dependency_id} className={`p-2 rounded text-xs backdrop-blur-md transition-all ${
-                            darkMode ? "bg-gray-700/20 border border-gray-600/30 hover:shadow-[0_0_8px_rgba(156,163,175,0.1)]" : "bg-gray-100/60 border border-gray-200/60"
-                          }`}>
+                          <div key={dep.dependency_id} className="p-2 rounded text-xs backdrop-blur-md transition-all bg-gray-100/60 border border-gray-200/60 dark:bg-gray-700/20 dark:border-gray-600/30 dark:hover:shadow-[0_0_8px_rgba(156,163,175,0.1)]">
                             <div className="flex items-center justify-between gap-2">
-                              <span className={`font-medium truncate ${
-                                darkMode ? "text-gray-200" : "text-gray-800"
-                              }`}>
+                              <span className="font-medium truncate text-gray-800 dark:text-gray-200">
                                 {dep.from_function_name}
                               </span>
                               <span className={`px-1 py-0.5 rounded text-xs whitespace-nowrap flex-shrink-0 ${
                                 dep.dependency_type === 'requires'
-                                  ? darkMode ? "bg-red-900/20 text-red-300" : "bg-red-100 text-red-700"
+                                  ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"
                                   : dep.dependency_type === 'blocks'
-                                  ? darkMode ? "bg-orange-900/20 text-orange-300" : "bg-orange-100 text-orange-700"
-                                  : darkMode ? "bg-blue-900/20 text-blue-300" : "bg-blue-100 text-blue-700"
+                                  ? "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300"
+                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                               }`}>
                                 {dep.dependency_type}
                               </span>
-                              <span className={`font-medium truncate ${
-                                darkMode ? "text-gray-200" : "text-gray-800"
-                              }`}>
+                              <span className="font-medium truncate text-gray-800 dark:text-gray-200">
                                 {dep.to_function_name}
                               </span>
                             </div>
                             {dep.reason && (
-                              <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                              <p className="mt-1 text-gray-600 dark:text-gray-400">
                                 {dep.reason}
                               </p>
                             )}
                           </div>
                         ))}
                         {structuringResult.dependencies.length > 10 && (
-                          <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             他 {structuringResult.dependencies.length - 10} 個の依存関係...
                           </p>
                         )}
@@ -1166,11 +1068,7 @@ export default function FunctionStructuring() {
               <div className="text-center">
                 <button
                   onClick={handleNext}
-                  className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition-all hover:-translate-y-1 backdrop-blur-md ${
-                    darkMode
-                      ? "bg-cyan-500/80 hover:bg-cyan-500 text-gray-900 focus:ring-2 focus:ring-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
-                      : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-                  }`}
+                  className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition-all hover:-translate-y-1 backdrop-blur-md bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500/80 dark:hover:bg-cyan-500 dark:text-gray-900 dark:focus:ring-cyan-400 dark:shadow-[0_0_20px_rgba(34,211,238,0.3)] dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] dark:bg-none"
                 >
                   <span>タスク可視化へ</span>
                   <ChevronRight size={18} className="ml-2" />
@@ -1186,35 +1084,27 @@ export default function FunctionStructuring() {
       {/* 新規機能追加モーダル */}
       {isAddingFunction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
-          <div className={`rounded-xl p-6 shadow-2xl border max-w-lg w-full mx-4 backdrop-blur-xl ${
-            darkMode
-              ? "bg-gray-800/80 border-cyan-500/40 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
-              : "bg-white/80 border-purple-500/40"
-          }`}>
-            <h3 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+          <div className="rounded-xl p-6 shadow-2xl border max-w-lg w-full mx-4 backdrop-blur-xl bg-white/80 border-purple-500/40 dark:bg-gray-800/80 dark:border-cyan-500/40 dark:shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+            <h3 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
               新しい機能を追加
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   機能名
                 </label>
                 <input
                   type="text"
                   value={newFunctionData.function_name}
                   onChange={(e) => setNewFunctionData({...newFunctionData, function_name: e.target.value})}
-                  className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
-                    darkMode
-                      ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
-                      : "bg-white/70 border-gray-300 text-gray-900"
-                  }`}
+                  className="w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80 dark:focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
                   placeholder="例: ユーザー認証機能"
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   説明
                 </label>
                 <textarea
@@ -1224,11 +1114,7 @@ export default function FunctionStructuring() {
                     setNewFunctionData({...newFunctionData, description: e.target.value});
                     adjustTextareaHeight(e.target);
                   }}
-                  className={`w-full px-3 py-2 rounded-lg border outline-none resize-none backdrop-blur-sm transition-all ${
-                    darkMode
-                      ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
-                      : "bg-white/70 border-gray-300 text-gray-900"
-                  }`}
+                  className="w-full px-3 py-2 rounded-lg border outline-none resize-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80 dark:focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
                   rows={6}
                   placeholder="機能の詳細を入力してください"
                   style={{ minHeight: '120px' }}
@@ -1237,17 +1123,13 @@ export default function FunctionStructuring() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                     カテゴリ
                   </label>
                   <select
                     value={newFunctionData.category}
                     onChange={(e) => setNewFunctionData({...newFunctionData, category: e.target.value as StructuredFunction['category']})}
-                    className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
-                      darkMode
-                        ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80"
-                        : "bg-white/70 border-gray-300 text-gray-900"
-                    }`}
+                    className="w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80"
                   >
                     {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
@@ -1256,17 +1138,13 @@ export default function FunctionStructuring() {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                     優先度
                   </label>
                   <select
                     value={newFunctionData.priority}
                     onChange={(e) => setNewFunctionData({...newFunctionData, priority: e.target.value as StructuredFunction['priority']})}
-                    className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
-                      darkMode
-                        ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80"
-                        : "bg-white/70 border-gray-300 text-gray-900"
-                    }`}
+                    className="w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80"
                   >
                     {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
@@ -1279,21 +1157,13 @@ export default function FunctionStructuring() {
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsAddingFunction(false)}
-                className={`px-4 py-2 rounded-lg transition-all backdrop-blur-sm ${
-                  darkMode
-                    ? "bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 border border-gray-600/60"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                }`}
+                className="px-4 py-2 rounded-lg transition-all backdrop-blur-sm bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700/50 dark:hover:bg-gray-600/70 dark:text-gray-300 dark:border dark:border-gray-600/60"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleSaveNewFunction}
-                className={`px-4 py-2 rounded-lg transition-all backdrop-blur-sm ${
-                  darkMode
-                    ? "bg-cyan-500/80 hover:bg-cyan-500 text-gray-900 shadow-[0_0_10px_rgba(34,211,238,0.2)] hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]"
-                    : "bg-purple-500 hover:bg-purple-600 text-white"
-                }`}
+                className="px-4 py-2 rounded-lg transition-all backdrop-blur-sm bg-purple-500 hover:bg-purple-600 text-white dark:bg-cyan-500/80 dark:hover:bg-cyan-500 dark:text-gray-900 dark:shadow-[0_0_10px_rgba(34,211,238,0.2)] dark:hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]"
               >
                 追加
               </button>
@@ -1305,35 +1175,27 @@ export default function FunctionStructuring() {
       {/* 機能編集モーダル */}
       {isEditingModalOpen && editingFunction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
-          <div className={`rounded-xl p-6 shadow-2xl border max-w-lg w-full mx-4 backdrop-blur-xl ${
-            darkMode
-              ? "bg-gray-800/80 border-cyan-500/40 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
-              : "bg-white/80 border-purple-500/40"
-          }`}>
-            <h3 className={`text-xl font-bold mb-4 ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+          <div className="rounded-xl p-6 shadow-2xl border max-w-lg w-full mx-4 backdrop-blur-xl bg-white/80 border-purple-500/40 dark:bg-gray-800/80 dark:border-cyan-500/40 dark:shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+            <h3 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
               機能を編集
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   機能名
                 </label>
                 <input
                   type="text"
                   value={editingValues.function_name || ''}
                   onChange={(e) => setEditingValues({...editingValues, function_name: e.target.value})}
-                  className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
-                    darkMode
-                      ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
-                      : "bg-white/70 border-gray-300 text-gray-900"
-                  }`}
+                  className="w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80 dark:focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
                   placeholder="例: ユーザー認証機能"
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   説明
                 </label>
                 <textarea
@@ -1343,11 +1205,7 @@ export default function FunctionStructuring() {
                     setEditingValues({...editingValues, description: e.target.value});
                     adjustTextareaHeight(e.target);
                   }}
-                  className={`w-full px-3 py-2 rounded-lg border outline-none resize-none backdrop-blur-sm transition-all ${
-                    darkMode
-                      ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80 focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
-                      : "bg-white/70 border-gray-300 text-gray-900"
-                  }`}
+                  className="w-full px-3 py-2 rounded-lg border outline-none resize-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80 dark:focus:shadow-[0_0_10px_rgba(34,211,238,0.15)]"
                   rows={6}
                   placeholder="機能の詳細を入力してください"
                   style={{ minHeight: '120px' }}
@@ -1356,17 +1214,13 @@ export default function FunctionStructuring() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                     カテゴリ
                   </label>
                   <select
                     value={editingValues.category}
                     onChange={(e) => setEditingValues({...editingValues, category: e.target.value as StructuredFunction['category']})}
-                    className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
-                      darkMode
-                        ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80"
-                        : "bg-white/70 border-gray-300 text-gray-900"
-                    }`}
+                    className="w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80"
                   >
                     {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
@@ -1375,17 +1229,13 @@ export default function FunctionStructuring() {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                     優先度
                   </label>
                   <select
                     value={editingValues.priority}
                     onChange={(e) => setEditingValues({...editingValues, priority: e.target.value as StructuredFunction['priority']})}
-                    className={`w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all ${
-                      darkMode
-                        ? "bg-gray-700/30 border-gray-600/60 text-gray-100 focus:border-cyan-400/80"
-                        : "bg-white/70 border-gray-300 text-gray-900"
-                    }`}
+                    className="w-full px-3 py-2 rounded-lg border outline-none backdrop-blur-sm transition-all bg-white/70 border-gray-300 text-gray-900 dark:bg-gray-700/30 dark:border-gray-600/60 dark:text-gray-100 dark:focus:border-cyan-400/80"
                   >
                     {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
@@ -1398,21 +1248,13 @@ export default function FunctionStructuring() {
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={handleCancelEdit}
-                className={`px-4 py-2 rounded-lg transition-all backdrop-blur-sm ${
-                  darkMode
-                    ? "bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 border border-gray-600/60"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                }`}
+                className="px-4 py-2 rounded-lg transition-all backdrop-blur-sm bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700/50 dark:hover:bg-gray-600/70 dark:text-gray-300 dark:border dark:border-gray-600/60"
               >
                 キャンセル
               </button>
               <button
                 onClick={() => handleSaveFunction(editingFunction)}
-                className={`px-4 py-2 rounded-lg transition-all backdrop-blur-sm ${
-                  darkMode
-                    ? "bg-cyan-500/80 hover:bg-cyan-500 text-gray-900 shadow-[0_0_10px_rgba(34,211,238,0.2)] hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]"
-                    : "bg-purple-500 hover:bg-purple-600 text-white"
-                }`}
+                className="px-4 py-2 rounded-lg transition-all backdrop-blur-sm bg-purple-500 hover:bg-purple-600 text-white dark:bg-cyan-500/80 dark:hover:bg-cyan-500 dark:text-gray-900 dark:shadow-[0_0_10px_rgba(34,211,238,0.2)] dark:hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]"
               >
                 保存
               </button>
