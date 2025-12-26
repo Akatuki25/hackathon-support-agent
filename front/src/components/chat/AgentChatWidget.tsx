@@ -55,7 +55,6 @@ export function AgentChatWidget({
   } | null>(null);
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
   const [isResizing, setIsResizing] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
 
@@ -65,10 +64,8 @@ export function AgentChatWidget({
   const displayInitialMessage = initialMessage ||
     (pageContext ? PAGE_INITIAL_MESSAGES[pageContext] : 'こんにちは！ハッカソン開発について何でも聞いてください。');
 
-  // Scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // 自動スクロールは無効化（ストリーミング中に読めなくなるため）
+  // ユーザーが手動でスクロールして読む
 
   // Focus input when chat opens
   useEffect(() => {
@@ -402,7 +399,6 @@ export function AgentChatWidget({
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}

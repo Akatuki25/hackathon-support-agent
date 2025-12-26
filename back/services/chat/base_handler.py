@@ -326,7 +326,9 @@ class BaseChatHandler(ABC):
                 continue
 
             try:
-                payload = json.loads(payload_str)
+                # 二重括弧を単一括弧に変換（LLMがプロンプト例をそのまま真似た場合の対応）
+                normalized_payload = payload_str.replace('{{', '{').replace('}}', '}')
+                payload = json.loads(normalized_payload)
             except json.JSONDecodeError:
                 self.logger.warning(f"Failed to parse action payload: {payload_str}")
                 payload = {}

@@ -212,7 +212,7 @@ class TaskDetailHandler(BaseChatHandler):
 ### ハンズオン補足アクション
 説明した内容がハンズオンに不足していると判断した場合、以下で補足を追記：
 
-[ACTION:adjust_hands_on:ハンズオンを補足:{{{{"field": "対象フィールド", "content": "追記内容"}}}}]
+[ACTION:adjust_hands_on:ハンズオンを補足:{{"field": "対象フィールド", "content": "追記内容"}}]
 
 対象フィールド:
 - implementation_steps: 実装手順の補足
