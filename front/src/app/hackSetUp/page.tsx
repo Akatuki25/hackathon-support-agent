@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Zap, Clock, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { generateQuestions,saveQuestions } from "@/libs/service/qa";
 import { postProject } from "@/libs/modelAPI/project";
 import { getMemberByGithubName } from "@/libs/modelAPI/member";
@@ -12,7 +11,6 @@ import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 
 export default function Home() {
-  const { darkMode } = useDarkMode();
   const { data: session } = useSession();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -78,21 +76,17 @@ export default function Home() {
         <div className="w-full max-w-2xl">
           {/* Project Form */}
           <div
-            className={`relative backdrop-blur-md rounded-xl shadow-xl p-8 w-full border transition-all ${
-              darkMode
-                ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
-                : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
-            }`}
+            className="relative backdrop-blur-md rounded-xl shadow-xl p-8 w-full border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20"
           >
             <div className="flex items-center justify-center mb-6 mt-5 w-xl">
               <Zap
-                className={`mr-2 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                className="mr-2 text-purple-600 dark:text-cyan-400"
               />
               <h1
-                className={`text-2xl font-bold tracking-wider ${darkMode ? "text-cyan-400" : "text-purple-700"}`}
+                className="text-2xl font-bold tracking-wider text-purple-700 dark:text-cyan-400"
               >
                 プロジェクト
-                <span className={darkMode ? "text-pink-500" : "text-blue-600"}>
+                <span className="text-blue-600 dark:text-pink-500">
                   _作成
                 </span>
               </h1>
@@ -101,11 +95,7 @@ export default function Home() {
             {/* User info in form header */}
             {session && (
               <div
-                className={`mb-6 p-4 rounded-lg border ${
-                  darkMode
-                    ? "bg-gray-700/30 border-cyan-500/20 text-cyan-300"
-                    : "bg-purple-50/50 border-purple-300/20 text-purple-700"
-                }`}
+                className="mb-6 p-4 rounded-lg border bg-purple-50/50 border-purple-300/20 text-purple-700 dark:bg-gray-700/30 dark:border-cyan-500/20 dark:text-cyan-300"
               >
                 <p className="text-sm">
                   <span className="font-medium">プロジェクト作成者:</span>{" "}
@@ -117,11 +107,11 @@ export default function Home() {
             {/* input space  */}
             <div className="mb-5">
               <label
-                className={`flex items-center ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}
+                className="flex items-center text-gray-700 dark:text-gray-300 mb-2"
               >
                 <Zap
                   size={16}
-                  className={`mr-2 ${darkMode ? "text-pink-500" : "text-blue-600"}`}
+                  className="mr-2 text-blue-600 dark:text-pink-500"
                 />
                 <span>プロジェクトタイトル</span>
               </label>
@@ -136,21 +126,17 @@ export default function Home() {
                 }}
                 placeholder="例: AIXプロジェクト"
                 required
-                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                  darkMode
-                    ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
-                    : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
-                }`}
+                className="w-full p-3 rounded border-l-4 focus:outline-none transition-all bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400 dark:bg-gray-700 dark:text-gray-100 dark:border-pink-500 dark:focus:ring-1 dark:focus:ring-cyan-400"
               />
             </div>
             {/* input space  */}
             <div className="mb-5">
               <label
-                className={`flex items-center ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}
+                className="flex items-center text-gray-700 dark:text-gray-300 mb-2"
               >
                 <Zap
                   size={16}
-                  className={`mr-2 ${darkMode ? "text-pink-500" : "text-blue-600"}`}
+                  className="mr-2 text-blue-600 dark:text-pink-500"
                 />
                 <span>プロジェクトアイディア（詳しく書いてください）</span>
               </label>
@@ -165,21 +151,17 @@ export default function Home() {
                 }}
                 placeholder="例: AIを活用したプロジェクト"
                 required
-                className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                  darkMode
-                    ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
-                    : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
-                }`}
+                className="w-full p-3 rounded border-l-4 focus:outline-none transition-all bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400 dark:bg-gray-700 dark:text-gray-100 dark:border-pink-500 dark:focus:ring-1 dark:focus:ring-cyan-400"
               />
             </div>
 
             <div className="mb-5">
               <label
-                className={`flex items-center ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}
+                className="flex items-center text-gray-700 dark:text-gray-300 mb-2"
               >
                 <Clock
                   size={16}
-                  className={`mr-2 ${darkMode ? "text-pink-500" : "text-blue-600"}`}
+                  className="mr-2 text-blue-600 dark:text-pink-500"
                 />
                 <span>期間</span>
               </label>
@@ -192,17 +174,13 @@ export default function Home() {
                     value={startDate}
                     min={today}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className={`w-full p-3 rounded border-l-4 focus:outline-none transition-all ${
-                      darkMode
-                        ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
-                        : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
-                    }`}
+                    className="w-full p-3 rounded border-l-4 focus:outline-none transition-all bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400 dark:bg-gray-700 dark:text-gray-100 dark:border-pink-500 dark:focus:ring-1 dark:focus:ring-cyan-400"
                   />
                 </div>
 
                 {/* 〜 */}
                 <div
-                  className={`${darkMode ? "text-gray-300" : "text-gray-700"} text-center`}
+                  className="text-gray-700 dark:text-gray-300 text-center"
                 >
                   〜
                 </div>
@@ -214,21 +192,13 @@ export default function Home() {
                     value={endDate}
                     min={startDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className={`w-2/3 p-3 rounded border-l-4 focus:outline-none transition-all ${
-                      darkMode
-                        ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
-                        : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
-                    }`}
+                    className="w-2/3 p-3 rounded border-l-4 focus:outline-none transition-all bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400 dark:bg-gray-700 dark:text-gray-100 dark:border-pink-500 dark:focus:ring-1 dark:focus:ring-cyan-400"
                   />
                   <input
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className={`w-1/2 p-3 rounded border-l-4 focus:outline-none transition-all ${
-                      darkMode
-                        ? "bg-gray-700 text-gray-100 border-pink-500 focus:ring-1 focus:ring-cyan-400"
-                        : "bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400"
-                    }`}
+                    className="w-1/2 p-3 rounded border-l-4 focus:outline-none transition-all bg-white text-gray-800 border-blue-500 focus:ring-1 focus:ring-purple-400 dark:bg-gray-700 dark:text-gray-100 dark:border-pink-500 dark:focus:ring-1 dark:focus:ring-cyan-400"
                   />
                 </div>
               </div>
@@ -238,11 +208,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex items-center justify-center font-bold py-3 px-6 rounded transition-all ${
-                  darkMode
-                    ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 disabled:bg-gray-600 disabled:text-gray-400"
-                    : "bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-400 disabled:text-gray-600"
-                }`}
+                className="w-full flex items-center justify-center font-bold py-3 px-6 rounded transition-all bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-400 disabled:text-gray-600 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:disabled:bg-gray-600 dark:disabled:text-gray-400"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">

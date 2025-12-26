@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Terminal, ChevronRight, Loader2, Smartphone, Globe, Tablet, Bot, Check } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
@@ -346,7 +345,6 @@ export default function SelectFramework() {
   const router = useRouter();
   const pathname = usePathname();
   const projectId = pathname.split("/")[2];
-  const { darkMode } = useDarkMode();
 
   const [flowState, setFlowState] = useState<FlowState>('loading');
   const [selectedPlatform, setSelectedPlatform] = useState<SelectedPlatform>(null);
@@ -489,11 +487,11 @@ export default function SelectFramework() {
   // カテゴリの色
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'frontend': return darkMode ? 'bg-purple-500/80 text-white' : 'bg-purple-500 text-white';
-      case 'backend': return darkMode ? 'bg-blue-500/80 text-white' : 'bg-blue-500 text-white';
-      case 'database': return darkMode ? 'bg-green-600/80 text-white' : 'bg-green-600 text-white';
-      case 'deployment': return darkMode ? 'bg-orange-500/80 text-white' : 'bg-orange-500 text-white';
-      default: return darkMode ? 'bg-gray-500/80 text-white' : 'bg-gray-500 text-white';
+      case 'frontend': return 'bg-purple-500 text-white dark:bg-purple-500/80';
+      case 'backend': return 'bg-blue-500 text-white dark:bg-blue-500/80';
+      case 'database': return 'bg-green-600 text-white dark:bg-green-600/80';
+      case 'deployment': return 'bg-orange-500 text-white dark:bg-orange-500/80';
+      default: return 'bg-gray-500 text-white dark:bg-gray-500/80';
     }
   };
 
@@ -570,19 +568,19 @@ export default function SelectFramework() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4 mt-5">
               <Terminal
-                className={`mr-2 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                className="mr-2 text-purple-600 dark:text-cyan-400"
               />
               <h1
-                className={`text-3xl font-bold tracking-wider ${darkMode ? "text-cyan-400" : "text-purple-700"}`}
+                className="text-3xl font-bold tracking-wider text-purple-700 dark:text-cyan-400"
               >
                 技術スタック
-                <span className={darkMode ? "text-pink-500" : "text-blue-600"}>
+                <span className="text-blue-600 dark:text-pink-500">
                   _選択
                 </span>
               </h1>
             </div>
             <p
-              className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+              className="text-lg text-gray-700 dark:text-gray-300"
             >
               プラットフォームと技術スタックを選択してください
             </p>
@@ -590,9 +588,7 @@ export default function SelectFramework() {
 
           {/* 技術選択方法 */}
           <div className="mb-8">
-            <h2 className={`text-xl font-bold mb-4 ${
-              darkMode ? "text-cyan-300" : "text-purple-700"
-            }`}>
+            <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
               技術選択方法を選択
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,12 +604,8 @@ export default function SelectFramework() {
                 disabled={isLoadingRecommendations}
                 className={`p-6 rounded-xl border-2 transition-all hover:scale-105 ${
                   useAIRecommendations
-                    ? darkMode
-                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
-                      : "bg-purple-100 border-purple-500 text-purple-700"
-                    : darkMode
-                      ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
-                      : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
+                    ? "bg-purple-100 border-purple-500 text-purple-700 dark:bg-cyan-500/20 dark:border-cyan-500 dark:text-cyan-300"
+                    : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-300 dark:hover:border-cyan-500/50"
                 } disabled:opacity-50`}
               >
                 <Bot size={32} className="mx-auto mb-3" />
@@ -642,12 +634,8 @@ export default function SelectFramework() {
                 onClick={handleManualSelect}
                 className={`p-6 rounded-xl border-2 transition-all hover:scale-105 ${
                   !useAIRecommendations && selectedPlatform
-                    ? darkMode
-                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
-                      : "bg-purple-100 border-purple-500 text-purple-700"
-                    : darkMode
-                      ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
-                      : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
+                    ? "bg-purple-100 border-purple-500 text-purple-700 dark:bg-cyan-500/20 dark:border-cyan-500 dark:text-cyan-300"
+                    : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-300 dark:hover:border-cyan-500/50"
                 }`}
               >
                 <Terminal size={32} className="mx-auto mb-3" />
@@ -665,12 +653,8 @@ export default function SelectFramework() {
               {/* 左側：選択状況メータ（sticky） */}
               <div className="lg:col-span-3">
                 <div className="lg:sticky lg:top-24">
-                  <div className={`p-4 rounded-xl border-2 ${
-                    darkMode ? "bg-gray-800/50 border-gray-600" : "bg-white border-gray-300"
-                  }`}>
-                    <h3 className={`text-sm font-semibold mb-3 flex items-center ${
-                      darkMode ? "text-cyan-300" : "text-purple-700"
-                    }`}>
+                  <div className="p-4 rounded-xl border-2 bg-white border-gray-300 dark:bg-gray-800/50 dark:border-gray-600">
+                    <h3 className="text-sm font-semibold mb-3 flex items-center text-purple-700 dark:text-cyan-300">
                       <Bot size={16} className="mr-2" />
                       選択状況
                     </h3>
@@ -678,13 +662,13 @@ export default function SelectFramework() {
                     {/* 全体進捗サマリー */}
                     <div className={`mb-4 p-3 rounded-lg ${
                       areAllRequiredCategoriesFilled()
-                        ? darkMode ? "bg-green-900/20 border border-green-500/30" : "bg-green-50 border border-green-200"
-                        : darkMode ? "bg-yellow-900/20 border border-yellow-500/30" : "bg-yellow-50 border border-yellow-200"
+                        ? "bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-500/30"
+                        : "bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-500/30"
                     }`}>
                       <div className={`text-xs font-semibold mb-1 ${
                         areAllRequiredCategoriesFilled()
-                          ? darkMode ? "text-green-400" : "text-green-600"
-                          : darkMode ? "text-yellow-400" : "text-yellow-600"
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-yellow-600 dark:text-yellow-400"
                       }`}>
                         {areAllRequiredCategoriesFilled() ? (
                           <span className="flex items-center">
@@ -697,8 +681,8 @@ export default function SelectFramework() {
                       </div>
                       <div className={`text-xs ${
                         areAllRequiredCategoriesFilled()
-                          ? darkMode ? "text-green-300" : "text-green-700"
-                          : darkMode ? "text-yellow-300" : "text-yellow-700"
+                          ? "text-green-700 dark:text-green-300"
+                          : "text-yellow-700 dark:text-yellow-300"
                       }`}>
                         {areAllRequiredCategoriesFilled()
                           ? "すべての必須カテゴリが選択されています"
@@ -717,24 +701,20 @@ export default function SelectFramework() {
                         return (
                           <div key={category}>
                             <div className="flex justify-between items-center mb-1">
-                              <span className={`text-xs font-medium ${
-                                darkMode ? "text-gray-300" : "text-gray-700"
-                              }`}>
+                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                                 {config.label}
                                 {config.required && <span className="text-red-500 ml-1">*</span>}
                               </span>
                               <span className={`text-xs flex items-center ${
                                 isFilled
-                                  ? darkMode ? "text-green-400" : "text-green-600"
-                                  : darkMode ? "text-gray-400" : "text-gray-500"
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-gray-500 dark:text-gray-400"
                               }`}>
                                 {count}/{config.min}
                                 {isFilled && <Check size={12} className="ml-1" />}
                               </span>
                             </div>
-                            <div className={`h-1.5 rounded-full overflow-hidden ${
-                              darkMode ? "bg-gray-700" : "bg-gray-200"
-                            }`}>
+                            <div className="h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
                               <div
                                 className={`h-full transition-all duration-300 ${
                                   isFilled
@@ -753,8 +733,8 @@ export default function SelectFramework() {
 
                     {/* 未完了の警告メッセージ */}
                     {!areAllRequiredCategoriesFilled() && (
-                      <div className={`mt-3 text-xs ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}>
-                        ⚠️ 必須カテゴリ（*印）を選択してください
+                      <div className="mt-3 text-xs text-yellow-600 dark:text-yellow-400">
+                        必須カテゴリ（*印）を選択してください
                       </div>
                     )}
                   </div>
@@ -763,9 +743,7 @@ export default function SelectFramework() {
 
               {/* 右側：AI推薦技術カード */}
               <div className="lg:col-span-9">
-                <h2 className={`text-xl font-bold mb-4 flex items-center ${
-                  darkMode ? "text-cyan-300" : "text-purple-700"
-                }`}>
+                <h2 className="text-xl font-bold mb-4 flex items-center text-purple-700 dark:text-cyan-300">
                   <Bot size={24} className="mr-2" />
                   AI推薦技術を選択 (WEB)
                 </h2>
@@ -784,28 +762,20 @@ export default function SelectFramework() {
                       onClick={() => handleTechnologyToggle(tech.name)}
                       className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-102 relative ${
                         selectedTechnologies.has(tech.name)
-                          ? darkMode
-                            ? "bg-cyan-500/20 border-cyan-500"
-                            : "bg-purple-100 border-purple-500"
-                          : darkMode
-                            ? "bg-gray-800/50 border-gray-600 hover:border-cyan-500/50"
-                            : "bg-white border-gray-300 hover:border-purple-500/50"
+                          ? "bg-purple-100 border-purple-500 dark:bg-cyan-500/20 dark:border-cyan-500"
+                          : "bg-white border-gray-300 hover:border-purple-500/50 dark:bg-gray-800/50 dark:border-gray-600 dark:hover:border-cyan-500/50"
                       }`}
                     >
                       {/* AI推薦バッジ */}
                       <div className="absolute top-2 right-2">
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          darkMode ? "bg-green-500 text-white" : "bg-green-500 text-white"
-                        }`}>
+                        <div className="px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
                           AI推薦
                         </div>
                       </div>
 
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h4 className={`font-semibold ${
-                            darkMode ? "text-cyan-300" : "text-purple-700"
-                          }`}>
+                          <h4 className="font-semibold text-purple-700 dark:text-cyan-300">
                             {tech.name}
                           </h4>
                           <div className="flex gap-2 mt-1">
@@ -826,22 +796,20 @@ export default function SelectFramework() {
                           </div>
                         </div>
                         {selectedTechnologies.has(tech.name) && (
-                          <Check size={20} className={darkMode ? "text-cyan-400" : "text-purple-600"} />
+                          <Check size={20} className="text-purple-600 dark:text-cyan-400" />
                         )}
                       </div>
 
-                      <p className={`text-sm mb-3 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                      <p className="text-sm mb-3 text-gray-600 dark:text-gray-400">
                         {techDetail?.description || "AI推薦技術"}
                       </p>
 
                       {/* AI推薦理由 */}
-                      <div className={`p-2 rounded-lg mb-3 ${
-                        darkMode ? "bg-green-900/30 border border-green-500/30" : "bg-green-50 border border-green-200"
-                      }`}>
-                        <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                      <div className="p-2 rounded-lg mb-3 bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-500/30">
+                        <h5 className="text-xs font-semibold mb-1 text-green-600 dark:text-green-400">
                           AI推薦理由
                         </h5>
-                        <p className={`text-xs ${darkMode ? "text-green-300" : "text-green-700"}`}>
+                        <p className="text-xs text-green-700 dark:text-green-300">
                           {tech.reason}
                         </p>
                       </div>
@@ -850,26 +818,26 @@ export default function SelectFramework() {
                       {techDetail && (
                         <div className="space-y-2">
                           <div>
-                            <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                            <h5 className="text-xs font-semibold mb-1 text-green-600 dark:text-green-400">
                               メリット
                             </h5>
                             <ul className="text-xs space-y-1">
                               {techDetail.pros.slice(0, 2).map((pro, index) => (
-                                <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                  • {pro}
+                                <li key={index} className="text-gray-600 dark:text-gray-400">
+                                  {pro}
                                 </li>
                               ))}
                             </ul>
                           </div>
 
                           <div>
-                            <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-red-400" : "text-red-600"}`}>
+                            <h5 className="text-xs font-semibold mb-1 text-red-600 dark:text-red-400">
                               注意点
                             </h5>
                             <ul className="text-xs space-y-1">
                               {techDetail.cons.slice(0, 2).map((con, index) => (
-                                <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                  • {con}
+                                <li key={index} className="text-gray-600 dark:text-gray-400">
+                                  {con}
                                 </li>
                               ))}
                             </ul>
@@ -887,9 +855,7 @@ export default function SelectFramework() {
           {/* プラットフォーム選択（手動選択時のみ表示） */}
           {!useAIRecommendations && (
             <div className="mb-8">
-              <h2 className={`text-xl font-bold mb-4 ${
-                darkMode ? "text-cyan-300" : "text-purple-700"
-              }`}>
+              <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
                 プラットフォームを選択
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -903,12 +869,8 @@ export default function SelectFramework() {
                     onClick={() => handlePlatformSelect(key as 'web' | 'ios' | 'android')}
                     className={`p-6 rounded-xl border-2 transition-colors duration-200 h-[160px] w-full flex flex-col items-center justify-center ${
                       selectedPlatform === key
-                        ? darkMode
-                          ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
-                          : "bg-purple-100 border-purple-500 text-purple-700"
-                        : darkMode
-                          ? "bg-gray-800/50 border-gray-600 text-gray-300 hover:border-cyan-500/50"
-                          : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50"
+                        ? "bg-purple-100 border-purple-500 text-purple-700 dark:bg-cyan-500/20 dark:border-cyan-500 dark:text-cyan-300"
+                        : "bg-white border-gray-300 text-gray-700 hover:border-purple-500/50 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-300 dark:hover:border-cyan-500/50"
                     }`}
                   >
                     <Icon size={32} className="mb-3" />
@@ -926,12 +888,8 @@ export default function SelectFramework() {
               {/* 左側：選択状況メータ（sticky） */}
               <div className="lg:col-span-3">
                 <div className="lg:sticky lg:top-24">
-                  <div className={`p-4 rounded-xl border-2 ${
-                    darkMode ? "bg-gray-800/50 border-gray-600" : "bg-white border-gray-300"
-                  }`}>
-                    <h3 className={`text-sm font-semibold mb-3 flex items-center ${
-                      darkMode ? "text-cyan-300" : "text-purple-700"
-                    }`}>
+                  <div className="p-4 rounded-xl border-2 bg-white border-gray-300 dark:bg-gray-800/50 dark:border-gray-600">
+                    <h3 className="text-sm font-semibold mb-3 flex items-center text-purple-700 dark:text-cyan-300">
                       <Terminal size={16} className="mr-2" />
                       選択状況
                     </h3>
@@ -939,13 +897,13 @@ export default function SelectFramework() {
                     {/* 全体進捗サマリー */}
                     <div className={`mb-4 p-3 rounded-lg ${
                       areAllRequiredCategoriesFilled()
-                        ? darkMode ? "bg-green-900/20 border border-green-500/30" : "bg-green-50 border border-green-200"
-                        : darkMode ? "bg-yellow-900/20 border border-yellow-500/30" : "bg-yellow-50 border border-yellow-200"
+                        ? "bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-500/30"
+                        : "bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-500/30"
                     }`}>
                       <div className={`text-xs font-semibold mb-1 ${
                         areAllRequiredCategoriesFilled()
-                          ? darkMode ? "text-green-400" : "text-green-600"
-                          : darkMode ? "text-yellow-400" : "text-yellow-600"
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-yellow-600 dark:text-yellow-400"
                       }`}>
                         {areAllRequiredCategoriesFilled() ? (
                           <span className="flex items-center">
@@ -958,8 +916,8 @@ export default function SelectFramework() {
                       </div>
                       <div className={`text-xs ${
                         areAllRequiredCategoriesFilled()
-                          ? darkMode ? "text-green-300" : "text-green-700"
-                          : darkMode ? "text-yellow-300" : "text-yellow-700"
+                          ? "text-green-700 dark:text-green-300"
+                          : "text-yellow-700 dark:text-yellow-300"
                       }`}>
                         {areAllRequiredCategoriesFilled()
                           ? "すべての必須カテゴリが選択されています"
@@ -978,24 +936,20 @@ export default function SelectFramework() {
                         return (
                           <div key={category}>
                             <div className="flex justify-between items-center mb-1">
-                              <span className={`text-xs font-medium ${
-                                darkMode ? "text-gray-300" : "text-gray-700"
-                              }`}>
+                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                                 {config.label}
                                 {config.required && <span className="text-red-500 ml-1">*</span>}
                               </span>
                               <span className={`text-xs flex items-center ${
                                 isFilled
-                                  ? darkMode ? "text-green-400" : "text-green-600"
-                                  : darkMode ? "text-gray-400" : "text-gray-500"
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-gray-500 dark:text-gray-400"
                               }`}>
                                 {count}/{config.min}
                                 {isFilled && <Check size={12} className="ml-1" />}
                               </span>
                             </div>
-                            <div className={`h-1.5 rounded-full overflow-hidden ${
-                              darkMode ? "bg-gray-700" : "bg-gray-200"
-                            }`}>
+                            <div className="h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
                               <div
                                 className={`h-full transition-all duration-300 ${
                                   isFilled
@@ -1014,8 +968,8 @@ export default function SelectFramework() {
 
                     {/* 未完了の警告メッセージ */}
                     {!areAllRequiredCategoriesFilled() && (
-                      <div className={`mt-3 text-xs ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}>
-                        ⚠️ 必須カテゴリ（*印）を選択してください
+                      <div className="mt-3 text-xs text-yellow-600 dark:text-yellow-400">
+                        必須カテゴリ（*印）を選択してください
                       </div>
                     )}
                   </div>
@@ -1024,9 +978,7 @@ export default function SelectFramework() {
 
               {/* 右側：技術選択カード */}
               <div className="lg:col-span-9">
-                <h2 className={`text-xl font-bold mb-4 ${
-                  darkMode ? "text-cyan-300" : "text-purple-700"
-                }`}>
+                <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-cyan-300">
                   技術スタックを選択 ({selectedPlatform.toUpperCase()})
                 </h2>
 
@@ -1046,9 +998,7 @@ export default function SelectFramework() {
 
                     return (
                       <div key={category} className="mb-8">
-                        <h3 className={`text-lg font-semibold mb-4 ${
-                          darkMode ? "text-cyan-200" : "text-purple-600"
-                        }`}>
+                        <h3 className="text-lg font-semibold mb-4 text-purple-600 dark:text-cyan-200">
                           {categoryLabels[category]}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1062,16 +1012,10 @@ export default function SelectFramework() {
                               onClick={() => handleTechnologyToggle(tech.name)}
                               className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-102 relative ${
                                 selectedTechnologies.has(tech.name)
-                                  ? darkMode
-                                    ? "bg-cyan-500/20 border-cyan-500"
-                                    : "bg-purple-100 border-purple-500"
+                                  ? "bg-purple-100 border-purple-500 dark:bg-cyan-500/20 dark:border-cyan-500"
                                   : isRecommended
-                                    ? darkMode
-                                      ? "bg-green-900/20 border-green-500/50 hover:border-green-500"
-                                      : "bg-green-50 border-green-300 hover:border-green-500"
-                                    : darkMode
-                                      ? "bg-gray-800/50 border-gray-600 hover:border-cyan-500/50"
-                                      : "bg-white border-gray-300 hover:border-purple-500/50"
+                                    ? "bg-green-50 border-green-300 hover:border-green-500 dark:bg-green-900/20 dark:border-green-500/50 dark:hover:border-green-500"
+                                    : "bg-white border-gray-300 hover:border-purple-500/50 dark:bg-gray-800/50 dark:border-gray-600 dark:hover:border-cyan-500/50"
                               }`}
                             >
                               {/* カテゴリバッジとAI推薦バッジ（右上） */}
@@ -1082,9 +1026,7 @@ export default function SelectFramework() {
                                 </div>
                                 {/* AI推薦バッジ */}
                                 {isRecommended && (
-                                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    darkMode ? "bg-green-500 text-white" : "bg-green-500 text-white"
-                                  }`}>
+                                  <div className="px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
                                     AI推薦
                                   </div>
                                 )}
@@ -1092,9 +1034,7 @@ export default function SelectFramework() {
 
                               <div className="flex items-start justify-between mb-2">
                                 <div>
-                                  <h4 className={`font-semibold ${
-                                    darkMode ? "text-cyan-300" : "text-purple-700"
-                                  }`}>
+                                  <h4 className="font-semibold text-purple-700 dark:text-cyan-300">
                                     {tech.name}
                                   </h4>
                                   <div className="flex gap-2 mt-1">
@@ -1102,32 +1042,28 @@ export default function SelectFramework() {
                                       {getDifficultyText(tech.difficulty)}
                                     </span>
                                     {isRecommended && recommendedTech && (
-                                      <span className={`text-xs px-2 py-1 rounded ${
-                                        darkMode ? "bg-green-800 text-green-200" : "bg-green-100 text-green-700"
-                                      }`}>
+                                      <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-200">
                                         優先度 {recommendedTech.priority}
                                       </span>
                                     )}
                                   </div>
                                 </div>
                                 {selectedTechnologies.has(tech.name) && (
-                                  <Check size={20} className={darkMode ? "text-cyan-400" : "text-purple-600"} />
+                                  <Check size={20} className="text-purple-600 dark:text-cyan-400" />
                                 )}
                               </div>
 
-                              <p className={`text-sm mb-3 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                              <p className="text-sm mb-3 text-gray-600 dark:text-gray-400">
                                 {tech.description}
                               </p>
 
                               {/* AI推薦理由 */}
                               {isRecommended && recommendedTech && (
-                                <div className={`p-2 rounded-lg mb-3 ${
-                                  darkMode ? "bg-green-900/30 border border-green-500/30" : "bg-green-50 border border-green-200"
-                                }`}>
-                                  <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                                <div className="p-2 rounded-lg mb-3 bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-500/30">
+                                  <h5 className="text-xs font-semibold mb-1 text-green-600 dark:text-green-400">
                                     AI推薦理由
                                   </h5>
-                                  <p className={`text-xs ${darkMode ? "text-green-300" : "text-green-700"}`}>
+                                  <p className="text-xs text-green-700 dark:text-green-300">
                                     {recommendedTech.reason}
                                   </p>
                                 </div>
@@ -1135,26 +1071,26 @@ export default function SelectFramework() {
 
                               <div className="space-y-2">
                                 <div>
-                                  <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                                  <h5 className="text-xs font-semibold mb-1 text-green-600 dark:text-green-400">
                                     メリット
                                   </h5>
                                   <ul className="text-xs space-y-1">
                                     {tech.pros.slice(0, 2).map((pro, index) => (
-                                      <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                        • {pro}
+                                      <li key={index} className="text-gray-600 dark:text-gray-400">
+                                        {pro}
                                       </li>
                                     ))}
                                   </ul>
                                 </div>
 
                                 <div>
-                                  <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-red-400" : "text-red-600"}`}>
+                                  <h5 className="text-xs font-semibold mb-1 text-red-600 dark:text-red-400">
                                     注意点
                                   </h5>
                                   <ul className="text-xs space-y-1">
                                     {tech.cons.slice(0, 2).map((con, index) => (
-                                      <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                        • {con}
+                                      <li key={index} className="text-gray-600 dark:text-gray-400">
+                                        {con}
                                       </li>
                                     ))}
                                   </ul>
@@ -1177,20 +1113,16 @@ export default function SelectFramework() {
                     onClick={() => handleTechnologyToggle(tech.name)}
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-102 relative ${
                       selectedTechnologies.has(tech.name)
-                        ? darkMode
-                          ? "bg-cyan-500/20 border-cyan-500"
-                          : "bg-purple-100 border-purple-500"
-                        : darkMode
-                          ? "bg-gray-800/50 border-gray-600 hover:border-cyan-500/50"
-                          : "bg-white border-gray-300 hover:border-purple-500/50"
+                        ? "bg-purple-100 border-purple-500 dark:bg-cyan-500/20 dark:border-cyan-500"
+                        : "bg-white border-gray-300 hover:border-purple-500/50 dark:bg-gray-800/50 dark:border-gray-600 dark:hover:border-cyan-500/50"
                     }`}
                   >
                     {/* カテゴリバッジ（右上） */}
                     <div className="absolute top-2 right-2">
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         tech.category === 'frontend'
-                          ? darkMode ? "bg-purple-500/80 text-white" : "bg-purple-500 text-white"
-                          : darkMode ? "bg-blue-500/80 text-white" : "bg-blue-500 text-white"
+                          ? "bg-purple-500 text-white dark:bg-purple-500/80"
+                          : "bg-blue-500 text-white dark:bg-blue-500/80"
                       }`}>
                         {tech.category === 'frontend' ? 'フロントエンド' : 'バックエンド'}
                       </div>
@@ -1198,9 +1130,7 @@ export default function SelectFramework() {
 
                     <div className="flex items-start justify-between mb-2">
                       <div className="pr-24">
-                        <h3 className={`font-semibold ${
-                          darkMode ? "text-cyan-300" : "text-purple-700"
-                        }`}>
+                        <h3 className="font-semibold text-purple-700 dark:text-cyan-300">
                           {tech.name}
                         </h3>
                         <span className={`text-xs px-2 py-1 rounded ${getDifficultyColor(tech.difficulty)}`}>
@@ -1208,36 +1138,36 @@ export default function SelectFramework() {
                         </span>
                       </div>
                       {selectedTechnologies.has(tech.name) && (
-                        <Check size={20} className={darkMode ? "text-cyan-400" : "text-purple-600"} />
+                        <Check size={20} className="text-purple-600 dark:text-cyan-400" />
                       )}
                     </div>
 
-                    <p className={`text-sm mb-3 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    <p className="text-sm mb-3 text-gray-600 dark:text-gray-400">
                       {tech.description}
                     </p>
 
                     <div className="space-y-2">
                       <div>
-                        <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-green-400" : "text-green-600"}`}>
+                        <h5 className="text-xs font-semibold mb-1 text-green-600 dark:text-green-400">
                           メリット
                         </h5>
                         <ul className="text-xs space-y-1">
                           {tech.pros.slice(0, 2).map((pro, index) => (
-                            <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                              • {pro}
+                            <li key={index} className="text-gray-600 dark:text-gray-400">
+                              {pro}
                             </li>
                           ))}
                         </ul>
                       </div>
 
                       <div>
-                        <h5 className={`text-xs font-semibold mb-1 ${darkMode ? "text-red-400" : "text-red-600"}`}>
+                        <h5 className="text-xs font-semibold mb-1 text-red-600 dark:text-red-400">
                           注意点
                         </h5>
                         <ul className="text-xs space-y-1">
                           {tech.cons.slice(0, 2).map((con, index) => (
-                            <li key={index} className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                              • {con}
+                            <li key={index} className="text-gray-600 dark:text-gray-400">
+                              {con}
                             </li>
                           ))}
                         </ul>
@@ -1255,33 +1185,23 @@ export default function SelectFramework() {
           {selectedTechnologies.size > 0 && (useAIRecommendations || selectedPlatform) && (
             <div className="mt-8">
               <div
-                className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
-                  darkMode
-                    ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
-                    : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
-                }`}
+                className="backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20"
               >
                 <div className="text-center py-4">
-                  <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p className="mb-4 text-gray-700 dark:text-gray-300">
                     選択した技術: {Array.from(selectedTechnologies).join(", ")}
                   </p>
 
                   {areAllRequiredCategoriesFilled() ? (
                     <>
-                      <p className={`mb-6 flex items-center justify-center ${
-                        darkMode ? 'text-green-400' : 'text-green-600'
-                      }`}>
+                      <p className="mb-6 flex items-center justify-center text-green-600 dark:text-green-400">
                         <Check size={18} className="mr-2" />
                         すべての必須カテゴリが選択されています。次のステップに進みましょう！
                       </p>
 
                       <button
                         onClick={handleNext}
-                        className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
-                          darkMode
-                            ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-                            : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-                        }`}
+                        className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:bg-none"
                       >
                         <span>次へ進む</span>
                         <ChevronRight size={18} className="ml-2" />
@@ -1289,17 +1209,13 @@ export default function SelectFramework() {
                     </>
                   ) : (
                     <>
-                      <p className={`mb-6 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                        ⚠️ {getMissingCategories().join('、')}が足りませんが次に進みますか？
+                      <p className="mb-6 text-yellow-600 dark:text-yellow-400">
+                        {getMissingCategories().join('、')}が足りませんが次に進みますか？
                       </p>
 
                       <button
                         onClick={handleNext}
-                        className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
-                          darkMode
-                            ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-                            : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-                        }`}
+                        className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:bg-none"
                       >
                         <span>次へ進む</span>
                         <ChevronRight size={18} className="ml-2" />

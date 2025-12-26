@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import useSWR from "swr";
 import { ChevronRight, Terminal, Database, Cpu, Plus, X, Edit2,Trash2 } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import { getProject } from "@/libs/modelAPI/project";
 import Header from "@/components/Session/Header";
@@ -23,7 +22,6 @@ export default function HackQA() {
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
   const [editingQA, setEditingQA] = useState<{id: string, field: 'question' | 'answer', value: string} | null>(null);
-  const { darkMode } = useDarkMode();
   const projectId = pathname.split("/")[2];
 
   // SWR: プロジェクトデータ取得（キャッシュ有効）
@@ -209,56 +207,42 @@ export default function HackQA() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4 mt-5">
               <Terminal
-                className={`mr-2 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                className="mr-2 text-purple-600 dark:text-cyan-400"
               />
               <h1
-                className={`text-3xl font-bold tracking-wider ${darkMode ? "text-cyan-400" : "text-purple-700"}`}
+                className="text-3xl font-bold tracking-wider text-purple-700 dark:text-cyan-400"
               >
                 プロジェクト
-                <span className={darkMode ? "text-pink-500" : "text-blue-600"}>
+                <span className="text-blue-600 dark:text-pink-500">
                   _分析
                 </span>
               </h1>
             </div>
             <p
-              className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+              className="text-lg text-gray-700 dark:text-gray-300"
             >
               以下の質問に回答することで、プロダクトの方向性を明確にしましょう
             </p>
           </div>
 
           <div
-            className={`backdrop-blur-lg rounded-xl p-8 shadow-xl border transition-all ${
-              darkMode
-                ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
-                : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
-            }`}
+            className="backdrop-blur-lg rounded-xl p-8 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20"
           >
             
               <>
                 {/* プロジェクトのアイデア表示 */}
                 <div className="mb-6">
                   <h2
-                    className={`text-xl font-medium mb-4 flex items-center ${
-                      darkMode ? "text-cyan-400" : "text-purple-700"
-                    }`}
+                    className="text-xl font-medium mb-4 flex items-center text-purple-700 dark:text-cyan-400"
                   >
                     <Database
                       size={18}
-                      className={`mr-2 ${
-                        darkMode ? "text-pink-500" : "text-blue-600"
-                      }`}
+                      className="mr-2 text-blue-600 dark:text-pink-500"
                     />
                     あなたの作りたいもの：
                   </h2>
                   <p
-                    className={`${
-                      darkMode
-                        ? "bg-gray-700 text-cyan-300"
-                        : "bg-purple-100 text-gray-800"
-                    } p-4 rounded-lg border-l-4 ${
-                      darkMode ? "border-pink-500" : "border-blue-500"
-                    }`}
+                    className="bg-purple-100 text-gray-800 dark:bg-gray-700 dark:text-cyan-300 p-4 rounded-lg border-l-4 border-blue-500 dark:border-pink-500"
                   >
                     {idea}
                   </p>
@@ -267,15 +251,11 @@ export default function HackQA() {
                 {/* Q&Aセクション */}
                 <div className="mb-8">
                   <h2
-                    className={`text-xl font-medium mb-4 flex items-center ${
-                      darkMode ? "text-cyan-400" : "text-purple-700"
-                    }`}
+                    className="text-xl font-medium mb-4 flex items-center text-purple-700 dark:text-cyan-400"
                   >
                     <Cpu
                       size={18}
-                      className={`mr-2 ${
-                        darkMode ? "text-pink-500" : "text-blue-600"
-                      }`}
+                      className="mr-2 text-blue-600 dark:text-pink-500"
                     />
                     以下の質問に回答してください：
                   </h2>
@@ -287,11 +267,7 @@ export default function HackQA() {
                         {qas.map((qa) => (
                           <div
                             key={qa.qa_id}
-                            className={`p-5 rounded-lg border transition-all ${
-                              darkMode
-                                ? "bg-gray-700/40 border-cyan-500/30 hover:border-cyan-500/50"
-                                : "bg-purple-50/70 border-purple-300/50 hover:border-purple-400"
-                            }`}
+                            className="p-5 rounded-lg border transition-all bg-purple-50/70 border-purple-300/50 hover:border-purple-400 dark:bg-gray-700/40 dark:border-cyan-500/30 dark:hover:border-cyan-500/50"
                           >
                             {/* 質問と削除ボタン */}
                             <div className="mb-3 flex items-start justify-between">
@@ -302,28 +278,18 @@ export default function HackQA() {
                                   onChange={(e) => handleEditChange(e.target.value)}
                                   onBlur={handleEndEdit}
                                   autoFocus
-                                  className={`flex-grow p-2 rounded-lg border transition-all font-semibold text-lg ${
-                                    darkMode
-                                      ? "bg-gray-800 border-cyan-500/50 text-cyan-300 focus:border-cyan-400"
-                                      : "bg-white border-purple-300 text-purple-700 focus:border-purple-500"
-                                  } focus:outline-none focus:ring-2 ${
-                                    darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                                  }`}
+                                  className="flex-grow p-2 rounded-lg border transition-all font-semibold text-lg bg-white border-purple-300 text-purple-700 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-300 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
                                 />
                               ) : (
                                 <h3
                                   onClick={() => !qa.is_ai && handleStartEdit(qa.qa_id, 'question', qa.question)}
-                                  className={`font-semibold text-lg group flex items-start flex-grow ${
-                                    darkMode ? "text-cyan-300" : "text-purple-700"
-                                  } ${!qa.is_ai ? "cursor-pointer hover:opacity-80" : ""}`}
+                                  className={`font-semibold text-lg group flex items-start flex-grow text-purple-700 dark:text-cyan-300 ${!qa.is_ai ? "cursor-pointer hover:opacity-80" : ""}`}
                                 >
                                   <span className="flex-grow">Q: {qa.question}</span>
                                   {!qa.is_ai && (
                                     <Edit2
                                       size={16}
-                                      className={`ml-2 opacity-0 group-hover:opacity-100 transition-opacity ${
-                                        darkMode ? "text-cyan-400" : "text-purple-600"
-                                      }`}
+                                      className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 dark:text-cyan-400"
                                     />
                                   )}
                                 </h3>
@@ -332,9 +298,7 @@ export default function HackQA() {
                               {!qa.is_ai && (
                                 <button
                                   onClick={() => handleDeleteQA(qa.qa_id)}
-                                  className={`ml-2 p-1.5 rounded-lg transition-all hover:bg-red-500/20 ${
-                                    darkMode ? "text-red-400 hover:text-red-300" : "text-red-500 hover:text-red-600"
-                                  }`}
+                                  className="ml-2 p-1.5 rounded-lg transition-all hover:bg-red-500/20 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                                   title="削除"
                                 >
                                   <Trash2 size={18} />
@@ -350,39 +314,26 @@ export default function HackQA() {
                                 onBlur={handleEndEdit}
                                 autoFocus
                                 rows={4}
-                                className={`w-full p-3 rounded-lg border transition-all resize-none ${
-                                  darkMode
-                                    ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
-                                    : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
-                                } focus:outline-none focus:ring-2 ${
-                                  darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                                }`}
+                                className="w-full p-3 rounded-lg border transition-all resize-none bg-white border-purple-300 text-gray-800 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
                                 placeholder="回答を入力してください..."
                               />
                             ) : (
                               <div
                                 onClick={() => handleStartEdit(qa.qa_id, 'answer', qa.answer || "")}
-                                className={`p-3 rounded-lg border cursor-pointer transition-all group ${
-                                  darkMode
-                                    ? "bg-gray-750/50 border-gray-600 hover:bg-gray-700 hover:border-cyan-500/50"
-                                    : "bg-white/50 border-purple-200 hover:bg-purple-50 hover:border-purple-400"
-                                }`}
+                                className="p-3 rounded-lg border cursor-pointer transition-all group bg-white/50 border-purple-200 hover:bg-purple-50 hover:border-purple-400 dark:bg-gray-750/50 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-cyan-500/50"
                               >
                                 <div className="flex items-start justify-between">
                                   <p
-                                    className={`${
-                                      qa.answer
-                                        ? darkMode ? "text-gray-200" : "text-gray-700"
-                                        : darkMode ? "text-gray-500 italic" : "text-gray-400 italic"
-                                    }`}
+                                    className={qa.answer
+                                      ? "text-gray-700 dark:text-gray-200"
+                                      : "text-gray-400 italic dark:text-gray-500"
+                                    }
                                   >
                                     A: {qa.answer || "クリックして回答を入力..."}
                                   </p>
                                   <Edit2
                                     size={16}
-                                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${
-                                      darkMode ? "text-cyan-400" : "text-purple-600"
-                                    }`}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 dark:text-cyan-400"
                                   />
                                 </div>
                               </div>
@@ -393,25 +344,17 @@ export default function HackQA() {
                         {/* 新しいQ&A追加セクション */}
                         {showAddQA ? (
                           <div
-                            className={`p-5 rounded-lg border-2 border-dashed transition-all ${
-                              darkMode
-                                ? "bg-gray-700/30 border-cyan-500/50"
-                                : "bg-purple-50/50 border-purple-400/50"
-                            }`}
+                            className="p-5 rounded-lg border-2 border-dashed transition-all bg-purple-50/50 border-purple-400/50 dark:bg-gray-700/30 dark:border-cyan-500/50"
                           >
                             <h3
-                              className={`text-lg font-semibold mb-4 ${
-                                darkMode ? "text-cyan-400" : "text-purple-700"
-                              }`}
+                              className="text-lg font-semibold mb-4 text-purple-700 dark:text-cyan-400"
                             >
                               新しいQ&Aを追加
                             </h3>
                             <div className="space-y-4">
                               <div>
                                 <label
-                                  className={`block mb-2 text-sm font-medium ${
-                                    darkMode ? "text-cyan-300" : "text-purple-600"
-                                  }`}
+                                  className="block mb-2 text-sm font-medium text-purple-600 dark:text-cyan-300"
                                 >
                                   質問:
                                 </label>
@@ -419,21 +362,13 @@ export default function HackQA() {
                                   type="text"
                                   value={newQuestion}
                                   onChange={(e) => setNewQuestion(e.target.value)}
-                                  className={`w-full p-3 rounded-lg border transition-all ${
-                                    darkMode
-                                      ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
-                                      : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
-                                  } focus:outline-none focus:ring-2 ${
-                                    darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                                  }`}
+                                  className="w-full p-3 rounded-lg border transition-all bg-white border-purple-300 text-gray-800 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
                                   placeholder="質問を入力してください"
                                 />
                               </div>
                               <div>
                                 <label
-                                  className={`block mb-2 text-sm font-medium ${
-                                    darkMode ? "text-cyan-300" : "text-purple-600"
-                                  }`}
+                                  className="block mb-2 text-sm font-medium text-purple-600 dark:text-cyan-300"
                                 >
                                   回答 (オプション):
                                 </label>
@@ -441,13 +376,7 @@ export default function HackQA() {
                                   value={newAnswer}
                                   onChange={(e) => setNewAnswer(e.target.value)}
                                   rows={3}
-                                  className={`w-full p-3 rounded-lg border transition-all resize-none ${
-                                    darkMode
-                                      ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
-                                      : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
-                                  } focus:outline-none focus:ring-2 ${
-                                    darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                                  }`}
+                                  className="w-full p-3 rounded-lg border transition-all resize-none bg-white border-purple-300 text-gray-800 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
                                   placeholder="回答を入力してください（後で入力することもできます）"
                                 />
                               </div>
@@ -458,22 +387,14 @@ export default function HackQA() {
                                     setNewQuestion("");
                                     setNewAnswer("");
                                   }}
-                                  className={`px-4 py-2 rounded-lg transition-all ${
-                                    darkMode
-                                      ? "bg-gray-600 hover:bg-gray-700 text-gray-300"
-                                      : "bg-gray-300 hover:bg-gray-400 text-gray-700"
-                                  }`}
+                                  className="px-4 py-2 rounded-lg transition-all bg-gray-300 hover:bg-gray-400 text-gray-700 dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
                                 >
                                   <X size={16} className="inline mr-1" />
                                   キャンセル
                                 </button>
                                 <button
                                   onClick={handleAddNewQA}
-                                  className={`px-4 py-2 rounded-lg transition-all ${
-                                    darkMode
-                                      ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900"
-                                      : "bg-purple-500 hover:bg-purple-600 text-white"
-                                  }`}
+                                  className="px-4 py-2 rounded-lg transition-all bg-purple-500 hover:bg-purple-600 text-white dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900"
                                 >
                                   <Plus size={16} className="inline mr-1" />
                                   追加
@@ -484,23 +405,15 @@ export default function HackQA() {
                         ) : (
                           <button
                             onClick={() => setShowAddQA(true)}
-                            className={`w-full p-4 rounded-lg border-2 border-dashed transition-all group ${
-                              darkMode
-                                ? "border-cyan-500/30 hover:border-cyan-500/50 hover:bg-gray-700/30"
-                                : "border-purple-300/50 hover:border-purple-400 hover:bg-purple-50/30"
-                            }`}
+                            className="w-full p-4 rounded-lg border-2 border-dashed transition-all group border-purple-300/50 hover:border-purple-400 hover:bg-purple-50/30 dark:border-cyan-500/30 dark:hover:border-cyan-500/50 dark:hover:bg-gray-700/30"
                           >
                             <div className="flex items-center justify-center">
                               <Plus
                                 size={20}
-                                className={`mr-2 ${
-                                  darkMode ? "text-cyan-400" : "text-purple-600"
-                                }`}
+                                className="mr-2 text-purple-600 dark:text-cyan-400"
                               />
                               <span
-                                className={`font-medium ${
-                                  darkMode ? "text-cyan-400" : "text-purple-600"
-                                }`}
+                                className="font-medium text-purple-600 dark:text-cyan-400"
                               >
                                 新しい質問を追加
                               </span>
@@ -511,17 +424,13 @@ export default function HackQA() {
                     ) : (
                       <div className="text-center py-8">
                         <p
-                          className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+                          className="mb-4 text-gray-600 dark:text-gray-400"
                         >
                           まだ質問がありません
                         </p>
                         <button
                           onClick={() => setShowAddQA(true)}
-                          className={`px-6 py-3 rounded-lg transition-all ${
-                            darkMode
-                              ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900"
-                              : "bg-purple-500 hover:bg-purple-600 text-white"
-                          }`}
+                          className="px-6 py-3 rounded-lg transition-all bg-purple-500 hover:bg-purple-600 text-white dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900"
                         >
                           <Plus size={18} className="inline mr-2" />
                           最初の質問を追加
@@ -535,19 +444,13 @@ export default function HackQA() {
                 <div className="flex justify-end">
                   <button
                     onClick={handleNext}
-                    className={`px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
-                      darkMode
-                        ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-                        : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-                    }`}
+                    className="px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 dark:hover:from-cyan-600 dark:hover:to-cyan-600"
                     disabled={processingNext}
                   >
                     {processingNext ? (
                       <div className="flex items-center">
                         <div
-                          className={`animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 ${
-                            darkMode ? "border-gray-900" : "border-white"
-                          } mr-2`}
+                          className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white dark:border-gray-900 mr-2"
                         ></div>
                         処理中...
                       </div>

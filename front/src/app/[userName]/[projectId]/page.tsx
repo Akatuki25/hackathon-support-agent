@@ -9,7 +9,6 @@ import './cyber-flow.css';
 import { TaskFlow } from './TaskFlow';
 import { AgentChatWidget } from './AgentChatWidget';
 import { generateCompleteTaskSet } from '@/libs/service/completeTaskGenerationService';
-import { useDarkMode } from '@/hooks/useDarkMode';
 import { Terminal, X, ArrowRight } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -49,7 +48,6 @@ export default function TaskVisualizationPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { darkMode } = useDarkMode();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -221,19 +219,21 @@ export default function TaskVisualizationPage() {
   // Render loading state - Cyber AI Agent Style
   if (loading || generating) {
     return (
-      <main className={`relative z-10 flex items-center justify-center h-screen w-screen overflow-hidden ${
-        darkMode
-          ? 'bg-gradient-to-br from-gray-900 via-black to-gray-900'
-          : 'bg-gradient-to-br from-purple-50 via-white to-blue-50'
-      }`}>
-        {/* Background grid animation */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: darkMode
-              ? `linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-                 linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)`
-              : `linear-gradient(rgba(147, 51, 234, 0.1) 1px, transparent 1px),
-                 linear-gradient(90deg, rgba(147, 51, 234, 0.1) 1px, transparent 1px)`,
+      <main className="relative z-10 flex items-center justify-center h-screen w-screen overflow-hidden bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900">
+        {/* Background grid animation - Light mode */}
+        <div className="absolute inset-0 opacity-20 dark:hidden">
+          <div className="absolute inset-0 bg-grid-light" style={{
+            backgroundImage: `linear-gradient(rgba(147, 51, 234, 0.1) 1px, transparent 1px),
+               linear-gradient(90deg, rgba(147, 51, 234, 0.1) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px',
+            animation: 'gridScroll 20s linear infinite'
+          }} />
+        </div>
+        {/* Background grid animation - Dark mode */}
+        <div className="absolute inset-0 opacity-20 hidden dark:block">
+          <div className="absolute inset-0 bg-grid-dark" style={{
+            backgroundImage: `linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+               linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)`,
             backgroundSize: '50px 50px',
             animation: 'gridScroll 20s linear infinite'
           }} />
@@ -245,9 +245,7 @@ export default function TaskVisualizationPage() {
             <div
               key={i}
               className={`absolute w-1 h-1 rounded-full ${
-                darkMode
-                  ? i % 3 === 0 ? 'bg-cyan-400' : i % 3 === 1 ? 'bg-purple-400' : 'bg-pink-400'
-                  : i % 3 === 0 ? 'bg-purple-500' : i % 3 === 1 ? 'bg-blue-500' : 'bg-indigo-500'
+                i % 3 === 0 ? 'bg-purple-500 dark:bg-cyan-400' : i % 3 === 1 ? 'bg-blue-500 dark:bg-purple-400' : 'bg-indigo-500 dark:bg-pink-400'
               }`}
               style={{
                 left: `${Math.random() * 100}%`,
@@ -260,18 +258,32 @@ export default function TaskVisualizationPage() {
           ))}
         </div>
 
-        {/* Hexagonal pattern overlay */}
-        <div className="absolute inset-0 opacity-5">
+        {/* Hexagonal pattern overlay - Light mode */}
+        <div className="absolute inset-0 opacity-5 dark:hidden">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="hexagons" width="56" height="100" patternUnits="userSpaceOnUse">
+              <pattern id="hexagons-light" width="56" height="100" patternUnits="userSpaceOnUse">
                 <polygon points="28,0 56,17 56,51 28,68 0,51 0,17"
                   fill="none"
-                  stroke={darkMode ? '#00ffff' : '#9333ea'}
+                  stroke="#9333ea"
                   strokeWidth="1" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#hexagons)" />
+            <rect width="100%" height="100%" fill="url(#hexagons-light)" />
+          </svg>
+        </div>
+        {/* Hexagonal pattern overlay - Dark mode */}
+        <div className="absolute inset-0 opacity-5 hidden dark:block">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="hexagons-dark" width="56" height="100" patternUnits="userSpaceOnUse">
+                <polygon points="28,0 56,17 56,51 28,68 0,51 0,17"
+                  fill="none"
+                  stroke="#00ffff"
+                  strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hexagons-dark)" />
           </svg>
         </div>
 
@@ -281,32 +293,18 @@ export default function TaskVisualizationPage() {
           <div className="mb-12 relative">
             <div className="w-40 h-40 mx-auto relative">
               {/* Outer rotating rings */}
-              <div className={`absolute inset-0 border-4 rounded-full opacity-20 animate-spin-slow ${
-                darkMode ? 'border-cyan-500' : 'border-purple-500'
-              }`} />
-              <div className={`absolute inset-2 border-4 rounded-full opacity-30 animate-spin-reverse ${
-                darkMode ? 'border-purple-500' : 'border-blue-500'
-              }`} />
-              <div className={`absolute inset-4 border-4 rounded-full opacity-40 animate-pulse ${
-                darkMode ? 'border-cyan-400' : 'border-purple-400'
-              }`} />
-              <div className={`absolute inset-6 border-2 rounded-full opacity-50 animate-spin-slow ${
-                darkMode ? 'border-pink-400' : 'border-indigo-400'
-              }`} style={{ animationDuration: '5s' }} />
+              <div className="absolute inset-0 border-4 rounded-full opacity-20 animate-spin-slow border-purple-500 dark:border-cyan-500" />
+              <div className="absolute inset-2 border-4 rounded-full opacity-30 animate-spin-reverse border-blue-500 dark:border-purple-500" />
+              <div className="absolute inset-4 border-4 rounded-full opacity-40 animate-pulse border-purple-400 dark:border-cyan-400" />
+              <div className="absolute inset-6 border-2 rounded-full opacity-50 animate-spin-slow border-indigo-400 dark:border-pink-400" style={{ animationDuration: '5s' }} />
 
               {/* Center core */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`w-20 h-20 rounded-full animate-pulse-glow relative ${
-                  darkMode
-                    ? 'bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-600'
-                    : 'bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600'
-                }`}>
+                <div className="w-20 h-20 rounded-full animate-pulse-glow-light dark:animate-pulse-glow-dark relative bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 dark:from-cyan-400 dark:via-purple-500 dark:to-pink-600">
                   {/* AI symbol with glow */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="relative">
-                      <div className={`absolute inset-0 blur-md ${
-                        darkMode ? 'text-cyan-300' : 'text-purple-300'
-                      } font-bold text-3xl flex items-center justify-center`}>
+                      <div className="absolute inset-0 blur-md text-purple-300 dark:text-cyan-300 font-bold text-3xl flex items-center justify-center">
                         AI
                       </div>
                       <div className="relative text-white font-bold text-3xl">
@@ -319,18 +317,10 @@ export default function TaskVisualizationPage() {
 
               {/* Orbiting dots */}
               <div className="absolute inset-0">
-                <div className={`absolute top-0 left-1/2 w-3 h-3 rounded-full -ml-1.5 animate-orbit-1 ${
-                  darkMode ? 'bg-cyan-400' : 'bg-purple-500'
-                }`} />
-                <div className={`absolute top-0 left-1/2 w-3 h-3 rounded-full -ml-1.5 animate-orbit-2 ${
-                  darkMode ? 'bg-purple-400' : 'bg-blue-500'
-                }`} />
-                <div className={`absolute top-0 left-1/2 w-3 h-3 rounded-full -ml-1.5 animate-orbit-3 ${
-                  darkMode ? 'bg-pink-400' : 'bg-indigo-500'
-                }`} />
-                <div className={`absolute top-0 left-1/2 w-2 h-2 rounded-full -ml-1 animate-orbit-4 ${
-                  darkMode ? 'bg-cyan-300' : 'bg-purple-400'
-                }`} />
+                <div className="absolute top-0 left-1/2 w-3 h-3 rounded-full -ml-1.5 animate-orbit-1 bg-purple-500 dark:bg-cyan-400" />
+                <div className="absolute top-0 left-1/2 w-3 h-3 rounded-full -ml-1.5 animate-orbit-2 bg-blue-500 dark:bg-purple-400" />
+                <div className="absolute top-0 left-1/2 w-3 h-3 rounded-full -ml-1.5 animate-orbit-3 bg-indigo-500 dark:bg-pink-400" />
+                <div className="absolute top-0 left-1/2 w-2 h-2 rounded-full -ml-1 animate-orbit-4 bg-purple-400 dark:bg-cyan-300" />
               </div>
 
               {/* Data stream lines */}
@@ -345,11 +335,7 @@ export default function TaskVisualizationPage() {
                       animationDelay: `${i * 0.1}s`
                     }}
                   >
-                    <div className={`w-full h-full ${
-                      darkMode
-                        ? 'bg-gradient-to-t from-cyan-400 to-transparent'
-                        : 'bg-gradient-to-t from-purple-500 to-transparent'
-                    } opacity-30`} />
+                    <div className="w-full h-full bg-gradient-to-t from-purple-500 to-transparent dark:from-cyan-400 dark:to-transparent opacity-30" />
                   </div>
                 ))}
               </div>
@@ -358,68 +344,46 @@ export default function TaskVisualizationPage() {
 
           {/* Status text */}
           <div className="space-y-6">
-            <h2 className={`text-4xl font-bold bg-clip-text text-transparent animate-gradient-x ${
-              darkMode
-                ? 'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400'
-                : 'bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600'
-            }`} style={{ backgroundSize: '200% auto' }}>
+            <h2 className="text-4xl font-bold bg-clip-text text-transparent animate-gradient-x bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-cyan-400 dark:via-purple-400 dark:to-pink-400" style={{ backgroundSize: '200% auto' }}>
               {generating ? 'AI AGENT PROCESSING' : 'INITIALIZING SYSTEM'}
             </h2>
 
-            <div className={`text-sm font-mono space-y-3 ${
-              darkMode ? 'text-cyan-300' : 'text-purple-600'
-            }`}>
+            <div className="text-sm font-mono space-y-3 text-purple-600 dark:text-cyan-300">
               <div className="animate-pulse-text flex items-center justify-center gap-2">
-                <span className={`inline-block w-2 h-2 rounded-full ${
-                  darkMode ? 'bg-cyan-400' : 'bg-purple-500'
-                } animate-ping`} />
+                <span className="inline-block w-2 h-2 rounded-full bg-purple-500 dark:bg-cyan-400 animate-ping" />
                 <span>{generating ? '> Analyzing project structure and dependencies...' : '> Connecting to neural network...'}</span>
               </div>
               <div className="animate-pulse-text flex items-center justify-center gap-2" style={{ animationDelay: '0.3s' }}>
-                <span className={`inline-block w-2 h-2 rounded-full ${
-                  darkMode ? 'bg-purple-400' : 'bg-blue-500'
-                } animate-ping`} style={{ animationDelay: '0.3s' }} />
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-500 dark:bg-purple-400 animate-ping" style={{ animationDelay: '0.3s' }} />
                 <span>{generating ? '> Generating optimized task breakdown...' : '> Loading task database...'}</span>
               </div>
               <div className="animate-pulse-text flex items-center justify-center gap-2" style={{ animationDelay: '0.6s' }}>
-                <span className={`inline-block w-2 h-2 rounded-full ${
-                  darkMode ? 'bg-pink-400' : 'bg-indigo-500'
-                } animate-ping`} style={{ animationDelay: '0.6s' }} />
+                <span className="inline-block w-2 h-2 rounded-full bg-indigo-500 dark:bg-pink-400 animate-ping" style={{ animationDelay: '0.6s' }} />
                 <span>{generating ? '> Building intelligent workflow graph...' : '> Preparing visualization matrix...'}</span>
               </div>
               <div className="animate-pulse-text flex items-center justify-center gap-2" style={{ animationDelay: '0.9s' }}>
-                <span className={`inline-block w-2 h-2 rounded-full ${
-                  darkMode ? 'bg-cyan-300' : 'bg-purple-400'
-                } animate-ping`} style={{ animationDelay: '0.9s' }} />
+                <span className="inline-block w-2 h-2 rounded-full bg-purple-400 dark:bg-cyan-300 animate-ping" style={{ animationDelay: '0.9s' }} />
                 <span>{generating ? '> Calculating task dependencies and timelines...' : '> Synchronizing data streams...'}</span>
               </div>
             </div>
 
             {/* Enhanced Progress bar with percentage */}
             <div className="mt-8 w-96 max-w-full mx-auto space-y-2">
-              <div className={`h-2 rounded-full overflow-hidden relative ${
-                darkMode ? 'bg-gray-800' : 'bg-purple-100'
-              }`}>
-                <div className={`h-full rounded-full animate-progress relative ${
-                  darkMode
-                    ? 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500'
-                    : 'bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500'
-                }`}>
+              <div className="h-2 rounded-full overflow-hidden relative bg-purple-100 dark:bg-gray-800">
+                <div className="h-full rounded-full animate-progress relative bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500">
                   {/* Shimmer effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer" />
                 </div>
               </div>
               {/* Status indicators */}
               <div className="flex justify-between text-xs font-mono">
-                <span className={darkMode ? 'text-cyan-400' : 'text-purple-600'}>PROCESSING...</span>
-                <span className={darkMode ? 'text-purple-400' : 'text-blue-600'}>AI ACTIVE</span>
+                <span className="text-purple-600 dark:text-cyan-400">PROCESSING...</span>
+                <span className="text-blue-600 dark:text-purple-400">AI ACTIVE</span>
               </div>
             </div>
 
             {/* Binary code rain effect - enhanced */}
-            <div className={`text-xs font-mono opacity-30 mt-6 overflow-hidden h-12 ${
-              darkMode ? 'text-cyan-500' : 'text-purple-500'
-            }`}>
+            <div className="text-xs font-mono opacity-30 mt-6 overflow-hidden h-12 text-purple-500 dark:text-cyan-500">
               <div className="animate-scroll-up space-y-1">
                 <div>01001000 01100001 01100011 01101011</div>
                 <div>01010011 01110101 01110000 01110000</div>
@@ -430,18 +394,10 @@ export default function TaskVisualizationPage() {
         </div>
 
         {/* Corner accents with animation */}
-        <div className={`absolute top-0 left-0 w-40 h-40 border-t-2 border-l-2 opacity-50 animate-corner-fade ${
-          darkMode ? 'border-cyan-500' : 'border-purple-500'
-        }`} />
-        <div className={`absolute top-0 right-0 w-40 h-40 border-t-2 border-r-2 opacity-50 animate-corner-fade ${
-          darkMode ? 'border-purple-500' : 'border-blue-500'
-        }`} style={{ animationDelay: '0.2s' }} />
-        <div className={`absolute bottom-0 left-0 w-40 h-40 border-b-2 border-l-2 opacity-50 animate-corner-fade ${
-          darkMode ? 'border-purple-500' : 'border-blue-500'
-        }`} style={{ animationDelay: '0.4s' }} />
-        <div className={`absolute bottom-0 right-0 w-40 h-40 border-b-2 border-r-2 opacity-50 animate-corner-fade ${
-          darkMode ? 'border-cyan-500' : 'border-purple-500'
-        }`} style={{ animationDelay: '0.6s' }} />
+        <div className="absolute top-0 left-0 w-40 h-40 border-t-2 border-l-2 opacity-50 animate-corner-fade border-purple-500 dark:border-cyan-500" />
+        <div className="absolute top-0 right-0 w-40 h-40 border-t-2 border-r-2 opacity-50 animate-corner-fade border-blue-500 dark:border-purple-500" style={{ animationDelay: '0.2s' }} />
+        <div className="absolute bottom-0 left-0 w-40 h-40 border-b-2 border-l-2 opacity-50 animate-corner-fade border-blue-500 dark:border-purple-500" style={{ animationDelay: '0.4s' }} />
+        <div className="absolute bottom-0 right-0 w-40 h-40 border-b-2 border-r-2 opacity-50 animate-corner-fade border-purple-500 dark:border-cyan-500" style={{ animationDelay: '0.6s' }} />
 
         <style jsx>{`
           @keyframes gridScroll {
@@ -459,18 +415,6 @@ export default function TaskVisualizationPage() {
           @keyframes spin-reverse {
             from { transform: rotate(360deg); }
             to { transform: rotate(0deg); }
-          }
-          @keyframes pulse-glow {
-            0%, 100% {
-              box-shadow: ${darkMode
-                ? '0 0 30px rgba(34, 211, 238, 0.6), 0 0 60px rgba(168, 85, 247, 0.4)'
-                : '0 0 30px rgba(147, 51, 234, 0.6), 0 0 60px rgba(59, 130, 246, 0.4)'};
-            }
-            50% {
-              box-shadow: ${darkMode
-                ? '0 0 50px rgba(168, 85, 247, 0.8), 0 0 80px rgba(236, 72, 153, 0.6)'
-                : '0 0 50px rgba(59, 130, 246, 0.8), 0 0 80px rgba(99, 102, 241, 0.6)'};
-            }
           }
           @keyframes orbit-1 {
             from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
@@ -522,8 +466,27 @@ export default function TaskVisualizationPage() {
           .animate-spin-reverse {
             animation: spin-reverse 4s linear infinite;
           }
-          .animate-pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite;
+          .animate-pulse-glow-light {
+            animation: pulse-glow-light 2s ease-in-out infinite;
+          }
+          .animate-pulse-glow-dark {
+            animation: pulse-glow-dark 2s ease-in-out infinite;
+          }
+          @keyframes pulse-glow-light {
+            0%, 100% {
+              box-shadow: 0 0 30px rgba(147, 51, 234, 0.6), 0 0 60px rgba(59, 130, 246, 0.4);
+            }
+            50% {
+              box-shadow: 0 0 50px rgba(59, 130, 246, 0.8), 0 0 80px rgba(99, 102, 241, 0.6);
+            }
+          }
+          @keyframes pulse-glow-dark {
+            0%, 100% {
+              box-shadow: 0 0 30px rgba(34, 211, 238, 0.6), 0 0 60px rgba(168, 85, 247, 0.4);
+            }
+            50% {
+              box-shadow: 0 0 50px rgba(168, 85, 247, 0.8), 0 0 80px rgba(236, 72, 153, 0.6);
+            }
           }
           .animate-orbit-1 {
             animation: orbit-1 3s linear infinite;
@@ -617,32 +580,20 @@ export default function TaskVisualizationPage() {
       {/* 環境構築確認モーダル */}
       {showEnvSetupModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
-          <div className={`rounded-2xl p-8 shadow-2xl border max-w-md w-full mx-4 backdrop-blur-xl ${
-            darkMode
-              ? "bg-gray-900/90 border-cyan-500/40 shadow-[0_0_40px_rgba(34,211,238,0.3)]"
-              : "bg-white/90 border-purple-500/40 shadow-purple-300/30"
-          }`}>
+          <div className="rounded-2xl p-8 shadow-2xl border max-w-md w-full mx-4 backdrop-blur-xl bg-white/90 border-purple-500/40 shadow-purple-300/30 dark:bg-gray-900/90 dark:border-cyan-500/40 dark:shadow-[0_0_40px_rgba(34,211,238,0.3)]">
             {/* ヘッダー */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-xl ${
-                  darkMode
-                    ? "bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-400/30"
-                    : "bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-300/30"
-                }`}>
-                  <Terminal size={28} className={darkMode ? "text-cyan-400" : "text-purple-600"} />
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-300/30 dark:from-cyan-500/20 dark:to-purple-500/20 dark:border-cyan-400/30">
+                  <Terminal size={28} className="text-purple-600 dark:text-cyan-400" />
                 </div>
-                <h3 className={`text-xl font-bold ${darkMode ? "text-cyan-300" : "text-purple-700"}`}>
+                <h3 className="text-xl font-bold text-purple-700 dark:text-cyan-300">
                   環境構築ガイド
                 </h3>
               </div>
               <button
                 onClick={handleCloseEnvModal}
-                className={`p-2 rounded-lg transition-all ${
-                  darkMode
-                    ? "hover:bg-gray-800 text-gray-400 hover:text-gray-200"
-                    : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
-                }`}
+                className="p-2 rounded-lg transition-all hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <X size={20} />
               </button>
@@ -650,13 +601,13 @@ export default function TaskVisualizationPage() {
 
             {/* コンテンツ */}
             <div className="mb-8">
-              <p className={`text-base leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+              <p className="text-base leading-relaxed text-gray-600 dark:text-gray-300">
                 タスクの可視化が完了しました！
               </p>
-              <p className={`text-base leading-relaxed mt-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                続いて、<span className={`font-semibold ${darkMode ? "text-cyan-400" : "text-purple-600"}`}>開発環境の構築ガイド</span>を確認しますか？
+              <p className="text-base leading-relaxed mt-2 text-gray-600 dark:text-gray-300">
+                続いて、<span className="font-semibold text-purple-600 dark:text-cyan-400">開発環境の構築ガイド</span>を確認しますか？
               </p>
-              <p className={`text-sm mt-4 ${darkMode ? "text-gray-500" : "text-gray-500"}`}>
+              <p className="text-sm mt-4 text-gray-500">
                 AIが最適な環境構築手順を自動生成します
               </p>
             </div>
@@ -665,11 +616,7 @@ export default function TaskVisualizationPage() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleNavigateToEnv}
-                className={`w-full px-6 py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all duration-300 ${
-                  darkMode
-                    ? "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
-                    : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl"
-                }`}
+                className="w-full px-6 py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all duration-300 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl dark:from-cyan-500 dark:to-purple-500 dark:hover:from-cyan-400 dark:hover:to-purple-400 dark:shadow-[0_0_20px_rgba(34,211,238,0.3)] dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
               >
                 <Terminal size={20} />
                 環境構築ガイドを表示
@@ -677,11 +624,7 @@ export default function TaskVisualizationPage() {
               </button>
               <button
                 onClick={handleCloseEnvModal}
-                className={`w-full px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                  darkMode
-                    ? "bg-gray-800/50 hover:bg-gray-700/70 text-gray-300 border border-gray-700/60"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200"
-                }`}
+                className="w-full px-6 py-3 rounded-xl font-medium transition-all duration-300 bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200 dark:bg-gray-800/50 dark:hover:bg-gray-700/70 dark:text-gray-300 dark:border-gray-700/60"
               >
                 後で確認する
               </button>

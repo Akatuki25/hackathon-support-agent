@@ -4,7 +4,6 @@ type MemberAvatarProps = {
   member: ProjectMemberType;
   size?: 'sm' | 'md' | 'lg';
   showName?: boolean;
-  darkMode?: boolean;
 };
 
 /**
@@ -17,7 +16,6 @@ export function MemberAvatar({
   member,
   size = 'sm',
   showName = false,
-  darkMode = false
 }: MemberAvatarProps) {
   // イニシャルを生成（最大2文字）
   const initials = member.member_name
@@ -33,11 +31,6 @@ export function MemberAvatar({
     md: 'w-8 h-8 text-sm',
     lg: 'w-10 h-10 text-base',
   };
-
-  // ダークモードに応じたツールチップクラス
-  const tooltipClass = darkMode
-    ? 'bg-slate-800 text-cyan-200 border border-cyan-500/30'
-    : 'bg-gray-800 text-white';
 
   return (
     <div className="relative group">
@@ -61,7 +54,7 @@ export function MemberAvatar({
 
       {/* ツールチップ */}
       <div
-        className={`
+        className="
           absolute
           hidden
           group-hover:block
@@ -72,30 +65,47 @@ export function MemberAvatar({
           px-2
           py-1
           text-xs
-          ${tooltipClass}
+          bg-gray-800 dark:bg-slate-800
+          text-white dark:text-cyan-200
+          dark:border dark:border-cyan-500/30
           rounded
           whitespace-nowrap
           z-50
           shadow-lg
-        `}
+        "
       >
         {member.member_name}
+        {/* Light mode arrow */}
         <div
-          className={`
+          className="
             absolute
             top-full
             left-1/2
             -translate-x-1/2
             border-4
             border-transparent
-            ${darkMode ? 'border-t-slate-800' : 'border-t-gray-800'}
-          `}
+            border-t-gray-800
+            dark:hidden
+          "
+        />
+        {/* Dark mode arrow */}
+        <div
+          className="
+            absolute
+            top-full
+            left-1/2
+            -translate-x-1/2
+            border-4
+            border-transparent
+            border-t-slate-800
+            hidden dark:block
+          "
         />
       </div>
 
       {/* 名前を横に表示（オプション） */}
       {showName && (
-        <span className={`ml-2 text-sm ${darkMode ? 'text-slate-300' : 'text-gray-700'}`}>
+        <span className="ml-2 text-sm text-gray-700 dark:text-slate-300">
           {member.member_name}
         </span>
       )}
