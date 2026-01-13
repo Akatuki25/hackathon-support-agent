@@ -4,7 +4,7 @@
 """
 from typing import List, Dict, Any, Tuple
 from sqlalchemy.orm import Session
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 import json
 import asyncio
 import networkx as nx

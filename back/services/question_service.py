@@ -1,10 +1,11 @@
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from .base_service import BaseService
+from utils.streaming_json import sse_event
 import uuid
 from models.project_base import QA
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from typing import Any, Dict, Iterable, List, Sequence, Union
+from typing import Any, AsyncGenerator, Dict, Iterable, List, Optional, Sequence, Union
 
 
 # ============================================================================
@@ -69,6 +70,78 @@ class QuestionService(BaseService):
         self.logger.info(f"Generated {len(qa_list)} questions for project_id: {project_id}")
         return {"QA": qa_list}
 
+    async def stream_questions(
+        self,
+        idea_prompt: str,
+        project_id: Optional[str] = None,
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        Q&Aの質問をストリーミング生成し、SSE形式で順次返すメソッド。
+
+        1件生成されるたびにSSEイベントとして返却されるため、
+        TTFUを最小化できる（最初の質問が生成された瞬間にUIに表示可能）。
+
+        Args:
+            idea_prompt: アイデアのプロンプト
+            project_id: プロジェクトID（オプション）
+
+        Yields:
+            SSE形式のバイト列
+            - event: start -> {"ok": true}
+            - event: qa -> QuestionItemのJSON
+            - event: done -> {"count": n}
+            - event: error -> {"message": "..."}
+        """
+        self.logger.debug(
+            f"Streaming questions for project_id: {project_id} with idea_prompt: {idea_prompt}"
+        )
+
+        # SSE開始イベント
+        yield sse_event("start", {"ok": True, "project_id": project_id})
+
+        # NDJSON用プロンプトを使用
+        prompt_template = ChatPromptTemplate.from_template(
+            template=self.get_prompt("question_service", "generate_question_ndjson")
+        )
+        chain = prompt_template | self.llm_flash
+
+        item_count = 0
+        prev_qa_id = None
+        qa_list = []
+
+        try:
+            async for item in self.stream_chain_as_structured(
+                chain=chain,
+                inputs={"idea_prompt": idea_prompt},
+                item_model=QuestionItem,
+                mode="ndjson",
+            ):
+                # メタデータを付与
+                qa_id = str(uuid.uuid4())
+                qa_dict = {
+                    "qa_id": qa_id,
+                    "question": item.question,
+                    "answer": item.answer,
+                    "importance": item.importance,
+                    "is_ai": True,
+                    "source_doc_id": None,
+                    "project_id": project_id,
+                    "follows_qa_id": prev_qa_id,
+                }
+                qa_list.append(qa_dict)
+                prev_qa_id = qa_id
+                item_count += 1
+
+                # SSEイベントとして送信
+                yield sse_event("qa", qa_dict)
+
+            # 完了イベント
+            yield sse_event("done", {"count": item_count})
+            self.logger.info(f"Streamed {item_count} questions for project_id: {project_id}")
+
+        except Exception as e:
+            self.logger.exception(f"Error streaming questions: {e}")
+            yield sse_event("error", {"message": str(e)})
 
     def save_question(
         self, question: Union[Dict[str, Any], Sequence[Union[BaseModel, Dict[str, Any]]]]

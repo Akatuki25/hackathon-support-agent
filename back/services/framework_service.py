@@ -1,10 +1,8 @@
-from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_classic.output_parsers import StructuredOutputParser, ResponseSchema
 from .base_service import BaseService
 from sqlalchemy.orm import Session
-# StructuredOutputParserをインポート
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from typing import List
 
 class FrameworkService(BaseService):

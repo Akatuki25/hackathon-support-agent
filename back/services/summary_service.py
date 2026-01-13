@@ -1,5 +1,5 @@
 from typing import List, Union, Dict, Any, Optional
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from pydantic import BaseModel, Field
 from .base_service import BaseService
@@ -425,7 +425,7 @@ class SummaryService(BaseService):
 """
 
         # LLMで更新
-        from langchain.prompts import ChatPromptTemplate
+        from langchain_core.prompts import ChatPromptTemplate
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
         chain = prompt_template | self.llm_pro | StrOutputParser()
         updated_summary = await chain.ainvoke({})

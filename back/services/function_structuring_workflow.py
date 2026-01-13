@@ -14,7 +14,7 @@ from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from google import genai
 from google.genai import types
 

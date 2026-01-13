@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional, TypedDict
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from langgraph.graph import StateGraph, START, END
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 
 from .base_service import BaseService
 from models.project_base import Task, StructuredFunction
