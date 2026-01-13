@@ -234,7 +234,7 @@ export default function QASection({
                     autoResizeTextarea(e.target);
                   }}
                   onFocus={(e) => autoResizeTextarea(e.target)}
-                  className="w-full p-3 rounded-lg border transition-all resize-none bg-white border-purple-300 text-gray-800 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
+                  className="w-full p-3 rounded-lg border transition-all resize-none border-purple-300 text-gray-800 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-500/20"
                   style={{ minHeight: '50px' }}
                   placeholder="質問を入力してください..."
                 />
@@ -251,7 +251,7 @@ export default function QASection({
                     autoResizeTextarea(e.target);
                   }}
                   onFocus={(e) => autoResizeTextarea(e.target)}
-                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none bg-white border-purple-300 text-gray-800 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
+                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none border-purple-300 text-gray-800 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-500/20"
                   style={{ minHeight: '60px' }}
                   placeholder="回答を入力してください..."
                 />
@@ -317,7 +317,7 @@ export default function QASection({
                           handleEndEdit();
                         }
                       }}
-                      className="w-full p-2 rounded border text-sm font-medium resize-none bg-white border-purple-300 text-purple-600 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-300 focus:outline-none"
+                      className="w-full p-2 rounded border text-sm font-medium resize-none border-purple-300 text-purple-600 focus:outline-none bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-300"
                       style={{ minHeight: '40px' }}
                       autoFocus
                     />
@@ -348,14 +348,14 @@ export default function QASection({
                   }}
                   onBlur={handleEndEdit}
                   onFocus={(e) => autoResizeTextarea(e.target)}
-                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none bg-white border-purple-300 text-gray-800 focus:border-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-cyan-500/20"
+                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none border-purple-300 text-gray-800 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-500/20"
                   style={{ minHeight: '60px' }}
                   autoFocus
                 />
               ) : (
                 <div
                   onClick={() => handleStartEdit(qa.qa_id, 'answer', qa.answer || '')}
-                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none cursor-pointer hover:bg-opacity-50 bg-white border-purple-300 text-gray-800 hover:bg-purple-500 dark:bg-gray-800 dark:border-cyan-500/50 dark:text-cyan-100 dark:hover:bg-cyan-500 min-h-[60px] flex items-center"
+                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none cursor-pointer border-purple-300 text-gray-800 min-h-[60px] flex items-center bg-purple-50 hover:bg-purple-100 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:hover:bg-gray-600"
                 >
                   {qa.answer || (
                     <span className="text-gray-400 dark:text-gray-500">
