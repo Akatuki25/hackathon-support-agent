@@ -1,9 +1,10 @@
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any, Optional, AsyncGenerator
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from pydantic import BaseModel, Field
 from .base_service import BaseService
 from sqlalchemy.orm import Session
+from utils.streaming_json import sse_event
 import uuid
 from datetime import datetime, timedelta
 import difflib
@@ -545,3 +546,96 @@ class SummaryService(BaseService):
             # フォールバック: キャッシュなしで生成
             self.logger.info("フォールバック: キャッシュなしで生成")
             return await self.update_summary_with_diff(project_id, manual_diff, new_qa)
+
+    async def stream_summary_with_feedback(
+        self,
+        project_id: str,
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        仕様書をSSE形式でストリーミング生成し、最後にフィードバックを返す。
+
+        テキストチャンクを順次送信するため、TTFTを最小化できる。
+        （最初のトークンが生成された瞬間にUIに表示可能）
+
+        Args:
+            project_id: プロジェクトID
+
+        Yields:
+            SSE形式のバイト列
+            - event: start -> {"ok": true, "project_id": "..."}
+            - event: chunk -> {"text": "..."} (仕様書のテキストチャンク)
+            - event: spec_done -> {"doc_id": "...", "summary": "..."}
+            - event: feedback -> {SpecificationFeedback}
+            - event: done -> {"ok": true}
+            - event: error -> {"message": "..."}
+        """
+        self.logger.debug(f"Streaming summary for project_id: {project_id}")
+
+        project_uuid = uuid.UUID(project_id) if isinstance(project_id, str) else project_id
+
+        # SSE開始イベント
+        yield sse_event("start", {"ok": True, "project_id": project_id})
+
+        try:
+            # Q&Aリストを取得
+            qa_list: List[QA] = self.db.query(QA).filter(QA.project_id == project_uuid).all()
+            if not qa_list:
+                yield sse_event("error", {"message": f"No Q&A records found for project_id: {project_id}"})
+                return
+
+            # Q&Aを文字列にフォーマット
+            question_answer_str = ""
+            for qa in qa_list:
+                if qa.question and qa.answer:
+                    question_answer_str += f"Q: {qa.question}\nA: {qa.answer}\n"
+            question_answer_str = question_answer_str.strip()
+
+            # プロンプトとチェーンを構築
+            summary_system_prompt = ChatPromptTemplate.from_template(
+                template=self.get_prompt("summary_service", "generate_summary_document")
+            )
+            chain = summary_system_prompt | self.llm_pro
+
+            # テキストストリーミング
+            full_summary = ""
+            async for chunk in chain.astream({"question_answer": question_answer_str}):
+                text = getattr(chunk, "content", "") or ""
+                if text:
+                    full_summary += text
+                    yield sse_event("chunk", {"text": text})
+
+            # 仕様書をDBに保存
+            saved_doc = self.save_summary_to_project_document(project_uuid, full_summary)
+            yield sse_event("spec_done", {
+                "doc_id": str(saved_doc.doc_id),
+                "summary": full_summary,
+            })
+
+            self.logger.info(f"Streamed summary for project_id: {project_id}, length: {len(full_summary)}")
+
+            # フィードバック生成
+            try:
+                specification_feedback = await self.generate_confidence_feedback(project_id)
+
+                # missing_infoを追加Q&Aに変換して保存
+                if specification_feedback.get("missing_info"):
+                    self._create_qa_from_missing_info(project_uuid, specification_feedback["missing_info"])
+
+                yield sse_event("feedback", specification_feedback)
+
+            except Exception as e:
+                self.logger.warning(f"Failed to generate specification feedback: {e}")
+                # フィードバック生成に失敗してもエラーにせず、デフォルト値を返す
+                yield sse_event("feedback", {
+                    "summary": "評価を生成できませんでした",
+                    "strengths": [],
+                    "missing_info": [],
+                    "suggestions": []
+                })
+
+            # 完了イベント
+            yield sse_event("done", {"ok": True})
+
+        except Exception as e:
+            self.logger.exception(f"Error streaming summary: {e}")
+            yield sse_event("error", {"message": str(e)})

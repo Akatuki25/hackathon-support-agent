@@ -78,6 +78,8 @@ export interface BaseEditorProps {
   saveDelay?: number;
   isContentInitialized?: boolean;
   onContentInitialized?: () => void;
+  /** ストリーミング中はcontentInitializedをスキップして継続更新 */
+  isStreaming?: boolean;
 
   // スタイリング
   className?: string;
@@ -100,6 +102,7 @@ export default function BaseEditor({
   saveDelay = 1000,
   isContentInitialized,
   onContentInitialized,
+  isStreaming = false,
   className = "",
   containerClassName = "",
   enableAI = true
@@ -143,13 +146,19 @@ export default function BaseEditor({
   // エディターのコンテンツを初期化
   useEffect(() => {
     const loadContent = async () => {
-      if (!content || !editor || !editor.document || !content.trim() || contentInitialized) {
+      // ストリーミング中はcontentInitializedをスキップして継続更新
+      const shouldSkipUpdate = isStreaming
+        ? (!content || !editor || !editor.document || !content.trim())
+        : (!content || !editor || !editor.document || !content.trim() || contentInitialized);
+
+      if (shouldSkipUpdate) {
         return;
       }
 
       try {
         // Markdownの内容をサニタイズして問題のある文字を修正
-        const sanitizedContent = sanitizeContent(content);
+        // shouldSkipUpdateでcontent存在チェック済みなので非nullアサーション
+        const sanitizedContent = sanitizeContent(content!);
         const parsedBlocks = await markdownToBlocks(sanitizedContent, editor.pmSchema);
 
         if (parsedBlocks && parsedBlocks.length > 0) {
@@ -164,7 +173,7 @@ export default function BaseEditor({
       } catch (error) {
         console.warn("マークダウン解析に失敗:", error);
         try {
-          editor.replaceBlocks(editor.document, [createPlainParagraphBlock(content)]);
+          editor.replaceBlocks(editor.document, [createPlainParagraphBlock(content!)]);
         } catch (fallbackError) {
           console.error("フォールバック処理も失敗:", fallbackError);
         }
@@ -174,7 +183,7 @@ export default function BaseEditor({
     };
 
     void loadContent();
-  }, [content, editor, contentInitialized, sanitizeContent, setContentInitialized]);
+  }, [content, editor, contentInitialized, isStreaming, sanitizeContent, setContentInitialized]);
 
   // BlockNote エディターの変更処理
   const handleBlockNoteChange = useCallback(async () => {
