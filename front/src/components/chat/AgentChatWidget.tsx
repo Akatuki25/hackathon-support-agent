@@ -37,6 +37,11 @@ const MAX_HEIGHT = 800;
 const DEFAULT_WIDTH = 384;
 const DEFAULT_HEIGHT = 500;
 
+// [ACTION:...] パターンを除去してクリーンなメッセージを返す
+const removeActionTags = (content: string): string => {
+  return content.replace(/\[ACTION:[^\]]+\]/g, '').trim();
+};
+
 export function AgentChatWidget({
   projectId,
   pageContext,
@@ -55,7 +60,6 @@ export function AgentChatWidget({
   } | null>(null);
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
   const [isResizing, setIsResizing] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
 
@@ -65,10 +69,8 @@ export function AgentChatWidget({
   const displayInitialMessage = initialMessage ||
     (pageContext ? PAGE_INITIAL_MESSAGES[pageContext] : 'こんにちは！ハッカソン開発について何でも聞いてください。');
 
-  // Scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // 自動スクロールは無効化（ストリーミング中に読めなくなるため）
+  // ユーザーが手動でスクロールして読む
 
   // Focus input when chat opens
   useEffect(() => {
@@ -379,7 +381,7 @@ export function AgentChatWidget({
                   {message.role === 'assistant' ? (
                     <>
                       <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-cyan-200 prose-a:text-cyan-400 prose-strong:text-white [&_pre]:bg-gray-950 [&_pre]:border [&_pre]:border-cyan-500/40 [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:relative [&_pre]:before:content-['CODE'] [&_pre]:before:absolute [&_pre]:before:top-0 [&_pre]:before:right-0 [&_pre]:before:bg-cyan-500/30 [&_pre]:before:text-cyan-300 [&_pre]:before:text-[10px] [&_pre]:before:px-2 [&_pre]:before:py-0.5 [&_pre]:before:rounded-bl-md [&_pre]:before:rounded-tr-lg [&_pre]:before:font-mono [&_code]:text-cyan-300 [&_code]:bg-gray-900/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-sm [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-all">
-                        <ReactMarkdown>{String(message.content ?? '')}</ReactMarkdown>
+                        <ReactMarkdown>{removeActionTags(String(message.content ?? ''))}</ReactMarkdown>
                       </div>
                       {renderActionButtons(message)}
                     </>
@@ -402,7 +404,6 @@ export function AgentChatWidget({
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}
