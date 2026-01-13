@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Terminal, ChevronRight, Loader2, MessageSquare, FileText } from "lucide-react";
 import useSWR from "swr";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import Header from "@/components/Session/Header";
 import Loading from "@/components/PageLoading";
@@ -21,7 +20,6 @@ export default function SummaryQA() {
   const router = useRouter();
   const pathname = usePathname();
   const projectId = pathname.split("/")[2];
-  const { darkMode } = useDarkMode();
 
   const [processingNext, setProcessingNext] = useState(false);
   // 追加質問がある場合は質問フォーカス、なければ仕様書フォーカス
@@ -130,19 +128,19 @@ export default function SummaryQA() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4 mt-5">
               <Terminal
-                className={`mr-2 ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+                className="mr-2 text-purple-600 dark:text-cyan-400"
               />
               <h1
-                className={`text-3xl font-bold tracking-wider ${darkMode ? "text-cyan-400" : "text-purple-700"}`}
+                className="text-3xl font-bold tracking-wider text-purple-700 dark:text-cyan-400"
               >
                 プロジェクト
-                <span className={darkMode ? "text-pink-500" : "text-blue-600"}>
+                <span className="text-blue-600 dark:text-pink-500">
                   _仕様書編集
                 </span>
               </h1>
             </div>
             <p
-              className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+              className="text-lg text-gray-700 dark:text-gray-300"
             >
               {focusMode === 'questions'
                 ? '追加質問に回答すると、仕様書がより具体的になります'
@@ -152,19 +150,13 @@ export default function SummaryQA() {
 
           {/* フォーカス切り替えタブ */}
           <div className="flex justify-center mb-6">
-            <div className={`inline-flex rounded-lg p-1 ${
-              darkMode ? "bg-gray-800" : "bg-gray-100"
-            }`}>
+            <div className="inline-flex rounded-lg p-1 bg-gray-100 dark:bg-gray-800">
               <button
                 onClick={() => setFocusMode('specification')}
                 className={`flex items-center px-4 py-2 rounded-lg transition-all ${
                   focusMode === 'specification'
-                    ? darkMode
-                      ? "bg-cyan-600 text-white"
-                      : "bg-purple-600 text-white"
-                    : darkMode
-                      ? "text-gray-400 hover:text-gray-200"
-                      : "text-gray-600 hover:text-gray-800"
+                    ? "bg-purple-600 text-white dark:bg-cyan-600"
+                    : "text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 }`}
               >
                 <FileText size={18} className="mr-2" />
@@ -175,16 +167,10 @@ export default function SummaryQA() {
                 disabled={question.length === 0}
                 className={`flex items-center px-4 py-2 rounded-lg transition-all ${
                   question.length === 0
-                    ? darkMode
-                      ? "text-gray-600 cursor-not-allowed"
-                      : "text-gray-400 cursor-not-allowed"
+                    ? "text-gray-400 cursor-not-allowed dark:text-gray-600"
                     : focusMode === 'questions'
-                      ? darkMode
-                        ? "bg-cyan-600 text-white"
-                        : "bg-purple-600 text-white"
-                      : darkMode
-                        ? "text-gray-400 hover:text-gray-200"
-                        : "text-gray-600 hover:text-gray-800"
+                      ? "bg-purple-600 text-white dark:bg-cyan-600"
+                      : "text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 }`}
               >
                 <MessageSquare size={18} className="mr-2" />
@@ -193,14 +179,12 @@ export default function SummaryQA() {
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
                     focusMode === 'questions'
                       ? "bg-white/20"
-                      : darkMode
-                        ? "bg-cyan-600 text-white"
-                        : "bg-purple-600 text-white"
+                      : "bg-purple-600 text-white dark:bg-cyan-600"
                   }`}>
                     {question.filter(q => !q.answer).length}件未回答
                   </span>
                 ) : (
-                  <span className={`ml-2 text-xs ${darkMode ? "text-gray-600" : "text-gray-400"}`}>
+                  <span className="ml-2 text-xs text-gray-400 dark:text-gray-600">
                     (なし)
                   </span>
                 )}
@@ -247,24 +231,16 @@ export default function SummaryQA() {
           {/* 次へ進むボタン */}
           <div className="mt-8">
             <div
-              className={`backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all ${
-                darkMode
-                  ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
-                  : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
-              }`}
+              className="backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20"
             >
               <div className="text-center py-4">
-                <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <p className="mb-6 text-gray-700 dark:text-gray-300">
                   仕様書の編集と質問への回答が完了したら、次のステップに進みましょう。
                 </p>
-                
+
                 <button
                   onClick={handleNext}
-                  className={`px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
-                    darkMode
-                      ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-                      : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
-                  }`}
+                  className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 dark:hover:from-cyan-600 dark:hover:to-cyan-600"
                   disabled={processingNext}
                 >
                   {processingNext ? (
