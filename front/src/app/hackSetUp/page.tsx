@@ -1,11 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Clock, ChevronRight } from "lucide-react";
+import { Zap, Clock, ChevronRight, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { generateQuestions,saveQuestions } from "@/libs/service/qa";
 import { postProject } from "@/libs/modelAPI/project";
 import { getMemberByGithubName } from "@/libs/modelAPI/member";
 import Header from "@/components/Session/Header";
@@ -23,9 +22,11 @@ export default function Home() {
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [endTime, setEndTime] = useState(now);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     // endDateとendTimeを結合してDateオブジェクトを作成
     const endDateTime = `${endDate}T${endTime}:00`;
     try {
@@ -37,7 +38,6 @@ export default function Home() {
           creatorMemberId = member.member_id;
         } catch (err) {
           console.error('メンバー情報取得エラー:', err);
-          // メンバーが見つからない場合はundefinedのまま
         }
       }
 
@@ -52,16 +52,11 @@ export default function Home() {
 
       const projectId = await postProject(projectData);
 
-      // プロジェクト作成後、質問を投稿
-      const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate} ${endTime}`;
-      const questionResponse = await generateQuestions(projectId, questionData);
-
-      await saveQuestions(questionResponse, projectId);
-      // 質問＆回答入力ページへ遷移
-      router.push(`/hackSetUp/${projectId}/hackQA`);
+      // プロジェクト作成後、すぐにhackQAページへ遷移
+      // 質問の生成はhackQAページで行う（new=trueクエリパラメータで通知）
+      router.push(`/hackSetUp/${projectId}/hackQA?new=true`);
     } catch (error) {
       console.error("API呼び出しエラー:", error);
-    } finally {
       setLoading(false);
     }
   };
@@ -246,8 +241,8 @@ export default function Home() {
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
-                    <span>処理中...</span>
+                    <Loader2 size={20} className="animate-spin" />
+                    <span>プロジェクト作成中...</span>
                   </div>
                 ) : (
                   <>

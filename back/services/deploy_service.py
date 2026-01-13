@@ -1,5 +1,5 @@
-from langchain.prompts import PromptTemplate, ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
 from .base_service import BaseService
 # json_repair
 from json_repair import repair_json

@@ -9,9 +9,13 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_anthropic import ChatAnthropic
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple, Optional, Type, AsyncGenerator, Literal
+from pydantic import BaseModel
 from models.project_base import ProjectDocument  # 未使用なら削除可
 from sqlalchemy.orm import Session
+
+# Streaming JSON parser
+from utils.streaming_json import IncrementalJsonEmitter, sse_event
 
 # Google Search Grounding 用
 try:
@@ -115,6 +119,7 @@ class BaseService:
                         model=model_type,
                         temperature=temperature,
                         api_key=os.getenv("GOOGLE_API_KEY"),
+                        thinking_budget=0,  # Disable thinking for faster TTFT
                     )
                 case "openai":
                     has_key = bool(os.getenv("OPENAI_API_KEY"))
@@ -293,3 +298,157 @@ class BaseService:
         except Exception as e:
             self.logger.warning("Failed to extract grounding URLs: %s", e)
             return []
+
+    # =========================================================================
+    # Streaming Structured Output（汎用ストリーミング構造化出力）
+    # =========================================================================
+
+    async def stream_chain_as_structured(
+        self,
+        chain,
+        inputs: Dict[str, Any],
+        item_model: Type[BaseModel],
+        mode: Literal["ndjson", "json_array"] = "ndjson",
+    ) -> AsyncGenerator[BaseModel, None]:
+        """
+        LangChainチェーンをストリーミングし、確定したJSONオブジェクトを
+        Pydantic検証済みで順次yieldする汎用メソッド。
+
+        with_structured_output()は全出力を待つが、このメソッドは
+        1アイテムずつ検証・返却するためTTFU（最初の使用可能データまでの時間）を最短化できる。
+
+        Args:
+            chain: LangChainのチェーン（prompt | llm など）
+            inputs: チェーンへの入力（{"idea_prompt": "...", ...}）
+            item_model: 各アイテムのPydanticモデル（例: QuestionItem）
+            mode: 出力形式（"ndjson"推奨、または"json_array"）
+
+        Yields:
+            検証済みPydanticモデルインスタンス
+
+        Example:
+            async for item in self.stream_chain_as_structured(
+                chain=prompt | self.llm_flash,
+                inputs={"idea_prompt": idea_prompt},
+                item_model=QuestionItem,
+                mode="ndjson",
+            ):
+                yield item  # 1件ずつ返却
+        """
+        emitter = IncrementalJsonEmitter(mode=mode)
+        item_count = 0
+
+        self.logger.debug(
+            "Starting streaming structured output (mode=%s, model=%s)",
+            mode, item_model.__name__
+        )
+
+        try:
+            async for msg in chain.astream(inputs):
+                # LangChain message から content を取得
+                text = getattr(msg, "content", "") or ""
+                if not text:
+                    continue
+
+                for obj in emitter.feed(text):
+                    # doneイベントなどのメタデータはスキップ
+                    if isinstance(obj, dict) and obj.get("type") == "done":
+                        self.logger.debug("Received done event: %s", obj)
+                        continue
+
+                    try:
+                        item = item_model.model_validate(obj)
+                        item_count += 1
+                        yield item
+                    except Exception as e:
+                        self.logger.warning(
+                            "Failed to validate item: %s (obj=%s)",
+                            e, obj
+                        )
+                        continue
+
+            # ストリーム終了時に残りのバッファを処理
+            for obj in emitter.flush():
+                if isinstance(obj, dict) and obj.get("type") == "done":
+                    continue
+                try:
+                    item = item_model.model_validate(obj)
+                    item_count += 1
+                    yield item
+                except Exception as e:
+                    self.logger.warning(
+                        "Failed to validate final item: %s (obj=%s)",
+                        e, obj
+                    )
+
+            self.logger.info(
+                "Streaming completed: %d items validated (mode=%s)",
+                item_count, mode
+            )
+
+        except Exception as e:
+            self.logger.exception("Error during streaming: %s", e)
+            raise
+
+    async def stream_chain_as_sse(
+        self,
+        chain,
+        inputs: Dict[str, Any],
+        item_model: Type[BaseModel],
+        event_name: str = "item",
+        mode: Literal["ndjson", "json_array"] = "ndjson",
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        LangChainチェーンをストリーミングし、Server-Sent Events形式でyieldする。
+
+        FastAPIのStreamingResponseと組み合わせて使用する。
+
+        Args:
+            chain: LangChainのチェーン
+            inputs: チェーンへの入力
+            item_model: 各アイテムのPydanticモデル
+            event_name: SSEイベント名（デフォルト: "item"）
+            mode: 出力形式（"ndjson"推奨）
+
+        Yields:
+            SSE形式のバイト列
+
+        Example:
+            from starlette.responses import StreamingResponse
+
+            @router.post("/stream/{project_id}")
+            async def stream_questions(project_id: str):
+                async def generate():
+                    yield sse_event("start", {"ok": True})
+                    async for chunk in service.stream_chain_as_sse(
+                        chain=prompt | llm,
+                        inputs={"idea_prompt": idea_prompt},
+                        item_model=QuestionItem,
+                        event_name="qa",
+                    ):
+                        yield chunk
+                    yield sse_event("done", {"count": count})
+
+                return StreamingResponse(
+                    generate(),
+                    media_type="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+                )
+        """
+        item_count = 0
+
+        try:
+            async for item in self.stream_chain_as_structured(
+                chain=chain,
+                inputs=inputs,
+                item_model=item_model,
+                mode=mode,
+            ):
+                item_count += 1
+                yield sse_event(event_name, item.model_dump())
+
+            yield sse_event("done", {"count": item_count})
+
+        except Exception as e:
+            self.logger.exception("Error during SSE streaming: %s", e)
+            yield sse_event("error", {"message": str(e)})

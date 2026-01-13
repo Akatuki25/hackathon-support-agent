@@ -3,8 +3,8 @@ import json
 import textwrap
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict
-from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
 from pydantic import BaseModel
 from .base_service import BaseService
 import logging

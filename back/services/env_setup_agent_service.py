@@ -4,8 +4,8 @@
 frame_work_docからAIで環境構築情報を生成し、Envテーブルに保存する
 """
 
-from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
 from sqlalchemy.orm import Session
 from models.project_base import ProjectDocument, Env
 from .base_service import BaseService

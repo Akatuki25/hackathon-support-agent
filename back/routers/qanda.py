@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -70,3 +71,50 @@ async def generate_question(
         return result
 
     return {"QA": result}
+
+
+# ---------- Streaming Endpoint (SSE) ----------
+@router.post("/stream/{project_id}", summary="質問のストリーミング生成 (SSE)")
+async def stream_questions(
+    idea_prompt: IdeaPrompt,
+    project_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    """
+    質問をServer-Sent Events形式でストリーミング生成する。
+
+    1件生成されるたびにSSEイベントとして送信されるため、
+    クライアントは最初の質問が生成された瞬間からUIに表示可能。
+
+    ## SSEイベント形式:
+    - `event: start` - ストリーム開始 `{"ok": true, "project_id": "..."}`
+    - `event: qa` - 質問データ `{"qa_id": "...", "question": "...", "answer": "...", ...}`
+    - `event: done` - 完了 `{"count": n}`
+    - `event: error` - エラー `{"message": "..."}`
+
+    ## クライアント実装例 (JavaScript):
+    ```javascript
+    const eventSource = new EventSource('/api/question/stream/{project_id}');
+    eventSource.addEventListener('qa', (e) => {
+        const qa = JSON.parse(e.data);
+        displayQuestion(qa);  // 1件ずつ表示
+    });
+    eventSource.addEventListener('done', (e) => {
+        eventSource.close();
+    });
+    ```
+    """
+    service = QuestionService(db=db)
+
+    return StreamingResponse(
+        service.stream_questions(
+            idea_prompt=idea_prompt.Prompt,
+            project_id=str(project_id),
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # nginx buffering無効化
+        },
+    )

@@ -1,5 +1,5 @@
-from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
 from .base_service import BaseService
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List

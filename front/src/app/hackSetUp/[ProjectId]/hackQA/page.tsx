@@ -1,22 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import { ChevronRight, Terminal, Database, Cpu, Plus, X, Edit2,Trash2 } from "lucide-react";
+import { ChevronRight, Terminal, Database, Cpu, Plus, X, Edit2, Trash2, Loader2 } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
 import { getProject } from "@/libs/modelAPI/project";
 import Header from "@/components/Session/Header";
-import { getQAsByProjectId, patchQA, postQA,deleteQA} from "@/libs/modelAPI/qa";
+import { getQAsByProjectId, patchQA, postQA, deleteQA } from "@/libs/modelAPI/qa";
 import { QAType, ChatAction } from "@/types/modelTypes";
 import Loading from "@/components/PageLoading";
 import { useSession } from "next-auth/react";
 import { AgentChatWidget } from "@/components/chat";
+import {
+  streamGenerateQuestions,
+  saveQuestions,
+  convertStreamingItemsToPayload,
+  StreamingQAItem,
+} from "@/libs/service/qa";
 
 export default function HackQA() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [processingNext, setProcessingNext] = useState(false);
   const [showAddQA, setShowAddQA] = useState(false);
@@ -25,6 +32,17 @@ export default function HackQA() {
   const [editingQA, setEditingQA] = useState<{id: string, field: 'question' | 'answer', value: string} | null>(null);
   const { darkMode } = useDarkMode();
   const projectId = pathname.split("/")[2];
+
+  // ストリーミング関連のstate
+  const [streamingQAs, setStreamingQAs] = useState<StreamingQAItem[]>([]);
+  const [streamingStatus, setStreamingStatus] = useState<'idle' | 'streaming' | 'saving' | 'done' | 'error'>('idle');
+  const streamingStarted = useRef(false);
+  const streamingQAsRef = useRef<StreamingQAItem[]>([]);
+
+  // streamingQAsが更新されたらrefも更新
+  useEffect(() => {
+    streamingQAsRef.current = streamingQAs;
+  }, [streamingQAs]);
 
   // SWR: プロジェクトデータ取得（キャッシュ有効）
   const { data: projectData, error: projectError } = useSWR(
@@ -41,7 +59,78 @@ export default function HackQA() {
   );
 
   const idea = projectData?.idea || "";
+  const title = projectData?.title || "";
+  const startDate = projectData?.start_date || "";
+  const endDate = projectData?.end_date || "";
   const loading = !projectData && !projectError;
+
+  // 新規プロジェクトの場合はストリーミングで質問を生成
+  useEffect(() => {
+    const isNew = searchParams.get('new') === 'true';
+
+    if (isNew && projectId && projectData && !streamingStarted.current) {
+      streamingStarted.current = true;
+      startStreamingGeneration();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, projectId, projectData]);
+
+  // ストリーミング生成を開始
+  const startStreamingGeneration = async () => {
+    setStreamingStatus('streaming');
+    setStreamingQAs([]);
+    streamingQAsRef.current = [];
+
+    const questionData = `プロジェクトタイトル: ${title}\nプロジェクトアイディア: ${idea}\n期間: ${startDate} 〜 ${endDate}`;
+
+    try {
+      await streamGenerateQuestions(
+        projectId,
+        questionData,
+        {
+          onStart: () => {
+            console.log('Streaming started');
+          },
+          onQA: (item) => {
+            // 質問が1件届くたびにUIを更新
+            setStreamingQAs((prev) => [...prev, item]);
+          },
+          onDone: async (data) => {
+            console.log(`Streaming done: ${data.count} questions`);
+
+            // 少し待ってから保存（stateの更新が反映されるのを待つ）
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // 質問を保存（ユーザーが編集した内容を含むrefの最新値を使用）
+            setStreamingStatus('saving');
+
+            try {
+              const payload = convertStreamingItemsToPayload(streamingQAsRef.current);
+              await saveQuestions(payload, projectId);
+
+              setStreamingStatus('done');
+
+              // SWRを再検証してDBから最新データを取得
+              mutateQAs();
+
+              // URLからnewパラメータを削除（ブラウザバックで再生成されないように）
+              router.replace(pathname);
+            } catch (error) {
+              console.error('Save error:', error);
+              setStreamingStatus('error');
+            }
+          },
+          onError: (error) => {
+            console.error('Streaming error:', error);
+            setStreamingStatus('error');
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Streaming error:', error);
+      setStreamingStatus('error');
+    }
+  };
 
   // ログインユーザーをプロジェクトメンバーに自動追加（初回のみ）
   useEffect(() => {
@@ -109,14 +198,27 @@ export default function HackQA() {
   const handleEndEdit = async () => {
     if (!editingQA) return;
 
+    // ストリーミング中はローカルステートのみ更新（まだDBに保存されていないため）
+    if (streamingStatus === 'streaming' || streamingStatus === 'saving') {
+      const updatedQAs = streamingQAs.map((qa) =>
+        qa.qa_id === editingQA.id
+          ? { ...qa, [editingQA.field]: editingQA.value }
+          : qa
+      );
+      setStreamingQAs(updatedQAs);
+      streamingQAsRef.current = updatedQAs; // refも更新
+      setEditingQA(null);
+      return;
+    }
+
     try {
       // APIで更新
       await patchQA(editingQA.id, { [editingQA.field]: editingQA.value });
-      
+
       // 楽観的更新：ローカルキャッシュを即時更新
       mutateQAs(
-        (currentQAs) => currentQAs?.map(qa => 
-          qa.qa_id === editingQA.id 
+        (currentQAs) => currentQAs?.map(qa =>
+          qa.qa_id === editingQA.id
             ? { ...qa, [editingQA.field]: editingQA.value }
             : qa
         ),
@@ -194,7 +296,34 @@ export default function HackQA() {
       mutateQAs();
     }
   }
-  if (loading) {
+  // ストリーミング中のQAをQAType形式に変換（編集可能にするため）
+  const streamingQAsAsQAType: QAType[] = streamingQAs.map((item) => ({
+    qa_id: item.qa_id,
+    question: item.question,
+    answer: item.answer,
+    importance: item.importance,
+    is_ai: item.is_ai,
+    source_doc_id: item.source_doc_id || undefined,
+    project_id: item.project_id,
+    follows_qa_id: item.follows_qa_id || undefined,
+  }));
+
+  // 表示するQAリスト
+  // ストリーミング中、または保存完了直後（SWRがまだ再フェッチ中）はストリーミングデータを表示
+  // SWRのデータが揃ったら切り替え（点滅防止）
+  const shouldShowStreamingData =
+    streamingStatus === 'streaming' ||
+    streamingStatus === 'saving' ||
+    (streamingStatus === 'done' && streamingQAs.length > 0 && (!qas || qas.length === 0));
+
+  const displayQAs = shouldShowStreamingData
+    ? streamingQAsAsQAType
+    : qas || [];
+
+  // 新規プロジェクト遷移時はローディング画面を表示せず、レイアウトを維持
+  const isNewProjectFlow = searchParams.get('new') === 'true';
+
+  if (loading && !isNewProjectFlow) {
     return <Loading />;
   }
 
@@ -251,43 +380,74 @@ export default function HackQA() {
                     />
                     あなたの作りたいもの：
                   </h2>
-                  <p
-                    className={`${
-                      darkMode
-                        ? "bg-gray-700 text-cyan-300"
-                        : "bg-purple-100 text-gray-800"
-                    } p-4 rounded-lg border-l-4 ${
-                      darkMode ? "border-pink-500" : "border-blue-500"
-                    }`}
-                  >
-                    {idea}
-                  </p>
+                  {idea ? (
+                    <p
+                      className={`${
+                        darkMode
+                          ? "bg-gray-700 text-cyan-300"
+                          : "bg-purple-100 text-gray-800"
+                      } p-4 rounded-lg border-l-4 ${
+                        darkMode ? "border-pink-500" : "border-blue-500"
+                      }`}
+                    >
+                      {idea}
+                    </p>
+                  ) : (
+                    <div
+                      className={`p-4 rounded-lg border-l-4 animate-pulse ${
+                        darkMode
+                          ? "bg-gray-700 border-pink-500"
+                          : "bg-purple-100 border-blue-500"
+                      }`}
+                    >
+                      <div className={`h-4 rounded w-full mb-2 ${
+                        darkMode ? "bg-gray-600" : "bg-purple-200"
+                      }`} />
+                      <div className={`h-4 rounded w-2/3 ${
+                        darkMode ? "bg-gray-600" : "bg-purple-200"
+                      }`} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Q&Aセクション */}
                 <div className="mb-8">
-                  <h2
-                    className={`text-xl font-medium mb-4 flex items-center ${
-                      darkMode ? "text-cyan-400" : "text-purple-700"
-                    }`}
-                  >
-                    <Cpu
-                      size={18}
-                      className={`mr-2 ${
-                        darkMode ? "text-pink-500" : "text-blue-600"
+                  <div className="flex items-center justify-between mb-4">
+                    <h2
+                      className={`text-xl font-medium flex items-center ${
+                        darkMode ? "text-cyan-400" : "text-purple-700"
                       }`}
-                    />
-                    以下の質問に回答してください：
-                  </h2>
-                  
+                    >
+                      <Cpu
+                        size={18}
+                        className={`mr-2 ${
+                          darkMode ? "text-pink-500" : "text-blue-600"
+                        }`}
+                      />
+                      以下の質問に回答してください：
+                    </h2>
+                    {/* ストリーミングステータス表示 */}
+                    {(streamingStatus === 'streaming' || streamingStatus === 'saving') && (
+                      <div className={`flex items-center text-sm ${
+                        darkMode ? "text-cyan-300" : "text-purple-600"
+                      }`}>
+                        <Loader2 size={16} className="animate-spin mr-2" />
+                        <span>
+                          {streamingStatus === 'streaming' && `質問を生成中... (${displayQAs.length}件)`}
+                          {streamingStatus === 'saving' && '保存中...'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-4">
-                    {qas && qas.length > 0 ? (
+                    {displayQAs.length > 0 ? (
                       <>
-                        {/* 既存のQ&A */}
-                        {qas.map((qa) => (
+                        {/* Q&Aリスト */}
+                        {displayQAs.map((qa) => (
                           <div
                             key={qa.qa_id}
-                            className={`p-5 rounded-lg border transition-all ${
+                            className={`p-5 rounded-lg border transition-all animate-fadeIn ${
                               darkMode
                                 ? "bg-gray-700/40 border-cyan-500/30 hover:border-cyan-500/50"
                                 : "bg-purple-50/70 border-purple-300/50 hover:border-purple-400"
@@ -391,7 +551,8 @@ export default function HackQA() {
                         ))}
 
                         {/* 新しいQ&A追加セクション */}
-                        {showAddQA ? (
+                        {/* ストリーミング中は新規追加を非表示 */}
+                        {(streamingStatus === 'streaming' || streamingStatus === 'saving') ? null : showAddQA ? (
                           <div
                             className={`p-5 rounded-lg border-2 border-dashed transition-all ${
                               darkMode
@@ -509,24 +670,56 @@ export default function HackQA() {
                         )}
                       </>
                     ) : (
-                      <div className="text-center py-8">
-                        <p
-                          className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
-                        >
-                          まだ質問がありません
-                        </p>
-                        <button
-                          onClick={() => setShowAddQA(true)}
-                          className={`px-6 py-3 rounded-lg transition-all ${
-                            darkMode
-                              ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900"
-                              : "bg-purple-500 hover:bg-purple-600 text-white"
-                          }`}
-                        >
-                          <Plus size={18} className="inline mr-2" />
-                          最初の質問を追加
-                        </button>
-                      </div>
+                      // 新規プロジェクトで生成待ち中はスケルトン表示
+                      isNewProjectFlow || streamingStatus === 'streaming' ? (
+                        <div className="space-y-4">
+                          {/* スケルトンプレースホルダー */}
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className={`p-5 rounded-lg border animate-pulse ${
+                                darkMode
+                                  ? "bg-gray-700/40 border-cyan-500/20"
+                                  : "bg-purple-50/50 border-purple-300/30"
+                              }`}
+                            >
+                              <div className={`h-5 rounded w-3/4 mb-4 ${
+                                darkMode ? "bg-gray-600" : "bg-purple-200"
+                              }`} />
+                              <div className={`h-16 rounded w-full ${
+                                darkMode ? "bg-gray-600/50" : "bg-purple-100"
+                              }`} />
+                            </div>
+                          ))}
+                          <div className="text-center pt-2">
+                            <div className={`flex items-center justify-center text-sm ${
+                              darkMode ? "text-cyan-300" : "text-purple-600"
+                            }`}>
+                              <Loader2 size={16} className="animate-spin mr-2" />
+                              <span>質問を生成中...</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <p
+                            className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+                          >
+                            まだ質問がありません
+                          </p>
+                          <button
+                            onClick={() => setShowAddQA(true)}
+                            className={`px-6 py-3 rounded-lg transition-all ${
+                              darkMode
+                                ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900"
+                                : "bg-purple-500 hover:bg-purple-600 text-white"
+                            }`}
+                          >
+                            <Plus size={18} className="inline mr-2" />
+                            最初の質問を追加
+                          </button>
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
@@ -537,10 +730,10 @@ export default function HackQA() {
                     onClick={handleNext}
                     className={`px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 ${
                       darkMode
-                        ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400"
-                        : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400"
+                        ? "bg-cyan-500 hover:bg-cyan-600 text-gray-900 focus:ring-2 focus:ring-cyan-400 disabled:bg-gray-600 disabled:text-gray-400"
+                        : "bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 disabled:from-gray-400 disabled:to-gray-500"
                     }`}
-                    disabled={processingNext}
+                    disabled={processingNext || streamingStatus === 'streaming' || streamingStatus === 'saving'}
                   >
                     {processingNext ? (
                       <div className="flex items-center">
