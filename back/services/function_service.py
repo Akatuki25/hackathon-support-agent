@@ -1,10 +1,11 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, AsyncGenerator
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
 from pydantic import BaseModel, Field
 from .base_service import BaseService
 from sqlalchemy.orm import Session
 from json_repair import repair_json
+from utils.streaming_json import sse_event
 import uuid
 
 from models.project_base import QA, ProjectDocument
@@ -435,3 +436,211 @@ class FunctionService(BaseService):
 
         self.logger.info(f"Generated specification feedback: {result.summary[:50]}...")
         return result.model_dump()
+
+    async def stream_functional_requirements(
+        self,
+        project_id: str,
+        confidence_threshold: float = 0.7
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        機能要件をSSE形式でストリーミング生成する。
+
+        テキストチャンクを順次送信するため、TTFTを最小化できる。
+
+        Args:
+            project_id: プロジェクトID
+            confidence_threshold: QA生成の閾値
+
+        Yields:
+            SSE形式のバイト列
+            - event: start -> {"ok": true, "project_id": "..."}
+            - event: chunk -> {"text": "..."} (機能要件書のテキストチャンク)
+            - event: doc_done -> {"doc_id": "...", "function_doc": "..."}
+            - event: questions -> {"questions": [...]} (追加質問)
+            - event: done -> {"ok": true}
+            - event: error -> {"message": "..."}
+        """
+        self.logger.debug(f"Streaming functional requirements for project_id: {project_id}")
+
+        project_uuid = uuid.UUID(project_id) if isinstance(project_id, str) else project_id
+
+        # SSE開始イベント
+        yield sse_event("start", {"ok": True, "project_id": project_id})
+
+        try:
+            # プロジェクトドキュメント（仕様書）を取得
+            project_doc = self.db.query(ProjectDocument).filter(
+                ProjectDocument.project_id == project_uuid
+            ).first()
+
+            if not project_doc or not project_doc.specification:
+                yield sse_event("error", {"message": f"No specification found for project_id: {project_id}"})
+                return
+
+            # 既存のQ&Aも参考情報として取得
+            existing_qas = self.db.query(QA).filter(QA.project_id == project_uuid).all()
+            qa_context = ""
+            if existing_qas:
+                qa_context = "\n".join([
+                    f"Q: {qa.question}\nA: {qa.answer or '未回答'}"
+                    for qa in existing_qas
+                ])
+
+            # 機能要件生成のプロンプト（ストリーミング用に簡略化）
+            prompt_template = ChatPromptTemplate.from_template(
+                template=self.get_prompt("function_service", "generate_functional_requirements_streaming")
+            )
+
+            chain = prompt_template | self.llm_pro
+
+            # テキストストリーミング
+            full_content = ""
+            async for chunk in chain.astream({
+                "specification": project_doc.specification,
+                "qa_context": qa_context
+            }):
+                text = getattr(chunk, "content", "") or ""
+                if text:
+                    full_content += text
+                    yield sse_event("chunk", {"text": text})
+
+            # 機能要件書をDBに保存
+            if project_doc:
+                project_doc.function_doc = full_content
+                self.db.commit()
+                self.db.refresh(project_doc)
+                doc_id = str(project_doc.doc_id)
+            else:
+                new_doc = ProjectDocument(
+                    doc_id=uuid.uuid4(),
+                    project_id=project_uuid,
+                    specification="",
+                    function_doc=full_content,
+                    frame_work_doc="",
+                    directory_info=""
+                )
+                self.db.add(new_doc)
+                self.db.commit()
+                self.db.refresh(new_doc)
+                doc_id = str(new_doc.doc_id)
+
+            yield sse_event("doc_done", {
+                "doc_id": doc_id,
+                "function_doc": full_content,
+            })
+
+            self.logger.info(f"Streamed functional requirements for project_id: {project_id}, length: {len(full_content)}")
+
+            # 追加質問を生成
+            try:
+                clarification_qas = await self._generate_clarification_questions_async(
+                    project_doc.specification,
+                    full_content,
+                    project_id,
+                    confidence_threshold
+                )
+
+                if clarification_qas:
+                    # 質問をDBに保存
+                    self.save_clarification_questions(clarification_qas)
+
+                    # 質問をQAType形式に変換して送信
+                    questions_data = []
+                    for qa in clarification_qas:
+                        questions_data.append({
+                            "qa_id": str(qa["qa_id"]),
+                            "project_id": str(qa["project_id"]),
+                            "question": qa["question"],
+                            "answer": qa.get("answer"),
+                            "is_ai": qa.get("is_ai", True),
+                            "importance": qa.get("importance", 3),
+                        })
+
+                    yield sse_event("questions", {"questions": questions_data})
+                else:
+                    yield sse_event("questions", {"questions": []})
+
+            except Exception as e:
+                self.logger.warning(f"Failed to generate clarification questions: {e}")
+                yield sse_event("questions", {"questions": []})
+
+            # 完了イベント
+            yield sse_event("done", {"ok": True})
+
+        except Exception as e:
+            self.logger.exception(f"Error streaming functional requirements: {e}")
+            yield sse_event("error", {"message": str(e)})
+
+    async def _generate_clarification_questions_async(
+        self,
+        specification: str,
+        function_doc: str,
+        project_id: str,
+        confidence_threshold: float = 0.7
+    ) -> List[Dict[str, Any]]:
+        """
+        機能要件書から追加質問を非同期で生成する
+
+        Args:
+            specification: 仕様書
+            function_doc: 生成された機能要件書
+            project_id: プロジェクトID
+            confidence_threshold: 確信度閾値
+
+        Returns:
+            追加質問のリスト
+        """
+        response_schemas = [
+            ResponseSchema(
+                name="questions",
+                type="array(objects)",
+                description=(
+                    "明確化質問のリスト。各要素は以下のフィールドを持つ: "
+                    "question (string), answer_example (string), importance (integer 1-5)"
+                )
+            )
+        ]
+
+        parser = StructuredOutputParser.from_response_schemas(response_schemas)
+        prompt_template = ChatPromptTemplate.from_template(
+            template=self.get_prompt("function_service", "generate_clarification_from_doc"),
+            partial_variables={"format_instructions": parser.get_format_instructions()}
+        )
+
+        chain = prompt_template | self.llm_flash_thinking | parser
+        result = await chain.ainvoke({
+            "specification": specification,
+            "function_doc": function_doc
+        })
+
+        # JSONの修復を試みる
+        if not isinstance(result.get("questions"), list):
+            repaired = repair_json(
+                json_like_string=str(result["questions"]),
+                array_root=True
+            )
+            result["questions"] = repaired
+
+        # QA形式に変換
+        validated_qas = []
+        for qa in result.get("questions", []):
+            if not qa.get("question"):
+                continue
+
+            importance = qa.get("importance", 3)
+            if not isinstance(importance, int) or importance < 1 or importance > 5:
+                importance = 3
+
+            qa_item = {
+                "qa_id": uuid.uuid4(),
+                "project_id": project_id,
+                "question": qa["question"],
+                "answer": qa.get("answer_example"),
+                "is_ai": True,
+                "source_doc_id": None,
+                "follows_qa_id": None,
+                "importance": importance,
+            }
+            validated_qas.append(qa_item)
+
+        return validated_qas

@@ -174,3 +174,147 @@ export const getFunctionSpecificationFeedback = async (
 
 // Legacy alias - deprecated, use getFunctionSpecificationFeedback instead
 export const getFunctionConfidenceFeedback = getFunctionSpecificationFeedback;
+
+// --- SSE Streaming Types ---
+
+/** ストリーミングQ&Aの型 */
+export interface StreamingQA {
+  qa_id: string;
+  project_id: string;
+  question: string;
+  answer: string | null;
+  is_ai: boolean;
+  importance: number;
+}
+
+/** ストリーミング生成のコールバック */
+export interface FunctionStreamingCallbacks {
+  /** ストリーム開始時 */
+  onStart?: (data: { ok: boolean; project_id: string }) => void;
+  /** テキストチャンク受信時（順次呼ばれる） */
+  onChunk?: (text: string, accumulated: string) => void;
+  /** 機能要件書完了時 */
+  onDocDone?: (data: { doc_id: string; function_doc: string }) => void;
+  /** 追加質問受信時 */
+  onQuestions?: (questions: StreamingQA[]) => void;
+  /** 完了時 */
+  onDone?: () => void;
+  /** エラー時 */
+  onError?: (error: Error | { message: string }) => void;
+}
+
+/** ストリーミング生成の結果 */
+export interface FunctionStreamingResult {
+  function_doc: string;
+  doc_id: string;
+  questions: StreamingQA[];
+}
+
+/**
+ * SSEストリーミングで機能要件を生成する
+ * テキストチャンクが生成されるたびにコールバックが呼ばれるため、
+ * UIに順次表示することでユーザー体験を向上させる。
+ *
+ * @param projectId - プロジェクトID
+ * @param callbacks - イベントコールバック
+ * @returns 生成結果
+ */
+export const streamGenerateFunctionalRequirements = async (
+  projectId: string,
+  callbacks: FunctionStreamingCallbacks = {}
+): Promise<FunctionStreamingResult> => {
+  let accumulatedText = '';
+  let docId = '';
+  let questions: StreamingQA[] = [];
+
+  return new Promise((resolve, reject) => {
+    fetch(`${API_BASE_URL}/api/function_requirements/stream/${projectId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('Response body is not readable');
+        }
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let currentEvent = '';  // whileループの外で定義
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // SSEイベントをパース
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // 最後の不完全な行を保持
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.substring(7).trim();
+            } else if (line.startsWith('data: ') && currentEvent) {
+              const data = line.substring(6);
+              try {
+                const parsed = JSON.parse(data);
+
+                switch (currentEvent) {
+                  case 'start':
+                    callbacks.onStart?.(parsed);
+                    break;
+                  case 'chunk':
+                    accumulatedText += parsed.text;
+                    callbacks.onChunk?.(parsed.text, accumulatedText);
+                    break;
+                  case 'doc_done':
+                    docId = parsed.doc_id;
+                    callbacks.onDocDone?.(parsed);
+                    break;
+                  case 'questions':
+                    questions = parsed.questions || [];
+                    callbacks.onQuestions?.(questions);
+                    break;
+                  case 'done':
+                    callbacks.onDone?.();
+                    resolve({
+                      function_doc: accumulatedText,
+                      doc_id: docId,
+                      questions: questions,
+                    });
+                    return;
+                  case 'error':
+                    callbacks.onError?.(parsed);
+                    reject(new Error(parsed.message || 'Unknown error'));
+                    return;
+                }
+              } catch (e) {
+                console.error('Failed to parse SSE data:', data, e);
+              }
+              currentEvent = '';
+            }
+          }
+        }
+
+        // ストリームが正常終了した場合
+        resolve({
+          function_doc: accumulatedText,
+          doc_id: docId,
+          questions: questions,
+        });
+      })
+      .catch((error) => {
+        callbacks.onError?.(error);
+        reject(error);
+      });
+  });
+};
