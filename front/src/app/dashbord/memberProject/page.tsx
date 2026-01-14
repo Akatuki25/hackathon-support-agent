@@ -4,20 +4,47 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
+import axios from "axios";
 import {
   Lightbulb,
   Clock,
   Search,
   Plus,
+  Trash2,
+  X,
 } from "lucide-react";
 import { ProjectType } from "@/types/modelTypes";
-import { getProject } from "@/libs/modelAPI/project";
+import { getProject, deleteProject } from "@/libs/modelAPI/project";
 import { getProjectMembersByMemberId } from "@/libs/modelAPI/project_member";
 import { getMemberByGithubName } from "@/libs/modelAPI/member";
 import Header from "@/components/Session/Header";
 
-// メンバーのプロジェクト一覧を取得するfetcher
-const fetchMemberProjects = async (githubName: string): Promise<ProjectType[]> => {
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// 進捗ステップの定義（バックエンドと対応）
+const STEP_LABELS: Record<number, string> = {
+  1: "QA回答中",
+  2: "仕様書生成",
+  3: "機能要件定義",
+  4: "技術選定",
+  5: "機能構造化",
+  6: "実装フェーズ",
+};
+
+// プロジェクトと進捗をまとめた型
+type ProjectWithProgress = ProjectType & {
+  step: number;
+  step_name: string;
+};
+
+// 進捗取得
+const getProjectProgress = async (projectId: string): Promise<{ step: number; step_name: string }> => {
+  const response = await axios.get(`${API_URL}/project/${projectId}/progress`);
+  return response.data;
+};
+
+// メンバーのプロジェクト一覧を取得するfetcher（進捗情報も取得）
+const fetchMemberProjects = async (githubName: string): Promise<ProjectWithProgress[]> => {
   // 1. GitHubNameからmember_idを取得
   const member = await getMemberByGithubName(githubName);
   if (!member?.member_id) return [];
@@ -26,27 +53,78 @@ const fetchMemberProjects = async (githubName: string): Promise<ProjectType[]> =
   const projectMembers = await getProjectMembersByMemberId(member.member_id);
   if (!projectMembers || projectMembers.length === 0) return [];
 
-  // 3. 各project_idからプロジェクト詳細を取得
-  const projectPromises = projectMembers.map(pm =>
-    getProject(String(pm.project_id)).catch(() => null)
-  );
+  // 3. 各project_idからプロジェクト詳細と進捗を取得
+  const projectPromises = projectMembers.map(async (pm) => {
+    try {
+      const project = await getProject(String(pm.project_id));
+      if (!project) return null;
+
+      // 進捗取得
+      const progress = await getProjectProgress(String(pm.project_id));
+
+      return { ...project, step: progress.step, step_name: progress.step_name };
+    } catch {
+      return null;
+    }
+  });
   const projects = await Promise.all(projectPromises);
 
-  // nullを除外
-  return projects.filter((p): p is ProjectType => p !== null);
+  return projects.filter((p): p is ProjectWithProgress => p !== null);
 };
 
 export default function MemberProjectPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ProjectWithProgress | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // SWRでプロジェクト一覧を取得（キャッシュ有効）
-  const { data: memberProjects = [], isLoading } = useSWR(
+  const { data: memberProjects = [], isLoading, mutate } = useSWR<ProjectWithProgress[]>(
     session?.user?.name ? `member-projects-${session.user.name}` : null,
     () => fetchMemberProjects(session!.user!.name!),
     { revalidateOnFocus: false }
   );
+
+  // step_nameからURLを取得
+  const getProjectRedirectUrl = (project: ProjectWithProgress): string => {
+    const projectId = project.project_id;
+    const userName = session?.user?.name;
+
+    switch (project.step_name) {
+      case "hack_qa":
+        return `/hackSetUp/${projectId}/hackQA`;
+      case "summary_qa":
+        return `/hackSetUp/${projectId}/summaryQA`;
+      case "function_summary":
+        return `/hackSetUp/${projectId}/functionSummary`;
+      case "select_framework":
+        return `/hackSetUp/${projectId}/selectFramework`;
+      case "function_structuring":
+        return `/hackSetUp/${projectId}/functionStructuring`;
+      case "task_flow":
+      default:
+        return `/${userName}/${projectId}`;
+    }
+  };
+
+  // プロジェクト削除ハンドラー
+  const handleDeleteProject = async () => {
+    if (!deleteTarget?.project_id) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteProject(deleteTarget.project_id);
+      // キャッシュを更新
+      await mutate();
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("プロジェクト削除エラー:", error);
+      alert("プロジェクトの削除に失敗しました");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // 検索フィルタリング（useMemoで最適化）
   const filteredProjects = useMemo(() => {
@@ -263,13 +341,13 @@ export default function MemberProjectPage() {
                         ? "bg-blue-100/60 border-blue-400/40 hover:border-blue-500/60 dark:bg-blue-900/30 dark:border-blue-500/40 dark:hover:border-blue-400/60 dark:shadow-blue-500/30"
                         : "bg-white/60 border-purple-300/30 hover:border-purple-400/50 dark:bg-gray-800/30 dark:border-cyan-500/30 dark:hover:border-cyan-400/50 dark:shadow-cyan-500/20"
                     }`}
-                    onClick={() => router.push(`/projects/${project.project_id}`)}
+                    onClick={() => router.push(getProjectRedirectUrl(project))}
                   >
                     <div
                       className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent dark:via-cyan-400/50 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"
                     ></div>
 
-                    <div className="absolute top-4 right-4 flex items-center space-x-2">
+                    <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
                       <div
                         className={`px-2 py-1 rounded text-xs font-mono font-bold border backdrop-blur-md ${statusColor}`}
                       >
@@ -280,6 +358,17 @@ export default function MemberProjectPage() {
                       >
                         {String(index + 1).padStart(2, "0")}
                       </div>
+                      {/* 削除ボタン */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(project);
+                        }}
+                        className="w-8 h-8 rounded border flex items-center justify-center backdrop-blur-md border-red-500/50 text-red-500 bg-white/50 hover:bg-red-500/20 hover:border-red-500 dark:border-red-400/50 dark:text-red-400 dark:bg-gray-800/50 dark:hover:bg-red-500/20 transition-all duration-200 relative z-20"
+                        title="プロジェクトを削除"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
 
                     <div
@@ -291,7 +380,7 @@ export default function MemberProjectPage() {
 
                     <div className="relative">
                       <h2
-                        className="text-xl font-bold mb-4 font-mono tracking-wider line-clamp-2 pr-20 text-gray-900 dark:text-white"
+                        className="text-xl font-bold mb-4 font-mono tracking-wider line-clamp-2 pr-44 text-gray-900 dark:text-white"
                       >
                         {project.title || "UNTITLED_PROJECT"}
                       </h2>
@@ -344,6 +433,31 @@ export default function MemberProjectPage() {
                             }
                           </span>
                         </div>
+                        {/* セットアップ進捗表示 */}
+                        <div
+                          className={`p-3 rounded border backdrop-blur-md ${
+                            project.step === 6
+                              ? "bg-green-50/50 border-green-300/50 dark:bg-green-900/20 dark:border-green-500/30"
+                              : "bg-orange-50/50 border-orange-300/50 dark:bg-orange-900/20 dark:border-orange-500/30"
+                          }`}
+                        >
+                          <div className="flex items-center mb-1">
+                            <span
+                              className="text-xs font-mono text-gray-500 dark:text-gray-400"
+                            >
+                              進捗
+                            </span>
+                          </div>
+                          <span
+                            className={`text-sm font-mono font-bold ${
+                              project.step === 6
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-orange-600 dark:text-orange-400"
+                            }`}
+                          >
+                            {STEP_LABELS[project.step]}
+                          </span>
+                        </div>
                       </div>
 
                       <div
@@ -381,6 +495,62 @@ export default function MemberProjectPage() {
           </div>
         </div>
       </div>
+
+      {/* 削除確認モーダル */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="relative w-full max-w-md mx-4 p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-2xl">
+            {/* 閉じるボタン */}
+            <button
+              onClick={() => setDeleteTarget(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* タイトル */}
+            <h3 className="text-xl font-bold font-mono text-red-600 dark:text-red-400 mb-4">
+              DELETE_PROJECT
+            </h3>
+
+            {/* 警告メッセージ */}
+            <div className="mb-6">
+              <p className="text-gray-700 dark:text-gray-300 mb-2">
+                以下のプロジェクトを削除しますか？
+              </p>
+              <div className="p-3 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600">
+                <p className="font-mono font-bold text-gray-900 dark:text-white">
+                  {deleteTarget.title || "UNTITLED_PROJECT"}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                  {deleteTarget.idea}
+                </p>
+              </div>
+              <p className="text-sm text-red-500 dark:text-red-400 mt-3">
+                この操作は取り消せません。関連するすべてのデータ（タスク、ドキュメント、Q&A等）も削除されます。
+              </p>
+            </div>
+
+            {/* ボタン */}
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 px-4 py-2 rounded font-mono text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                disabled={isDeleting}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 rounded font-mono text-sm bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? "削除中..." : "削除する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

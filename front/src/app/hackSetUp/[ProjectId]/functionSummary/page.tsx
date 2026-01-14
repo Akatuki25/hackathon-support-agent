@@ -10,7 +10,6 @@ import Loading from "@/components/PageLoading";
 import FunctionEditor from "@/components/FunctionEditor/FunctionEditor";
 import QASection from "@/components/QASection/QASection";
 import {
-  FunctionalRequirement,
   getFunctionalRequirements,
   streamGenerateFunctionalRequirements,
   StreamingQA,
@@ -68,7 +67,7 @@ export default function FunctionSummary() {
       onChunk: (chunk, accumulated) => {
         setStreamingDoc(accumulated);
       },
-      onDocDone: async (data) => {
+      onDocDone: async () => {
         // ドキュメント完了時にSWRを更新
         const doc = await getFunctionalRequirements(projectId);
         mutateDocument(doc, false);

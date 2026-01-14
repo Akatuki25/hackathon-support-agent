@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Zap, Clock, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
+import axios from "axios";
 
 import { postProject } from "@/libs/modelAPI/project";
 import { getMemberByGithubName } from "@/libs/modelAPI/member";
@@ -15,6 +16,7 @@ export default function Home() {
   const [title, setTitle] = useState("");
   const [idea, setIdea] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const today = new Date().toISOString().split("T")[0];
   const now = new Date().toTimeString().split(":").slice(0, 2).join(":"); // 現在時刻 "HH:MM"
   const [startDate, setStartDate] = useState(today);
@@ -36,6 +38,7 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     // endDateとendTimeを結合してDateオブジェクトを作成
     const endDateTime = `${endDate}T${endTime}:00`;
@@ -67,6 +70,31 @@ export default function Home() {
       router.push(`/hackSetUp/${projectId}/hackQA?new=true`);
     } catch (error) {
       console.error("API呼び出しエラー:", error);
+      
+      // エラーメッセージを抽出
+      let errorMsg = "プロジェクトの作成に失敗しました";
+      
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const detail = error.response?.data?.detail;
+        
+        if (status === 422 && Array.isArray(detail)) {
+          // Pydanticバリデーションエラーの場合
+          const messages = detail.map((err: { msg?: string; message?: string }) => err.msg || err.message || String(err)).join("\n");
+          errorMsg = `入力内容に問題があります:\n${messages}`;
+        } else if (typeof detail === "string") {
+          // 単一のエラーメッセージの場合
+          errorMsg = detail;
+        } else if (error.response?.data?.message) {
+          errorMsg = error.response.data.message;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMsg = error.message;
+      }
+      
+      setErrorMessage(errorMsg);
       setLoading(false);
     }
   };
@@ -213,11 +241,21 @@ export default function Home() {
             </div>
             </form>
 
-            {/* バリデーションエラー表示 */}
+            {/* クライアント側バリデーションエラー表示 */}
             {!isEndDateTimeValid && (
               <div className="mb-4 p-3 rounded-lg flex items-center bg-red-50 border border-red-300 text-red-700 dark:bg-red-900/30 dark:border-red-500/50 dark:text-red-300">
                 <AlertCircle size={16} className="mr-2 flex-shrink-0" />
                 <span className="text-sm">終了日時は現在より未来の日時を設定してください</span>
+              </div>
+            )}
+
+            {/* サーバー側バリデーションエラー表示 */}
+            {errorMessage && (
+              <div className="mb-4 p-3 rounded-lg flex items-start bg-red-50 border border-red-300 text-red-700 dark:bg-red-900/30 dark:border-red-500/50 dark:text-red-300">
+                <AlertCircle size={16} className="mr-2 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span className="text-sm whitespace-pre-line">{errorMessage}</span>
+                </div>
               </div>
             )}
 
