@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Terminal, ChevronRight, Loader2, MessageSquare, FileText } from "lucide-react";
 import useSWR from "swr";
@@ -10,8 +10,8 @@ import Loading from "@/components/PageLoading";
 import SpecificationEditor from "@/components/SpecificationEditor/SpecificationEditor";
 import QASection from "@/components/QASection/QASection";
 import { getProjectDocument } from "@/libs/modelAPI/document";
-import { ProjectDocumentType, QAType, ChatAction } from "@/types/modelTypes";
-import { evaluateSummary, generateSummaryWithFeedback } from "@/libs/service/summary";
+import { ProjectDocumentType, QAType, ChatAction, SpecificationFeedback } from "@/types/modelTypes";
+import { evaluateSummary, streamGenerateSummary } from "@/libs/service/summary";
 import { AgentChatWidget } from "@/components/chat";
 
 type FocusMode = 'questions' | 'specification';
@@ -25,29 +25,60 @@ export default function SummaryQA() {
   // 追加質問がある場合は質問フォーカス、なければ仕様書フォーカス
   const [focusMode, setFocusMode] = useState<FocusMode>('questions');
 
-  // SWRでプロジェクトドキュメント取得（なければ生成）
+  // ストリーミング用の状態
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingSpec, setStreamingSpec] = useState('');
+  const streamingStartedRef = useRef(false);
+
+  // 仕様書フィードバック
+  const [specificationFeedback, setSpecificationFeedback] = useState<SpecificationFeedback | null>(null);
+
+  // SWRでプロジェクトドキュメント取得のみ（生成は別途）
   const { data: projectDocument, mutate: mutateDocument, isLoading: isDocLoading } = useSWR(
     projectId ? `document-${projectId}` : null,
     async () => {
       try {
         const doc = await getProjectDocument(projectId);
-        // specificationがあればそのまま返す
         if (doc?.specification) {
           return doc;
         }
       } catch {
-        // ドキュメントがない場合は生成
+        // ドキュメントがない場合
       }
-      // 仕様書を生成
-      await generateSummaryWithFeedback(projectId);
-      // 生成後にドキュメントを再取得
-      return await getProjectDocument(projectId);
+      return null;
     },
     { revalidateOnFocus: false }
   );
 
+  // ドキュメントがない場合にストリーミング生成を開始
+  useEffect(() => {
+    if (isDocLoading || streamingStartedRef.current) return;
+    if (projectDocument?.specification) return;
+
+    // ストリーミング生成開始
+    streamingStartedRef.current = true;
+    setIsStreaming(true);
+    setStreamingSpec('');
+
+    streamGenerateSummary(projectId, {
+      onChunk: (chunk, accumulated) => {
+        setStreamingSpec(accumulated);
+      },
+      onSpecDone: async () => {
+        const doc = await getProjectDocument(projectId);
+        mutateDocument(doc, false);
+      },
+      onDone: () => {
+        setIsStreaming(false);
+      },
+      onError: () => {
+        setIsStreaming(false);
+      },
+    });
+  }, [projectId, projectDocument, isDocLoading, mutateDocument]);
+
   // SWRで評価データ取得（ドキュメントがあれば）
-  const { data: evaluation, mutate: mutateEvaluation, isLoading: isEvalLoading } = useSWR(
+  const { data: evaluation, mutate: mutateEvaluation } = useSWR(
     projectDocument?.specification ? `evaluation-${projectId}` : null,
     async () => {
       const result = await evaluateSummary(projectId);
@@ -60,13 +91,25 @@ export default function SummaryQA() {
     { revalidateOnFocus: false }
   );
 
-  const isLoading = isDocLoading || isEvalLoading;
+  // ストリーミング中はローディングではなく、部分的な仕様書を表示
+  const isLoading = isDocLoading || (!isStreaming && !projectDocument && !streamingSpec);
 
   // 評価データから各値を取得
   const question = evaluation?.qa || [];
   const score = evaluation?.score_0_100 || 0;
   const mvpFeasible = evaluation?.mvp_feasible || false;
 
+  // ストリーミング中は一時的なドキュメントオブジェクトを使用
+  const displayDocument: ProjectDocumentType | null = projectDocument ?? (
+    streamingSpec ? {
+      doc_id: '',
+      project_id: projectId,
+      specification: streamingSpec,
+      function_doc: '',
+      frame_work_doc: '',
+      directory_info: '',
+    } : null
+  );
 
   // 次へ進む
   const handleNext = async () => {
@@ -194,28 +237,30 @@ export default function SummaryQA() {
 
           {/* フォーカスに応じたレイアウト */}
           <div className="flex gap-6 min-h-[70vh]">
-            {/* 仕様書編集エリア（左側） */}
+            {/* 仕様書編集エリア（左側） - ストリーミング中は常に広げる */}
             <div
               className={`transition-all duration-300 ${
-                focusMode === 'specification'
+                isStreaming || focusMode === 'specification'
                   ? 'flex-[1_1_65%] opacity-100'
                   : 'flex-[0_0_320px] opacity-70 hover:opacity-100'
               }`}
             >
               <SpecificationEditor
                 projectId={projectId}
-                projectDocument={projectDocument ?? null}
+                projectDocument={displayDocument}
                 score={score}
                 mvpFeasible={mvpFeasible}
                 onDocumentUpdate={handleDocumentUpdate}
                 onEvaluationUpdate={handleEvaluationUpdate}
+                isStreaming={isStreaming}
+                onFeedbackUpdate={setSpecificationFeedback}
               />
             </div>
 
-            {/* 追加質問エリア（右側） */}
+            {/* 追加質問エリア（右側） - ストリーミング中は小さく */}
             <div
               className={`transition-all duration-300 ${
-                focusMode === 'questions'
+                !isStreaming && focusMode === 'questions'
                   ? 'flex-[1_1_65%] opacity-100'
                   : 'flex-[0_0_320px] opacity-70 hover:opacity-100'
               }`}
@@ -227,6 +272,53 @@ export default function SummaryQA() {
               />
             </div>
           </div>
+
+          {/* 仕様書ガイドライン（全幅表示） */}
+          {specificationFeedback && (
+            <div className="mt-6 rounded-lg border p-6 space-y-4 bg-white/80 border-purple-500/30 dark:bg-gray-800/50 dark:border-cyan-500/30">
+              <h3 className="text-lg font-bold flex items-center text-purple-700 dark:text-cyan-300">
+                📊 仕様書ガイドライン
+              </h3>
+
+              {/* 総合評価 */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-purple-600 dark:text-cyan-400">
+                  総合評価
+                </h4>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {specificationFeedback.summary}
+                </p>
+              </div>
+
+              {/* 強み */}
+              {specificationFeedback.strengths && specificationFeedback.strengths.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-green-600 dark:text-green-400">
+                    ✅ 強み
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                    {specificationFeedback.strengths.map((strength, index) => (
+                      <li key={index}>{strength}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 改善提案 */}
+              {specificationFeedback.suggestions && specificationFeedback.suggestions.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-yellow-600 dark:text-yellow-400">
+                    💡 改善提案
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                    {specificationFeedback.suggestions.map((suggestion, index) => (
+                      <li key={index}>{suggestion}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 次へ進むボタン */}
           <div className="mt-8">

@@ -32,6 +32,7 @@ interface FunctionEditorProps {
   onRequirementsUpdate: (requirements: FunctionalRequirement[]) => void;
   onQuestionsUpdate: (questions: QAForRequirement[]) => void;
   onConfidenceUpdate: (confidence: number) => void;
+  isStreaming?: boolean;
 }
 
 export default function FunctionEditor({
@@ -42,7 +43,8 @@ export default function FunctionEditor({
   onDocumentUpdate,
   onRequirementsUpdate,
   onQuestionsUpdate,
-  onConfidenceUpdate
+  onConfidenceUpdate,
+  isStreaming = false
 }: FunctionEditorProps) {
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
@@ -179,19 +181,19 @@ export default function FunctionEditor({
     <div className="flex justify-center gap-3">
       <button
         onClick={regenerateAndEvaluate}
-        disabled={regenerating}
+        disabled={regenerating || isStreaming}
         className={`px-6 py-2 flex items-center rounded-lg shadow focus:outline-none transform transition ${
-          regenerating
+          regenerating || isStreaming
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
         } bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 ${
-          regenerating ? "from-purple-600 to-blue-700 dark:bg-cyan-600" : ""
+          regenerating || isStreaming ? "from-purple-600 to-blue-700 dark:bg-cyan-600" : ""
         }`}
       >
-        {regenerating ? (
+        {regenerating || isStreaming ? (
           <>
             <Loader2 size={16} className="mr-2 animate-spin" />
-            再生成中...
+            {isStreaming ? '生成中...' : '再生成中...'}
           </>
         ) : (
           <>
@@ -203,9 +205,9 @@ export default function FunctionEditor({
 
       <button
         onClick={handleGetFeedback}
-        disabled={loadingFeedback || !functionDocument}
+        disabled={loadingFeedback || !functionDocument || isStreaming}
         className={`px-6 py-2 flex items-center rounded-lg shadow focus:outline-none transform transition ${
-          loadingFeedback || !functionDocument
+          loadingFeedback || !functionDocument || isStreaming
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
         } bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white focus:ring-2 focus:ring-teal-400 dark:bg-teal-500 dark:hover:bg-teal-600 dark:text-gray-900 dark:focus:ring-teal-400 dark:from-teal-500 dark:to-teal-500 ${
@@ -242,6 +244,7 @@ export default function FunctionEditor({
         sanitizeContent={sanitizeFunctionContent}
         isContentInitialized={isContentInitialized}
         onContentInitialized={() => setIsContentInitialized(true)}
+        isStreaming={isStreaming}
         containerClassName="p-0"
         className="p-0"
       />

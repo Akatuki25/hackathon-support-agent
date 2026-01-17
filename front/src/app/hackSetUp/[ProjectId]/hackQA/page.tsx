@@ -470,7 +470,7 @@ export default function HackQA() {
                             ) : (
                               <div
                                 onClick={() => handleStartEdit(qa.qa_id, 'answer', qa.answer || "")}
-                                className="p-3 rounded-lg border cursor-pointer transition-all group bg-white/50 border-purple-200 hover:bg-purple-50 hover:border-purple-400 dark:bg-gray-750/50 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-cyan-500/50"
+                                className="p-3 rounded-lg border cursor-pointer transition-all group bg-purple-50/50 border-purple-200 hover:bg-purple-100 hover:border-purple-400 dark:bg-gray-700/50 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:border-cyan-500/50"
                               >
                                 <div className="flex items-start justify-between">
                                   <p

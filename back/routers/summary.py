@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
@@ -63,6 +64,52 @@ async def generate_summary_with_feedback(request: ProjectIdRequest, db: Session 
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/stream/{project_id}", summary="仕様書のストリーミング生成 (SSE)")
+async def stream_summary_with_feedback(
+    project_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    """
+    仕様書をServer-Sent Events形式でストリーミング生成する。
+
+    テキストチャンクが生成されるたびにSSEイベントとして送信されるため、
+    クライアントは最初のトークンが生成された瞬間からUIに表示可能。
+
+    ## SSEイベント形式:
+    - `event: start` - ストリーム開始 `{"ok": true, "project_id": "..."}`
+    - `event: chunk` - テキストチャンク `{"text": "..."}`
+    - `event: spec_done` - 仕様書完了 `{"doc_id": "...", "summary": "..."}`
+    - `event: feedback` - フィードバック `{summary, strengths, missing_info, suggestions}`
+    - `event: done` - 完了 `{"ok": true}`
+    - `event: error` - エラー `{"message": "..."}`
+
+    ## クライアント実装例 (JavaScript):
+    ```javascript
+    const response = await fetch('/api/summary/stream/{project_id}', {method: 'POST'});
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value);
+        // SSEイベントをパースして処理
+    }
+    ```
+    """
+    service = SummaryService(db=db)
+
+    return StreamingResponse(
+        service.stream_summary_with_feedback(str(project_id)),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # nginx buffering無効化
+        },
+    )
 
 @router.post("/save")
 def save_summary(request: SummaryRequest, db: Session = Depends(get_db)):

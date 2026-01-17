@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from database import get_db
@@ -289,3 +290,49 @@ def get_confidence_feedback(request: ProjectIdRequest, db: Session = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/stream/{project_id}", summary="機能要件のストリーミング生成 (SSE)")
+async def stream_functional_requirements(
+    project_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    """
+    機能要件をServer-Sent Events形式でストリーミング生成する。
+
+    テキストチャンクが生成されるたびにSSEイベントとして送信されるため、
+    クライアントは最初のトークンが生成された瞬間からUIに表示可能。
+
+    ## SSEイベント形式:
+    - `event: start` - ストリーム開始 `{"ok": true, "project_id": "..."}`
+    - `event: chunk` - テキストチャンク `{"text": "..."}`
+    - `event: doc_done` - 機能要件書完了 `{"doc_id": "...", "function_doc": "..."}`
+    - `event: questions` - 追加質問 `{"questions": [...]}`
+    - `event: done` - 完了 `{"ok": true}`
+    - `event: error` - エラー `{"message": "..."}`
+
+    ## クライアント実装例 (JavaScript):
+    ```javascript
+    const response = await fetch('/api/function_requirements/stream/{project_id}', {method: 'POST'});
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value);
+        // SSEイベントをパースして処理
+    }
+    ```
+    """
+    service = FunctionService(db=db)
+
+    return StreamingResponse(
+        service.stream_functional_requirements(str(project_id)),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # nginx buffering無効化
+        },
+    )
