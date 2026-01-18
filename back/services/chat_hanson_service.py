@@ -1,4 +1,4 @@
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from .base_service import BaseService
 from sqlalchemy.orm import Session

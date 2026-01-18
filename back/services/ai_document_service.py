@@ -2,9 +2,9 @@
 AIドキュメント生成サービス
 frame_work_docからAIドキュメントを生成
 """
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from langchain_classic.output_parsers import StructuredOutputParser, ResponseSchema
 from .base_service import BaseService
 from sqlalchemy.orm import Session
 from models.project_base import ProjectDocument, AIDocument

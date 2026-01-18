@@ -9,7 +9,6 @@ type MemberDropdownProps = {
   onAssign: (memberId: string) => Promise<void>;
   onRemove: (assignmentId: string) => Promise<void>;
   onClose: () => void;
-  darkMode?: boolean;
 };
 
 /**
@@ -24,7 +23,6 @@ export function MemberDropdown({
   onAssign,
   onRemove,
   onClose,
-  darkMode = false
 }: MemberDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
@@ -76,39 +74,30 @@ export function MemberDropdown({
     }
   };
 
-  const dropdownClass = darkMode
-    ? 'border-cyan-500/30 bg-slate-900/95 shadow-[0_0_24px_rgba(6,182,212,0.3)]'
-    : 'border-gray-200 bg-white shadow-xl';
-
-  const itemClass = darkMode
-    ? 'hover:bg-cyan-500/10 border-cyan-500/20'
-    : 'hover:bg-gray-100 border-gray-200';
-
-  const textClass = darkMode ? 'text-slate-200' : 'text-gray-700';
-  const mutedTextClass = darkMode ? 'text-slate-400' : 'text-gray-500';
-
   return (
     <div
       ref={dropdownRef}
-      className={`
+      className="
         absolute
         z-50
         mt-2
         w-72
         rounded-lg
         border
-        ${dropdownClass}
+        border-gray-200 dark:border-cyan-500/30
+        bg-white dark:bg-slate-900/95
+        shadow-xl dark:shadow-[0_0_24px_rgba(6,182,212,0.3)]
         backdrop-blur-lg
-      `}
+      "
     >
       {/* ヘッダー */}
-      <div className={`flex items-center justify-between px-4 py-3 border-b ${itemClass}`}>
-        <h3 className={`text-sm font-semibold ${textClass}`}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-cyan-500/20 hover:bg-gray-100 dark:hover:bg-cyan-500/10">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200">
           メンバーを割り当て
         </h3>
         <button
           onClick={onClose}
-          className={`p-1 rounded-full hover:scale-110 transition-transform ${mutedTextClass}`}
+          className="p-1 rounded-full hover:scale-110 transition-transform text-gray-500 dark:text-slate-400"
         >
           <X size={16} />
         </button>
@@ -117,7 +106,7 @@ export function MemberDropdown({
       {/* メンバーリスト */}
       <div className="max-h-64 overflow-y-auto p-2">
         {projectMembers.length === 0 ? (
-          <div className={`text-center py-8 ${mutedTextClass}`}>
+          <div className="text-center py-8 text-gray-500 dark:text-slate-400">
             <p className="text-sm">プロジェクトメンバーがいません</p>
           </div>
         ) : (
@@ -134,7 +123,8 @@ export function MemberDropdown({
                 className={`
                   flex items-center gap-3 p-2 rounded-lg cursor-pointer
                   transition-all
-                  ${itemClass}
+                  border-gray-200 dark:border-cyan-500/20
+                  hover:bg-gray-100 dark:hover:bg-cyan-500/10
                   ${processing ? 'opacity-50 cursor-wait' : ''}
                 `}
               >
@@ -143,14 +133,11 @@ export function MemberDropdown({
                   checked={assigned}
                   onChange={() => handleToggleMember(member)}
                   disabled={processing}
-                  className={`
-                    w-4 h-4 rounded
-                    ${darkMode ? 'accent-cyan-500' : 'accent-purple-500'}
-                  `}
+                  className="w-4 h-4 rounded accent-purple-500 dark:accent-cyan-500"
                 />
-                <MemberAvatar member={member} size="sm" darkMode={darkMode} />
+                <MemberAvatar member={member} size="sm" />
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${textClass}`}>
+                  <p className="text-sm font-medium text-gray-700 dark:text-slate-200">
                     {member.member_name}
                   </p>
                 </div>
@@ -181,7 +168,7 @@ export function MemberDropdown({
 
       {/* フッター（割り当て済み数表示） */}
       {currentAssignments.length > 0 && (
-        <div className={`px-4 py-2 border-t ${itemClass} ${mutedTextClass}`}>
+        <div className="px-4 py-2 border-t border-gray-200 dark:border-cyan-500/20 text-gray-500 dark:text-slate-400">
           <p className="text-xs">
             {currentAssignments.length}名が割り当て済み
           </p>

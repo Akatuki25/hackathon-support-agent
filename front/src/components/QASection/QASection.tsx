@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { AlertTriangle, CheckCircle, Loader2, Plus, X, Trash2, Edit2 } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { QAType } from "@/types/modelTypes";
 import { patchQA, postQA, deleteQA, getQAsByProjectId } from "@/libs/modelAPI/qa";
 import axios from "axios";
@@ -18,7 +17,6 @@ export default function QASection({
   questions,
   onQuestionsUpdate
 }: QASectionProps) {
-  const { darkMode } = useDarkMode();
   const [savingQA, setSavingQA] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showAddQA, setShowAddQA] = useState(false);
@@ -176,19 +174,9 @@ export default function QASection({
   };
 
   return (
-    <div
-      className={`h-full max-h-[80vh] backdrop-blur-lg rounded-xl p-4 shadow-xl border transition-all flex flex-col overflow-hidden ${
-        darkMode
-          ? "bg-gray-800 bg-opacity-70 border-cyan-500/30 shadow-cyan-500/20"
-          : "bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20"
-      }`}
-    >
+    <div className="h-full max-h-[80vh] backdrop-blur-lg rounded-xl p-4 shadow-xl border transition-all flex flex-col overflow-hidden bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20">
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
-        <h2
-          className={`text-lg font-medium flex items-center ${
-            darkMode ? "text-cyan-400" : "text-purple-700"
-          }`}
-        >
+        <h2 className="text-lg font-medium flex items-center text-purple-700 dark:text-cyan-400">
           <AlertTriangle size={18} className="mr-2" />
           追加質問
         </h2>
@@ -197,7 +185,7 @@ export default function QASection({
           {savingQA && (
             <Loader2
               size={14}
-              className={`animate-spin ${darkMode ? "text-cyan-400" : "text-purple-600"}`}
+              className="animate-spin text-purple-600 dark:text-cyan-400"
             />
           )}
           {saveSuccess && (
@@ -206,18 +194,12 @@ export default function QASection({
               className="text-green-500 animate-pulse"
             />
           )}
-          <div className={`px-2 py-1 rounded text-xs ${
-            darkMode ? "bg-cyan-900/50 text-cyan-400" : "bg-purple-100 text-purple-700"
-          }`}>
+          <div className="px-2 py-1 rounded text-xs bg-purple-100 text-purple-700 dark:bg-cyan-900/50 dark:text-cyan-400">
             {questions.length}件
           </div>
           <button
             onClick={() => setShowAddQA(true)}
-            className={`p-1.5 rounded-lg hover:scale-105 transition-all ${
-              darkMode
-                ? "bg-cyan-600 hover:bg-cyan-700 text-white"
-                : "bg-purple-500 hover:bg-purple-600 text-white"
-            }`}
+            className="p-1.5 rounded-lg hover:scale-105 transition-all bg-purple-500 hover:bg-purple-600 text-white dark:bg-cyan-600 dark:hover:bg-cyan-700"
           >
             <Plus size={14} />
           </button>
@@ -227,24 +209,14 @@ export default function QASection({
       <div className="flex-1 space-y-4 overflow-y-auto pr-2">
         {/* 新しいQ&A追加フォーム */}
         {showAddQA && (
-          <div className={`p-4 rounded-lg border-2 border-dashed ${
-            darkMode
-              ? "border-cyan-500/50 bg-gray-700/20"
-              : "border-purple-300/50 bg-purple-50/30"
-          }`}>
+          <div className="p-4 rounded-lg border-2 border-dashed border-purple-300/50 bg-purple-50/30 dark:border-cyan-500/50 dark:bg-gray-700/20">
             <div className="flex items-center justify-between mb-3">
-              <h3 className={`font-medium ${
-                darkMode ? "text-cyan-300" : "text-purple-600"
-              }`}>
+              <h3 className="font-medium text-purple-600 dark:text-cyan-300">
                 新しい質問を追加
               </h3>
               <button
                 onClick={() => setShowAddQA(false)}
-                className={`p-1 rounded-full hover:scale-110 transition-all ${
-                  darkMode
-                    ? "text-gray-400 hover:text-gray-300"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
+                className="p-1 rounded-full hover:scale-110 transition-all text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               >
                 <X size={16} />
               </button>
@@ -252,9 +224,7 @@ export default function QASection({
 
             <div className="space-y-3">
               <div>
-                <label className={`block text-sm font-medium mb-2 ${
-                  darkMode ? "text-cyan-300" : "text-purple-600"
-                }`}>
+                <label className="block text-sm font-medium mb-2 text-purple-600 dark:text-cyan-300">
                   質問
                 </label>
                 <textarea
@@ -264,22 +234,14 @@ export default function QASection({
                     autoResizeTextarea(e.target);
                   }}
                   onFocus={(e) => autoResizeTextarea(e.target)}
-                  className={`w-full p-3 rounded-lg border transition-all resize-none ${
-                    darkMode
-                      ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
-                      : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
-                  } focus:outline-none focus:ring-2 ${
-                    darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                  }`}
+                  className="w-full p-3 rounded-lg border transition-all resize-none border-purple-300 text-gray-800 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-500/20"
                   style={{ minHeight: '50px' }}
                   placeholder="質問を入力してください..."
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${
-                  darkMode ? "text-cyan-300" : "text-purple-600"
-                }`}>
+                <label className="block text-sm font-medium mb-2 text-purple-600 dark:text-cyan-300">
                   回答（任意）
                 </label>
                 <textarea
@@ -289,13 +251,7 @@ export default function QASection({
                     autoResizeTextarea(e.target);
                   }}
                   onFocus={(e) => autoResizeTextarea(e.target)}
-                  className={`w-full p-2 text-sm rounded-lg border transition-all resize-none ${
-                    darkMode
-                      ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
-                      : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
-                  } focus:outline-none focus:ring-2 ${
-                    darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                  }`}
+                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none border-purple-300 text-gray-800 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-500/20"
                   style={{ minHeight: '60px' }}
                   placeholder="回答を入力してください..."
                 />
@@ -307,11 +263,7 @@ export default function QASection({
                   disabled={isAdding}
                   className={`px-4 py-2 rounded-lg border transition-all ${
                     isAdding ? "opacity-50 cursor-not-allowed" : ""
-                  } ${
-                    darkMode
-                      ? "border-gray-600 text-gray-400 hover:text-gray-300"
-                      : "border-gray-300 text-gray-600 hover:text-gray-700"
-                  }`}
+                  } border-gray-300 text-gray-600 hover:text-gray-700 dark:border-gray-600 dark:text-gray-400 dark:hover:text-gray-300`}
                 >
                   キャンセル
                 </button>
@@ -323,9 +275,7 @@ export default function QASection({
                   } ${
                     addSuccess
                       ? "bg-green-600 text-white"
-                      : darkMode
-                      ? "bg-cyan-600 hover:bg-cyan-700 text-white"
-                      : "bg-purple-500 hover:bg-purple-600 text-white"
+                      : "bg-purple-500 hover:bg-purple-600 text-white dark:bg-cyan-600 dark:hover:bg-cyan-700"
                   }`}
                 >
                   {isAdding ? (
@@ -349,11 +299,7 @@ export default function QASection({
 
         {questions.length > 0 ? (
           questions.map((qa, index) => (
-            <div key={qa.qa_id} className={`p-3 rounded-lg border ${
-              darkMode
-                ? "bg-gray-700/40 border-cyan-500/30"
-                : "bg-purple-50/70 border-purple-300/50"
-            }`}>
+            <div key={qa.qa_id} className="p-3 rounded-lg border bg-purple-50/70 border-purple-300/50 dark:bg-gray-700/40 dark:border-cyan-500/30">
               <div className="flex items-start justify-between mb-1">
                 <div className="flex-1">
                   {editingQA?.id === qa.qa_id && editingQA.field === 'question' ? (
@@ -371,19 +317,13 @@ export default function QASection({
                           handleEndEdit();
                         }
                       }}
-                      className={`w-full p-2 rounded border text-sm font-medium resize-none ${
-                        darkMode
-                          ? "bg-gray-800 border-cyan-500/50 text-cyan-300"
-                          : "bg-white border-purple-300 text-purple-600"
-                      } focus:outline-none`}
+                      className="w-full p-2 rounded border text-sm font-medium resize-none border-purple-300 text-purple-600 focus:outline-none bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-300"
                       style={{ minHeight: '40px' }}
                       autoFocus
                     />
                   ) : (
                     <label
-                      className={`block text-sm font-medium cursor-pointer hover:bg-opacity-20 p-1 rounded ${
-                        darkMode ? "text-cyan-300 hover:bg-cyan-500" : "text-purple-600 hover:bg-purple-500"
-                      }`}
+                      className="block text-sm font-medium cursor-pointer hover:bg-opacity-20 p-1 rounded text-purple-600 hover:bg-purple-500 dark:text-cyan-300 dark:hover:bg-cyan-500"
                       onClick={() => handleStartEdit(qa.qa_id, 'question', qa.question)}
                     >
                       Q{index + 1}: {qa.question}
@@ -393,11 +333,7 @@ export default function QASection({
                 </div>
                 <button
                   onClick={() => handleDeleteQA(qa.qa_id)}
-                  className={`ml-2 p-1 rounded-full hover:scale-110 transition-all ${
-                    darkMode
-                      ? "text-red-400 hover:text-red-300"
-                      : "text-red-500 hover:text-red-700"
-                  }`}
+                  className="ml-2 p-1 rounded-full hover:scale-110 transition-all text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -412,27 +348,17 @@ export default function QASection({
                   }}
                   onBlur={handleEndEdit}
                   onFocus={(e) => autoResizeTextarea(e.target)}
-                  className={`w-full p-2 text-sm rounded-lg border transition-all resize-none ${
-                    darkMode
-                      ? "bg-gray-800 border-cyan-500/50 text-cyan-100 focus:border-cyan-400"
-                      : "bg-white border-purple-300 text-gray-800 focus:border-purple-500"
-                  } focus:outline-none focus:ring-2 ${
-                    darkMode ? "focus:ring-cyan-500/20" : "focus:ring-purple-500/20"
-                  }`}
+                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none border-purple-300 text-gray-800 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-purple-50 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:focus:border-cyan-400 dark:focus:ring-cyan-500/20"
                   style={{ minHeight: '60px' }}
                   autoFocus
                 />
               ) : (
                 <div
                   onClick={() => handleStartEdit(qa.qa_id, 'answer', qa.answer || '')}
-                  className={`w-full p-2 text-sm rounded-lg border transition-all resize-none cursor-pointer hover:bg-opacity-50 ${
-                    darkMode
-                      ? "bg-gray-800 border-cyan-500/50 text-cyan-100 hover:bg-cyan-500"
-                      : "bg-white border-purple-300 text-gray-800 hover:bg-purple-500"
-                  } min-h-[60px] flex items-center`}
+                  className="w-full p-2 text-sm rounded-lg border transition-all resize-none cursor-pointer border-purple-300 text-gray-800 min-h-[60px] flex items-center bg-purple-50 hover:bg-purple-100 dark:bg-gray-700 dark:border-cyan-500/50 dark:text-cyan-100 dark:hover:bg-gray-600"
                 >
                   {qa.answer || (
-                    <span className={darkMode ? "text-gray-500" : "text-gray-400"}>
+                    <span className="text-gray-400 dark:text-gray-500">
                       回答を入力してください...
                       <Edit2 size={12} className="inline ml-2 opacity-50" />
                     </span>
@@ -443,9 +369,7 @@ export default function QASection({
             </div>
           ))
         ) : (
-          <div className={`p-6 text-center ${
-            darkMode ? "text-gray-400" : "text-gray-600"
-          }`}>
+          <div className="p-6 text-center text-gray-600 dark:text-gray-400">
             <CheckCircle className="mx-auto mb-2" size={32} />
             <p>追加質問はありません</p>
           </div>
@@ -453,9 +377,7 @@ export default function QASection({
       </div>
 
       {questions.length > 0 && (
-        <div className={`flex-shrink-0 pt-3 pb-1 flex justify-center ${
-          darkMode ? "bg-gray-800/80" : "bg-white/80"
-        }`}>
+        <div className="flex-shrink-0 pt-3 pb-1 flex justify-center bg-white/80 dark:bg-gray-800/80">
           <button
             onClick={() => saveQA(questions)}
             disabled={savingQA}
@@ -466,12 +388,8 @@ export default function QASection({
               focus:outline-none focus:ring-2 focus:ring-offset-2
               ${savingQA || saveSuccess ? "cursor-not-allowed" : "hover:scale-105 hover:-translate-y-0.5"}
               ${saveSuccess
-                ? darkMode
-                  ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-lg shadow-emerald-500/30"
-                  : "bg-emerald-500/20 border-emerald-500 text-emerald-600 shadow-lg shadow-emerald-500/20"
-                : darkMode
-                  ? "bg-cyan-500/10 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/30 focus:ring-cyan-500/50"
-                  : "bg-purple-500/10 border-purple-500/50 text-purple-600 hover:bg-purple-500/20 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 focus:ring-purple-500/50"
+                ? "bg-emerald-500/20 border-emerald-500 text-emerald-600 shadow-lg shadow-emerald-500/20 dark:border-emerald-400 dark:text-emerald-300 dark:shadow-emerald-500/30"
+                : "bg-purple-500/10 border-purple-500/50 text-purple-600 hover:bg-purple-500/20 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 focus:ring-purple-500/50 dark:bg-cyan-500/10 dark:border-cyan-500/50 dark:text-cyan-300 dark:hover:bg-cyan-500/20 dark:hover:border-cyan-400 dark:hover:shadow-cyan-500/30 dark:focus:ring-cyan-500/50"
               }
               ${savingQA && "animate-pulse opacity-80"}
             `}

@@ -4,8 +4,8 @@ import json
 import uuid
 from typing import Dict, List, Literal, Sequence
 
-from langchain.output_parsers import PydanticOutputParser
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 

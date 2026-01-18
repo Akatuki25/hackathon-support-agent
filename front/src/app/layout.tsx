@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import DarkToggle from "@/components/theme-switcher";
-import MountedWrapper from "@/components/MountedWrapper";
 import GridEdge from "@/components/GridEgde";
 import "./globals.css";
 import { NextAuthProvider } from "@/libs/NextAuthProvider";
@@ -28,19 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextAuthProvider>
-          <MountedWrapper>
-            <ThemeProvider attribute="class" defaultTheme="system">
-              <GridEdge>
-                <DarkToggle />
-                {children}
-              </GridEdge>
-            </ThemeProvider>
-          </MountedWrapper>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <GridEdge>
+              <DarkToggle />
+              {children}
+            </GridEdge>
+          </ThemeProvider>
         </NextAuthProvider>
       </body>
     </html>
