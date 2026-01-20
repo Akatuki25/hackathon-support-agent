@@ -689,3 +689,136 @@ class HandsOnGenerationJob(Base):
 
     def __repr__(self):
         return f"<HandsOnGenerationJob(job_id={self.job_id}, status={self.status}, progress={self.completed_tasks}/{self.total_tasks})>"
+
+
+# =========================
+# 仕様変更リクエストシステム
+# =========================
+
+ChangeRequestStatusEnum = Enum(
+    "PROPOSING", "APPROVED", "APPLIED", "CANCELLED",
+    name="change_request_status_enum"
+)
+
+
+class ChangeRequest(Base):
+    """
+    仕様変更リクエスト
+
+    ユーザーの変更要望を受け付け、影響分析と変更案を管理する。
+    対話ループにより、承認されるまで修正を繰り返すことができる。
+    """
+    __tablename__ = "change_request"
+
+    request_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projectBase.project_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # ユーザーの元の要望
+    description = Column(Text, nullable=False)
+
+    # ステータス: PROPOSING / APPROVED / APPLIED / CANCELLED
+    status = Column(ChangeRequestStatusEnum, default="PROPOSING", nullable=False)
+
+    # 現在の提案（JSON）
+    # {
+    #   "approach": "変更アプローチの概要",
+    #   "specification": {"updated": bool, "content": "全文"},
+    #   "function_doc": {"updated": bool, "content": "全文"},
+    #   "functions": {"keep": [], "discard": [], "add": [], "modify": []},
+    #   "tasks": {"discard": [], "add": [], "modify": []},
+    #   "hands_on_to_regenerate": []
+    # }
+    proposal = Column(JSON, nullable=True)
+
+    # 対話履歴（JSON配列）- UIチャット表示用
+    # [
+    #   {"role": "user", "content": "...", "timestamp": "..."},
+    #   {"role": "assistant", "type": "proposal", "summary": "...", "timestamp": "..."}
+    # ]
+    conversation = Column(JSON, default=list, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
+
+    # Relationships
+    project = relationship("ProjectBase", backref="change_requests")
+
+    __table_args__ = (
+        Index("ix_change_request_project_status", "project_id", "status"),
+        Index("ix_change_request_created_at", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<ChangeRequest(id={self.request_id}, project_id={self.project_id}, status={self.status})>"
+
+    def add_user_message(self, content: str) -> None:
+        """ユーザーメッセージを対話履歴に追加"""
+        from datetime import datetime
+        if self.conversation is None:
+            self.conversation = []
+        self.conversation = self.conversation + [{
+            "role": "user",
+            "content": content,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }]
+
+    def add_proposal_message(self, summary: str) -> None:
+        """提案メッセージを対話履歴に追加"""
+        from datetime import datetime
+        if self.conversation is None:
+            self.conversation = []
+        self.conversation = self.conversation + [{
+            "role": "assistant",
+            "type": "proposal",
+            "summary": summary,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }]
+
+
+class DocumentChunk(Base):
+    """
+    ドキュメントチャンク（semantic検索用）
+
+    仕様書・機能要件書を小さなチャンクに分割して保存。
+    ベクトル検索により関連部分のみをLLMコンテキストに含める。
+    """
+    __tablename__ = "document_chunk"
+
+    chunk_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projectBase.project_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # チャンク情報
+    document_type = Column(String(30), nullable=False)  # SPECIFICATION / FUNCTION_DOC
+    section_id = Column(String(100), nullable=False)  # セクション識別子（重複排除用）
+
+    # コンテンツ
+    chunk_content = Column(Text, nullable=False)   # 検索用（小さいチャンク）
+    parent_content = Column(Text, nullable=False)  # コンテキスト用（セクション全体）
+
+    # ベクトル埋め込み（pgvectorを使う場合はVector型に変更）
+    # 現時点ではFLOAT配列として定義
+    embedding = Column(JSON, nullable=True)  # [float, float, ...]
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
+
+    # Relationships
+    project = relationship("ProjectBase", backref="document_chunks")
+
+    __table_args__ = (
+        UniqueConstraint('project_id', 'document_type', 'section_id'),
+        Index("ix_document_chunk_project_type", "project_id", "document_type"),
+    )
+
+    def __repr__(self):
+        return f"<DocumentChunk(id={self.chunk_id}, type={self.document_type}, section={self.section_id})>"

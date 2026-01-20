@@ -10,6 +10,7 @@ from sqlalchemy import select
 from uuid import UUID
 import uuid
 from datetime import datetime
+import json
 
 from models.project_base import (
     Task,
@@ -35,7 +36,8 @@ class TaskHandsOnService:
     def create_generation_job(
         self,
         project_id: UUID,
-        config: Optional[Dict] = None
+        config: Optional[Dict] = None,
+        target_task_ids: Optional[List[UUID]] = None
     ) -> HandsOnGenerationJob:
         """
         ハンズオン生成ジョブを作成
@@ -43,12 +45,26 @@ class TaskHandsOnService:
         Args:
             project_id: プロジェクトID
             config: 生成設定
+            target_task_ids: 対象タスクIDリスト（指定時はそのタスクのみ再生成）
 
         Returns:
             HandsOnGenerationJob
         """
-        # タスク数を取得
-        total_tasks = self.db.query(Task).filter_by(project_id=project_id).count()
+        # configを準備
+        job_config = config.copy() if config else {}
+
+        if target_task_ids:
+            # 特定タスクのみ対象
+            total_tasks = len(target_task_ids)
+            # 既存のハンズオンを削除（再生成のため）
+            self.db.query(TaskHandsOn).filter(
+                TaskHandsOn.task_id.in_(target_task_ids)
+            ).delete(synchronize_session=False)
+            # configに対象タスクIDを保存
+            job_config["target_task_ids"] = [str(tid) for tid in target_task_ids]
+        else:
+            # 全タスク対象
+            total_tasks = self.db.query(Task).filter_by(project_id=project_id).count()
 
         # ジョブレコード作成
         job = HandsOnGenerationJob(
@@ -58,7 +74,7 @@ class TaskHandsOnService:
             total_tasks=total_tasks,
             completed_tasks=0,
             failed_tasks=0,
-            config=config or {},
+            config=job_config,
             created_at=datetime.now()
         )
 

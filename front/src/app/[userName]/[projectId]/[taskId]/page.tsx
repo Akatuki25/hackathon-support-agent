@@ -108,9 +108,11 @@ export default function TaskHandsOnPage() {
     };
   }, [taskId]);
 
-  const pageBackgroundClass = 'min-h-screen bg-gray-100 p-6 text-gray-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 dark:text-slate-100';
+  const pageBackgroundClass = 'min-h-screen bg-gray-100 text-gray-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 dark:text-slate-100';
 
-  const panelClass = 'mx-auto flex max-w-4xl flex-col gap-6 rounded-lg border border-slate-100 bg-white p-6 shadow-sm dark:border-cyan-500/20 dark:bg-slate-950/60 dark:shadow-[0_0_32px_rgba(6,182,212,0.18)] dark:backdrop-blur';
+  const containerClass = 'container mx-auto px-6 py-6 overflow-hidden';
+
+  const panelClass = 'flex flex-col gap-6 rounded-lg border border-slate-100 bg-white p-6 shadow-sm min-w-0 dark:border-cyan-500/20 dark:bg-slate-950/60 dark:shadow-[0_0_32px_rgba(6,182,212,0.18)] dark:backdrop-blur';
 
   const sectionTitleClass = 'text-lg font-semibold text-blue-700 dark:text-cyan-200';
   const sectionBodyClass = 'text-sm text-gray-700 dark:text-slate-200';
@@ -118,7 +120,7 @@ export default function TaskHandsOnPage() {
   const backLinkClass = 'inline-flex items-center gap-1 text-sm text-blue-600 underline-offset-4 hover:text-blue-500 hover:underline dark:text-cyan-200 dark:hover:text-cyan-100';
 
   // Style classes for hands-on content (combined light dark: dark)
-  const contentBgClass = 'bg-gray-50 border border-gray-200 dark:bg-slate-900/80 dark:border-cyan-500/20';
+  const contentBgClass = 'bg-gray-50 border border-gray-200 overflow-hidden dark:bg-slate-900/80 dark:border-cyan-500/20';
   const textClass = 'text-gray-700 dark:text-slate-200';
   const headingClass = 'text-blue-700 font-semibold dark:text-cyan-300';
   const codeBlockClass = 'bg-gray-800 text-green-300 dark:bg-black/60 dark:text-green-200';
@@ -328,25 +330,27 @@ export default function TaskHandsOnPage() {
 
   return (
     <div className={pageBackgroundClass}>
-      <div className={panelClass}>
-        <header className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold">タスク詳細</h1>
-          {projectId && userName && (
-            <Link href={`/${userName}/${projectId}/kanban`} className={backLinkClass}>
-              ← カンバンボードへ戻る
-            </Link>
-          )}
-        </header>
+      <div className={containerClass}>
+        <div className={panelClass}>
+          <header className="flex flex-col gap-2">
+            <h1 className="text-2xl font-bold">タスク詳細</h1>
+            {projectId && userName && (
+              <Link href={`/${userName}/${projectId}/kanban`} className={backLinkClass}>
+                ← カンバンボードへ戻る
+              </Link>
+            )}
+          </header>
 
-        <section className="space-y-3">
-          <h2 className={sectionTitleClass}>タスク情報</h2>
-          {taskContent}
-        </section>
+          <section className="space-y-3">
+            <h2 className={sectionTitleClass}>タスク情報</h2>
+            {taskContent}
+          </section>
 
-        <section className="space-y-3">
-          <h2 className={sectionTitleClass}>ハンズオン詳細</h2>
-          {handsOnContent}
-        </section>
+          <section className="space-y-3">
+            <h2 className={sectionTitleClass}>ハンズオン詳細</h2>
+            {handsOnContent}
+          </section>
+        </div>
       </div>
 
       {/* AI Chat Widget */}

@@ -175,8 +175,18 @@ def generate_all_hands_on(job_id: str, project_id: str, config: Dict = None):
         job.started_at = datetime.now()
         db.commit()
 
-        # タスク取得
-        tasks = db.query(Task).filter_by(project_id=UUID(project_id)).all()
+        # タスク取得（target_task_idsが指定されている場合はそれのみ対象）
+        target_task_ids = (config or {}).get("target_task_ids")
+        if target_task_ids:
+            # 特定タスクのみ再生成
+            tasks = db.query(Task).filter(
+                Task.task_id.in_([UUID(tid) for tid in target_task_ids])
+            ).all()
+            print(f"[Celery] 対象タスク指定あり: {len(tasks)} タスク")
+        else:
+            # 全タスク対象
+            tasks = db.query(Task).filter_by(project_id=UUID(project_id)).all()
+
         job.total_tasks = len(tasks)
         db.commit()
 

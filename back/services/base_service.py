@@ -17,9 +17,9 @@ from sqlalchemy.orm import Session
 # Streaming JSON parser
 from utils.streaming_json import IncrementalJsonEmitter
 
-# Google Search Grounding 用
+# Google Search Grounding 用（新SDK: google-genai）
 try:
-    from google.ai.generativelanguage_v1beta.types import Tool as GenAITool
+    from google.genai import types as genai_types
     GROUNDING_AVAILABLE = True
 except ImportError:
     GROUNDING_AVAILABLE = False
@@ -201,7 +201,7 @@ class BaseService:
               [{"title": "...", "url": "...", "snippet": "..."}, ...]
         """
         if not GROUNDING_AVAILABLE:
-            self.logger.warning("Google Search Grounding is not available (missing google-genai package)")
+            self.logger.warning("Google Search Grounding is not available (missing google.genai.types)")
             # フォールバック: 通常のLLM呼び出し
             response = self.llm_flash.invoke(prompt)
             return response.content, []
@@ -215,9 +215,13 @@ class BaseService:
                 api_key=os.getenv("GOOGLE_API_KEY"),
             )
 
+            # 新SDK: google-genai の Tool/GoogleSearch を使用
+            grounding_tool = genai_types.Tool(
+                google_search=genai_types.GoogleSearch()
+            )
             response = llm_with_search.invoke(
                 prompt,
-                tools=[GenAITool(google_search={})],
+                tools=[grounding_tool],
             )
 
             # grounding metadata からURLを抽出
