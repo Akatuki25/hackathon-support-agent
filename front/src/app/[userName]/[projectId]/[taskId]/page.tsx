@@ -25,7 +25,7 @@ type HandsOnState =
   | { status: 'empty'; message: string }
   | { status: 'error'; message: string };
 
-const NOT_READY_MESSAGE = 'まだできていないです';
+const NOT_READY_MESSAGE = '生成中です、しばらくお待ちください...';
 
 export default function TaskHandsOnPage() {
   const params = useParams();
