@@ -79,6 +79,22 @@ class ProjectBase(Base):
         back_populates="project",
         cascade="all, delete-orphan",
     )
+    # 仕様変更リクエストシステム
+    change_requests = relationship(
+        "ChangeRequest",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    document_chunks = relationship(
+        "DocumentChunk",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    hands_on_jobs = relationship(
+        "HandsOnGenerationJob",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     def __repr__(self):
         return f"<Project(id={self.project_id}, title={self.title})>"
 
@@ -681,6 +697,9 @@ class HandsOnGenerationJob(Base):
     # 設定
     config = Column(JSON, nullable=True, comment="生成設定（並列数、モデル等）")
 
+    # Relationships
+    project = relationship("ProjectBase", back_populates="hands_on_jobs")
+
     __table_args__ = (
         Index("ix_hands_on_job_project_id", "project_id"),
         Index("ix_hands_on_job_status", "status"),
@@ -746,7 +765,7 @@ class ChangeRequest(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    project = relationship("ProjectBase", backref="change_requests")
+    project = relationship("ProjectBase", back_populates="change_requests")
 
     __table_args__ = (
         Index("ix_change_request_project_status", "project_id", "status"),
@@ -813,7 +832,7 @@ class DocumentChunk(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    project = relationship("ProjectBase", backref="document_chunks")
+    project = relationship("ProjectBase", back_populates="document_chunks")
 
     __table_args__ = (
         UniqueConstraint('project_id', 'document_type', 'section_id'),

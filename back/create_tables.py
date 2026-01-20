@@ -16,6 +16,9 @@ from models.project_base import (
     # Phase 3: タスクハンズオン生成
     TaskHandsOn,
     HandsOnGenerationJob,
+    # 仕様変更リクエストシステム
+    ChangeRequest,
+    DocumentChunk,
 )
 
 def reset_db():
