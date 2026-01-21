@@ -5,7 +5,11 @@
       "Bash(npm:*)",
       "Bash(node:*)",
       "Bash(ESLINT_NO_DEV_ERRORS=true npm run build)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "WebFetch(domain:reactflow.dev)",
+      "Bash(grep:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

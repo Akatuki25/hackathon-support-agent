@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -46,10 +46,12 @@ export interface AIDocumentStatusResponse {
  * @param projectId プロジェクトID
  * @returns AIドキュメント生成結果
  */
-export const generateAIDocument = async (projectId: string): Promise<AIDocumentGenerationResponse> => {
+export const generateAIDocument = async (
+  projectId: string,
+): Promise<AIDocumentGenerationResponse> => {
   const response = await axios.post<AIDocumentGenerationResponse>(
     `${API_URL}/api/ai_document/generate`,
-    { project_id: projectId }
+    { project_id: projectId },
   );
   return response.data;
 };
@@ -60,9 +62,11 @@ export const generateAIDocument = async (projectId: string): Promise<AIDocumentG
  * @param projectId プロジェクトID
  * @returns AIドキュメント
  */
-export const getAIDocument = async (projectId: string): Promise<AIDocumentGetResponse> => {
+export const getAIDocument = async (
+  projectId: string,
+): Promise<AIDocumentGetResponse> => {
   const response = await axios.get<AIDocumentGetResponse>(
-    `${API_URL}/api/ai_document/document/${projectId}`
+    `${API_URL}/api/ai_document/document/${projectId}`,
   );
   return response.data;
 };
@@ -73,9 +77,11 @@ export const getAIDocument = async (projectId: string): Promise<AIDocumentGetRes
  * @param projectId プロジェクトID
  * @returns AIドキュメント生成状況
  */
-export const getAIDocumentStatus = async (projectId: string): Promise<AIDocumentStatusResponse> => {
+export const getAIDocumentStatus = async (
+  projectId: string,
+): Promise<AIDocumentStatusResponse> => {
   const response = await axios.get<AIDocumentStatusResponse>(
-    `${API_URL}/api/ai_document/status/${projectId}`
+    `${API_URL}/api/ai_document/status/${projectId}`,
   );
   return response.data;
 };

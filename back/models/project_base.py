@@ -578,6 +578,22 @@ class TaskHandsOn(Base):
         comment="実装済みリソース {apis: [], components: [], services: [], summary: str}"
     )
 
+    # 確認待ち状態の詳細保存（選択肢待ち、入力待ちなど）
+    # セッション復帰時に正確に状態を復元するため
+    pending_state = Column(
+        JSON,
+        nullable=True,
+        comment="""確認待ち状態の詳細:
+        {
+            "type": "choice" | "input" | "step_confirmation",
+            "state": {
+                "choice": {...} または "input": {...}
+            },
+            "entered_at": "ISO8601",
+            "context": {...}  // 追加のコンテキスト情報
+        }"""
+    )
+
     # ========================================
     # リレーション
     # ========================================

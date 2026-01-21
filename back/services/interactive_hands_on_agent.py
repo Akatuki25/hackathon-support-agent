@@ -487,6 +487,47 @@ class InteractiveHandsOnAgent:
                 "options": session.pending_input.options
             }
 
+        # 保留中の選択肢（pending_choice）
+        pending_choice_data = None
+        if session.pending_choice:
+            pending_choice_data = {
+                "choice_id": session.pending_choice.choice_id,
+                "question": session.pending_choice.question,
+                "options": [
+                    {
+                        "id": opt.id,
+                        "label": opt.label,
+                        "description": opt.description,
+                        "pros": opt.pros,
+                        "cons": opt.cons
+                    }
+                    for opt in session.pending_choice.options
+                ],
+                "allow_custom": session.pending_choice.allow_custom,
+                "skip_allowed": session.pending_choice.skip_allowed,
+                "research_hint": session.pending_choice.research_hint
+            }
+
+        # 確認待ち状態をpending_stateフィールドに保存
+        # セッション復帰時に正確に状態を復元するため
+        pending_state_data = None
+        if session.pending_choice:
+            pending_state_data = {
+                "type": "choice",
+                "state": {"choice": pending_choice_data},
+                "entered_at": datetime.now().isoformat(),
+                "phase": session.phase.value
+            }
+        elif session.pending_input:
+            # ステップ完了確認か通常の入力かを判定
+            pending_type = "step_confirmation" if session.phase == GenerationPhase.WAITING_STEP_COMPLETE else "input"
+            pending_state_data = {
+                "type": pending_type,
+                "state": {"input": pending_input_data},
+                "entered_at": datetime.now().isoformat(),
+                "phase": session.phase.value
+            }
+
         # ステップごとの技術選択をJSON化（キーをstrに変換）
         step_choices_data = {
             str(k): v for k, v in session.step_choices.items()
@@ -501,6 +542,7 @@ class InteractiveHandsOnAgent:
             "decisions": decisions_data,
             "pending_decision": pending_decision_data,
             "pending_input": pending_input_data,
+            "pending_choice": pending_choice_data,  # 選択肢待ち状態も保存
             "step_choices": step_choices_data,
             "project_implementation_overview": session.project_implementation_overview
         }
@@ -519,6 +561,7 @@ class InteractiveHandsOnAgent:
             existing.generation_mode = "interactive"
             existing.generation_state = state
             existing.session_id = session.session_id
+            existing.pending_state = pending_state_data  # 確認待ち状態を保存
             existing.updated_at = datetime.now()
             if implementation_resources:
                 existing.implementation_resources = implementation_resources
@@ -537,7 +580,8 @@ class InteractiveHandsOnAgent:
                 generation_state=state,
                 session_id=session.session_id,
                 user_interactions=user_interactions_data,
-                implementation_resources=implementation_resources
+                implementation_resources=implementation_resources,
+                pending_state=pending_state_data  # 確認待ち状態を保存
             )
             self.db.add(hands_on)
             self.db.commit()
@@ -2108,16 +2152,75 @@ def restore_session_from_db(hands_on: 'TaskHandsOn', task_id: str) -> Optional[S
         for d in decisions_data
     ]
 
-    # 保留中の入力プロンプトを復元
-    pending_input_data = interactions.get("pending_input")
+    # 保留中の入力プロンプトと選択肢を復元
+    # 優先: pending_stateフィールド、フォールバック: user_interactions
     pending_input = None
-    if pending_input_data:
-        pending_input = InputPrompt(
-            prompt_id=pending_input_data.get("prompt_id", ""),
-            question=pending_input_data.get("question", ""),
-            placeholder=pending_input_data.get("placeholder"),
-            options=pending_input_data.get("options")
-        )
+    pending_choice = None
+
+    # 新しいpending_stateフィールドから復元（優先）
+    if hands_on.pending_state:
+        pending_type = hands_on.pending_state.get("type")
+        state_data = hands_on.pending_state.get("state", {})
+
+        if pending_type == "choice" and "choice" in state_data:
+            choice_data = state_data["choice"]
+            pending_choice = ChoiceRequest(
+                choice_id=choice_data.get("choice_id", ""),
+                question=choice_data.get("question", ""),
+                options=[
+                    ChoiceOption(
+                        id=opt.get("id", ""),
+                        label=opt.get("label", ""),
+                        description=opt.get("description", ""),
+                        pros=opt.get("pros", []),
+                        cons=opt.get("cons", [])
+                    )
+                    for opt in choice_data.get("options", [])
+                ],
+                allow_custom=choice_data.get("allow_custom", True),
+                skip_allowed=choice_data.get("skip_allowed", False),
+                research_hint=choice_data.get("research_hint")
+            )
+        elif pending_type in ("input", "step_confirmation") and "input" in state_data:
+            input_data = state_data["input"]
+            pending_input = InputPrompt(
+                prompt_id=input_data.get("prompt_id", ""),
+                question=input_data.get("question", ""),
+                placeholder=input_data.get("placeholder"),
+                options=input_data.get("options")
+            )
+    else:
+        # フォールバック: user_interactionsから復元
+        # pending_choiceを復元
+        pending_choice_data = interactions.get("pending_choice")
+        if pending_choice_data:
+            pending_choice = ChoiceRequest(
+                choice_id=pending_choice_data.get("choice_id", ""),
+                question=pending_choice_data.get("question", ""),
+                options=[
+                    ChoiceOption(
+                        id=opt.get("id", ""),
+                        label=opt.get("label", ""),
+                        description=opt.get("description", ""),
+                        pros=opt.get("pros", []),
+                        cons=opt.get("cons", [])
+                    )
+                    for opt in pending_choice_data.get("options", [])
+                ],
+                allow_custom=pending_choice_data.get("allow_custom", True),
+                skip_allowed=pending_choice_data.get("skip_allowed", False),
+                research_hint=pending_choice_data.get("research_hint")
+            )
+
+        # pending_inputを復元
+        pending_input_data = interactions.get("pending_input")
+        if pending_input_data:
+            pending_input = InputPrompt(
+                prompt_id=pending_input_data.get("prompt_id", ""),
+                question=pending_input_data.get("question", ""),
+                placeholder=pending_input_data.get("placeholder"),
+                options=pending_input_data.get("options")
+            )
 
     # user_choicesを復元
     choices_data = interactions.get("choices", [])
@@ -2152,6 +2255,7 @@ def restore_session_from_db(hands_on: 'TaskHandsOn', task_id: str) -> Optional[S
         generated_content=generated_content,
         user_choices=user_choices,
         user_inputs=interactions.get("inputs", {}),
+        pending_choice=pending_choice,  # 選択肢待ち状態を復元
         pending_input=pending_input,
         implementation_steps=implementation_steps,
         current_step_index=interactions.get("current_step", 0),

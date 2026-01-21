@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const BASE_URL = API_URL ? `${API_URL}/api/task_hands_on` : undefined;
@@ -74,7 +74,7 @@ export interface HandsOnCommonError {
 }
 
 export interface HandsOnImplementationTip {
-  type: 'best_practice' | 'anti_pattern';
+  type: "best_practice" | "anti_pattern";
   tip: string;
   reason: string;
 }
@@ -108,7 +108,10 @@ export interface HandsOnMetadata {
   referenced_urls: string[] | null;
 }
 
-export interface TaskHandsOnResponse<THandsOn = Record<string, unknown>, TMetadata = Record<string, unknown>> {
+export interface TaskHandsOnResponse<
+  THandsOn = Record<string, unknown>,
+  TMetadata = Record<string, unknown>,
+> {
   success: boolean;
   task_id: string;
   task_title: string;
@@ -132,7 +135,7 @@ export interface HandsOnPreviewResponse {
 
 const ensureBaseUrl = (): string => {
   if (!BASE_URL) {
-    throw new Error('NEXT_PUBLIC_API_URL is not defined');
+    throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
   return BASE_URL;
 };
@@ -141,7 +144,10 @@ export const startHandsOnGeneration = async (
   request: HandsOnGenerationRequest,
 ): Promise<HandsOnGenerationResponse> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.post<HandsOnGenerationResponse>(`${baseUrl}/generate_all`, request);
+  const response = await axios.post<HandsOnGenerationResponse>(
+    `${baseUrl}/generate_all`,
+    request,
+  );
   return response.data;
 };
 
@@ -149,15 +155,22 @@ export const fetchHandsOnJobStatus = async (
   jobId: string,
 ): Promise<HandsOnJobStatusResponse> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.get<HandsOnJobStatusResponse>(`${baseUrl}/status/${jobId}`);
+  const response = await axios.get<HandsOnJobStatusResponse>(
+    `${baseUrl}/status/${jobId}`,
+  );
   return response.data;
 };
 
-export const fetchTaskHandsOn = async <THandsOn = HandsOnContent, TMetadata = HandsOnMetadata>(
+export const fetchTaskHandsOn = async <
+  THandsOn = HandsOnContent,
+  TMetadata = HandsOnMetadata,
+>(
   taskId: string,
 ): Promise<TaskHandsOnResponse<THandsOn, TMetadata>> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.get<TaskHandsOnResponse<THandsOn, TMetadata>>(`${baseUrl}/${taskId}`);
+  const response = await axios.get<TaskHandsOnResponse<THandsOn, TMetadata>>(
+    `${baseUrl}/${taskId}`,
+  );
   return response.data;
 };
 
@@ -165,7 +178,9 @@ export const deleteProjectHandsOn = async (
   projectId: string,
 ): Promise<DeleteHandsOnResponse> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.delete<DeleteHandsOnResponse>(`${baseUrl}/${projectId}`);
+  const response = await axios.delete<DeleteHandsOnResponse>(
+    `${baseUrl}/${projectId}`,
+  );
   return response.data;
 };
 
@@ -173,12 +188,15 @@ export const previewHandsOnGeneration = async (
   request: HandsOnGenerationRequest,
 ): Promise<HandsOnPreviewResponse> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.post<HandsOnPreviewResponse>(`${baseUrl}/preview`, request);
+  const response = await axios.post<HandsOnPreviewResponse>(
+    `${baseUrl}/preview`,
+    request,
+  );
   return response.data;
 };
 
 export interface UpdateHandsOnRequest {
-  field: 'implementation_steps' | 'technical_context' | 'prerequisites';
+  field: "implementation_steps" | "technical_context" | "prerequisites";
   content: string;
 }
 
@@ -197,6 +215,9 @@ export const updateTaskHandsOn = async (
   request: UpdateHandsOnRequest,
 ): Promise<UpdateHandsOnResponse> => {
   const baseUrl = ensureBaseUrl();
-  const response = await axios.patch<UpdateHandsOnResponse>(`${baseUrl}/${taskId}`, request);
+  const response = await axios.patch<UpdateHandsOnResponse>(
+    `${baseUrl}/${taskId}`,
+    request,
+  );
   return response.data;
 };

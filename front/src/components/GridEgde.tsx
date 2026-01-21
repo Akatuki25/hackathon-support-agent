@@ -3,13 +3,9 @@ import React from "react";
 export default function GridEdge({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <div
-        className="min-h-screen font-mono transition-all duration-500 flex items-center justify-center bg-gray-100 dark:bg-gray-900 relative overflow-hidden"
-      >
+      <div className="min-h-screen font-mono transition-all duration-500 flex items-center justify-center bg-gray-100 dark:bg-gray-900 relative overflow-hidden">
         {/* Animated background grid */}
-        <div
-          className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 dark:opacity-20"
-        >
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 dark:opacity-20">
           {/* Light mode grid */}
           <div
             className="absolute inset-0 dark:hidden"
@@ -34,14 +30,10 @@ export default function GridEdge({ children }: { children: React.ReactNode }) {
 
         {/* Glowing edges */}
         <div className="fixed bottom-0 left-0 right-0 h-1 z-20">
-          <div
-            className="h-full bg-purple-500 dark:bg-cyan-500 animate-pulse"
-          ></div>
+          <div className="h-full bg-purple-500 dark:bg-cyan-500 animate-pulse"></div>
         </div>
         <div className="fixed top-0 bottom-0 right-0 w-1 z-20">
-          <div
-            className="w-full bg-blue-500 dark:bg-pink-500 animate-pulse"
-          ></div>
+          <div className="w-full bg-blue-500 dark:bg-pink-500 animate-pulse"></div>
         </div>
         {children}
       </div>

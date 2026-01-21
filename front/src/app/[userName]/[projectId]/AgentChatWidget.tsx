@@ -1,12 +1,12 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Bot, Loader2, GripVertical } from 'lucide-react';
-import { chatWithHanson } from '@/libs/service/chatHanson';
-import ReactMarkdown from 'react-markdown';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { X, Send, Bot, Loader2, GripVertical } from "lucide-react";
+import { chatWithHanson } from "@/libs/service/chatHanson";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -25,9 +25,12 @@ const DEFAULT_HEIGHT = 500;
 export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+  const [size, setSize] = useState({
+    width: DEFAULT_WIDTH,
+    height: DEFAULT_HEIGHT,
+  });
   const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +38,7 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Focus input when chat opens
@@ -56,8 +59,14 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
       if (!isResizing || !chatWindowRef.current) return;
 
       const rect = chatWindowRef.current.getBoundingClientRect();
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, rect.right - e.clientX));
-      const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, rect.bottom - e.clientY));
+      const newWidth = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, rect.right - e.clientX),
+      );
+      const newHeight = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, rect.bottom - e.clientY),
+      );
 
       setSize({ width: newWidth, height: newHeight });
     };
@@ -67,21 +76,24 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing]);
 
   // Build chat history string from messages
   const buildChatHistory = (): string => {
     return messages
-      .map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n');
+      .map(
+        (msg) =>
+          `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`,
+      )
+      .join("\n");
   };
 
   const handleSendMessage = async () => {
@@ -89,33 +101,38 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
-      role: 'user',
+      role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
+    setInputValue("");
     setIsLoading(true);
 
     try {
       const chatHistory = buildChatHistory();
-      const response = await chatWithHanson(projectId, userMessage.content, chatHistory, false);
+      const response = await chatWithHanson(
+        projectId,
+        userMessage.content,
+        chatHistory,
+        false,
+      );
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
-        role: 'assistant',
+        role: "assistant",
         content: response.answer,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error("Chat error:", error);
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'エラーが発生しました。もう一度お試しください。',
+        role: "assistant",
+        content: "エラーが発生しました。もう一度お試しください。",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -125,7 +142,7 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -174,7 +191,9 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
               </div>
               <div>
                 <h3 className="font-bold text-white">Hanson AI</h3>
-                <p className="text-xs text-cyan-300">開発サポートエージェント</p>
+                <p className="text-xs text-cyan-300">
+                  開発サポートエージェント
+                </p>
               </div>
             </div>
             <button
@@ -192,30 +211,41 @@ export function AgentChatWidget({ projectId }: AgentChatWidgetProps) {
               <div className="text-center text-gray-400 py-8">
                 <Bot size={48} className="mx-auto mb-4 text-cyan-400/50" />
                 <p className="text-sm">こんにちは！</p>
-                <p className="text-sm">ハッカソン開発について何でも聞いてください。</p>
+                <p className="text-sm">
+                  ハッカソン開発について何でも聞いてください。
+                </p>
               </div>
             )}
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[80%] p-3 rounded-2xl ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-white rounded-br-sm border border-cyan-400/50 backdrop-blur-sm'
-                      : 'bg-gray-800/80 text-gray-200 border border-cyan-500/20 rounded-bl-sm'
+                    message.role === "user"
+                      ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-white rounded-br-sm border border-cyan-400/50 backdrop-blur-sm"
+                      : "bg-gray-800/80 text-gray-200 border border-cyan-500/20 rounded-bl-sm"
                   }`}
                 >
-                  {message.role === 'assistant' ? (
+                  {message.role === "assistant" ? (
                     <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-cyan-200 prose-a:text-cyan-400 prose-strong:text-white [&_pre]:bg-gray-950 [&_pre]:border [&_pre]:border-cyan-500/40 [&_pre]:rounded-lg [&_pre]:p-3 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:relative [&_pre]:before:content-['CODE'] [&_pre]:before:absolute [&_pre]:before:top-0 [&_pre]:before:right-0 [&_pre]:before:bg-cyan-500/30 [&_pre]:before:text-cyan-300 [&_pre]:before:text-[10px] [&_pre]:before:px-2 [&_pre]:before:py-0.5 [&_pre]:before:rounded-bl-md [&_pre]:before:rounded-tr-lg [&_pre]:before:font-mono [&_code]:text-cyan-300 [&_code]:bg-gray-900/80 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-sm [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-all">
-                      <ReactMarkdown>{String(message.content ?? '')}</ReactMarkdown>
+                      <ReactMarkdown>
+                        {String(message.content ?? "")}
+                      </ReactMarkdown>
                     </div>
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                      {message.content}
+                    </p>
                   )}
-                  <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-cyan-300' : 'text-gray-500'}`}>
-                    {message.timestamp.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                  <p
+                    className={`text-xs mt-1 ${message.role === "user" ? "text-cyan-300" : "text-gray-500"}`}
+                  >
+                    {message.timestamp.toLocaleTimeString("ja-JP", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
               </div>

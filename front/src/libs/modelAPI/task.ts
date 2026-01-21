@@ -1,4 +1,4 @@
-import useSWR, { mutate } from 'swr';
+import useSWR, { mutate } from "swr";
 import {
   TaskType,
   TaskResponseType,
@@ -6,13 +6,15 @@ import {
   TaskDependencyType,
   TaskAssignmentType,
   TaskAssignmentResponseType,
-  TaskAssignmentPatch
-} from '@/types/modelTypes';
+  TaskAssignmentPatch,
+} from "@/types/modelTypes";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const TASKS_URL = API_URL ? `${API_URL}/tasks` : undefined;
 const TASK_URL = API_URL ? `${API_URL}/task` : undefined;
-const TASK_DEPENDENCY_URL = API_URL ? `${API_URL}/api/task_dependencies` : undefined;
+const TASK_DEPENDENCY_URL = API_URL
+  ? `${API_URL}/api/task_dependencies`
+  : undefined;
 const TASK_ASSIGNMENT_URL = API_URL ? `${API_URL}/task_assignment` : undefined;
 
 const fetcher = async (url: string) => {
@@ -25,7 +27,7 @@ const fetcher = async (url: string) => {
 
 const ensureApiUrl = (): string => {
   if (!API_URL) {
-    throw new Error('NEXT_PUBLIC_API_URL is not defined');
+    throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
   return API_URL;
 };
@@ -44,10 +46,10 @@ const normalizeTaskPatchPayload = (taskPatch: TaskPatch) => {
 
 const ensureRequiredTaskFields = (task: TaskType) => {
   if (!task.project_id) {
-    throw new Error('project_id is required to create or update a task');
+    throw new Error("project_id is required to create or update a task");
   }
   if (!task.title) {
-    throw new Error('title is required to create or update a task');
+    throw new Error("title is required to create or update a task");
   }
 };
 
@@ -113,8 +115,8 @@ export const postTask = async (task: TaskType): Promise<TaskResponseType> => {
   ensureRequiredTaskFields(task);
 
   const response = await fetch(`${baseUrl}/task`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(normalizeTaskPayload(task)),
   });
 
@@ -123,17 +125,23 @@ export const postTask = async (task: TaskType): Promise<TaskResponseType> => {
   }
 
   const data: TaskResponseType = await response.json();
-  await invalidateTaskCache({ taskId: data.task_id, projectId: task.project_id });
+  await invalidateTaskCache({
+    taskId: data.task_id,
+    projectId: task.project_id,
+  });
   return data;
 };
 
-export const putTask = async (taskId: string, task: TaskType): Promise<TaskResponseType> => {
+export const putTask = async (
+  taskId: string,
+  task: TaskType,
+): Promise<TaskResponseType> => {
   const baseUrl = ensureApiUrl();
   ensureRequiredTaskFields(task);
 
   const response = await fetch(`${baseUrl}/task/${taskId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(normalizeTaskPayload(task)),
   });
 
@@ -146,12 +154,15 @@ export const putTask = async (taskId: string, task: TaskType): Promise<TaskRespo
   return data;
 };
 
-export const patchTask = async (taskId: string, taskPatch: TaskPatch): Promise<TaskResponseType> => {
+export const patchTask = async (
+  taskId: string,
+  taskPatch: TaskPatch,
+): Promise<TaskResponseType> => {
   const baseUrl = ensureApiUrl();
 
   const response = await fetch(`${baseUrl}/task/${taskId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(normalizeTaskPatchPayload(taskPatch)),
   });
 
@@ -165,11 +176,14 @@ export const patchTask = async (taskId: string, taskPatch: TaskPatch): Promise<T
   return data;
 };
 
-export const deleteTask = async (taskId: string, projectId?: string): Promise<TaskResponseType> => {
+export const deleteTask = async (
+  taskId: string,
+  projectId?: string,
+): Promise<TaskResponseType> => {
   const baseUrl = ensureApiUrl();
 
   const response = await fetch(`${baseUrl}/task/${taskId}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 
   if (!response.ok) {
@@ -191,7 +205,8 @@ export const deleteTask = async (taskId: string, projectId?: string): Promise<Ta
  * @returns Array of task dependencies
  */
 export const useTaskDependencies = (taskId?: string) => {
-  const key = taskId && TASK_DEPENDENCY_URL ? `${TASK_DEPENDENCY_URL}/${taskId}` : null;
+  const key =
+    taskId && TASK_DEPENDENCY_URL ? `${TASK_DEPENDENCY_URL}/${taskId}` : null;
   const { data, error } = useSWR<TaskDependencyType[]>(key, fetcher);
   return {
     dependencies: data,
@@ -206,13 +221,105 @@ export const useTaskDependencies = (taskId?: string) => {
  * @returns Array of task dependencies
  */
 export const useTaskDependenciesByProject = (projectId?: string) => {
-  const key = projectId && TASK_DEPENDENCY_URL ? `${TASK_DEPENDENCY_URL}/project/${projectId}` : null;
+  const key =
+    projectId && TASK_DEPENDENCY_URL
+      ? `${TASK_DEPENDENCY_URL}/project/${projectId}`
+      : null;
   const { data, error } = useSWR<TaskDependencyType[]>(key, fetcher);
   return {
     dependencies: data,
     isLoading: !!key && !error && !data,
     isError: error,
   };
+};
+
+/**
+ * Create request type for task dependency
+ */
+export interface TaskDependencyCreateType {
+  source_task_id: string;
+  target_task_id: string;
+  source_node_id: string;
+  target_node_id: string;
+  is_animated?: boolean;
+  is_next_day?: boolean;
+}
+
+/**
+ * Response type for task dependency actions
+ */
+export interface TaskDependencyActionResponse {
+  edge_id: string;
+  message: string;
+}
+
+/**
+ * Create a new task dependency
+ * @param dependency - Task dependency data
+ * @param projectId - Optional project ID to invalidate cache
+ * @returns Task dependency action response
+ */
+export const postTaskDependency = async (
+  dependency: TaskDependencyCreateType,
+  projectId?: string,
+): Promise<TaskDependencyActionResponse> => {
+  const baseUrl = ensureApiUrl();
+
+  const response = await fetch(`${baseUrl}/api/task_dependencies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dependency),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  const data: TaskDependencyActionResponse = await response.json();
+
+  // Invalidate cache
+  if (TASK_DEPENDENCY_URL) {
+    if (projectId) {
+      await mutate(`${TASK_DEPENDENCY_URL}/project/${projectId}`);
+    }
+    await mutate(`${TASK_DEPENDENCY_URL}/${dependency.source_task_id}`);
+    await mutate(`${TASK_DEPENDENCY_URL}/${dependency.target_task_id}`);
+  }
+
+  return data;
+};
+
+/**
+ * Delete a task dependency by edge_id
+ * @param edgeId - The edge ID to delete
+ * @param projectId - Optional project ID to invalidate cache
+ * @returns Task dependency action response
+ */
+export const deleteTaskDependencyByEdgeId = async (
+  edgeId: string,
+  projectId?: string,
+): Promise<TaskDependencyActionResponse> => {
+  const baseUrl = ensureApiUrl();
+
+  const response = await fetch(
+    `${baseUrl}/api/task_dependencies/edge/${edgeId}`,
+    {
+      method: "DELETE",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  const data: TaskDependencyActionResponse = await response.json();
+
+  // Invalidate cache
+  if (TASK_DEPENDENCY_URL && projectId) {
+    await mutate(`${TASK_DEPENDENCY_URL}/project/${projectId}`);
+  }
+
+  return data;
 };
 
 // ============================================================================
@@ -239,7 +346,10 @@ export const useTaskAssignments = () => {
  * @returns Task assignment
  */
 export const useTaskAssignment = (assignmentId?: string) => {
-  const key = assignmentId && TASK_ASSIGNMENT_URL ? `${TASK_ASSIGNMENT_URL}/${assignmentId}` : null;
+  const key =
+    assignmentId && TASK_ASSIGNMENT_URL
+      ? `${TASK_ASSIGNMENT_URL}/${assignmentId}`
+      : null;
   const { data, error } = useSWR<TaskAssignmentType>(key, fetcher);
   return {
     assignment: data,
@@ -254,7 +364,10 @@ export const useTaskAssignment = (assignmentId?: string) => {
  * @returns Array of task assignments
  */
 export const useTaskAssignmentsByTaskId = (taskId?: string) => {
-  const key = taskId && TASK_ASSIGNMENT_URL ? `${TASK_ASSIGNMENT_URL}/task/${taskId}` : null;
+  const key =
+    taskId && TASK_ASSIGNMENT_URL
+      ? `${TASK_ASSIGNMENT_URL}/task/${taskId}`
+      : null;
   const { data, error } = useSWR<TaskAssignmentType[]>(key, fetcher);
   return {
     assignments: data,
@@ -268,8 +381,13 @@ export const useTaskAssignmentsByTaskId = (taskId?: string) => {
  * @param projectMemberId - The project member ID
  * @returns Array of task assignments
  */
-export const useTaskAssignmentsByProjectMemberId = (projectMemberId?: string) => {
-  const key = projectMemberId && TASK_ASSIGNMENT_URL ? `${TASK_ASSIGNMENT_URL}/project_member/${projectMemberId}` : null;
+export const useTaskAssignmentsByProjectMemberId = (
+  projectMemberId?: string,
+) => {
+  const key =
+    projectMemberId && TASK_ASSIGNMENT_URL
+      ? `${TASK_ASSIGNMENT_URL}/project_member/${projectMemberId}`
+      : null;
   const { data, error } = useSWR<TaskAssignmentType[]>(key, fetcher);
   return {
     assignments: data,
@@ -283,12 +401,14 @@ export const useTaskAssignmentsByProjectMemberId = (projectMemberId?: string) =>
  * @param assignment - Task assignment data
  * @returns Task assignment response with ID
  */
-export const postTaskAssignment = async (assignment: TaskAssignmentType): Promise<TaskAssignmentResponseType> => {
+export const postTaskAssignment = async (
+  assignment: TaskAssignmentType,
+): Promise<TaskAssignmentResponseType> => {
   const baseUrl = ensureApiUrl();
 
   const response = await fetch(`${baseUrl}/task_assignment`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       task_id: assignment.task_id,
       project_member_id: assignment.project_member_id,
@@ -319,13 +439,13 @@ export const postTaskAssignment = async (assignment: TaskAssignmentType): Promis
  */
 export const putTaskAssignment = async (
   assignmentId: string,
-  assignment: TaskAssignmentType
+  assignment: TaskAssignmentType,
 ): Promise<TaskAssignmentResponseType> => {
   const baseUrl = ensureApiUrl();
 
   const response = await fetch(`${baseUrl}/task_assignment/${assignmentId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       task_id: assignment.task_id,
       project_member_id: assignment.project_member_id,
@@ -357,13 +477,13 @@ export const putTaskAssignment = async (
  */
 export const patchTaskAssignment = async (
   assignmentId: string,
-  assignmentPatch: TaskAssignmentPatch
+  assignmentPatch: TaskAssignmentPatch,
 ): Promise<{ message: string }> => {
   const baseUrl = ensureApiUrl();
 
   const response = await fetch(`${baseUrl}/task_assignment/${assignmentId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(assignmentPatch),
   });
 
@@ -393,12 +513,12 @@ export const patchTaskAssignment = async (
  */
 export const deleteTaskAssignment = async (
   assignmentId: string,
-  taskId?: string
+  taskId?: string,
 ): Promise<TaskAssignmentResponseType> => {
   const baseUrl = ensureApiUrl();
 
   const response = await fetch(`${baseUrl}/task_assignment/${assignmentId}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 
   if (!response.ok) {

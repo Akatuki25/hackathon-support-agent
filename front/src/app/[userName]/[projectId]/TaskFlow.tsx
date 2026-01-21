@@ -1,12 +1,39 @@
 "use client";
-import React, { useState, useCallback, useEffect } from 'react';
-import { ReactFlow, Controls, applyEdgeChanges, applyNodeChanges, NodeChange, EdgeChange, addEdge, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection } from '@xyflow/react';
-import { Keyboard, Info, LayoutGrid, FileText, BookOpen, Terminal } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import '@xyflow/react/dist/style.css';
+import React, { useState, useCallback, useEffect, useMemo } from "react";
+import {
+  ReactFlow,
+  Controls,
+  applyEdgeChanges,
+  applyNodeChanges,
+  NodeChange,
+  EdgeChange,
+  addEdge,
+  MiniMap,
+  Panel,
+  Node,
+  Edge,
+  useNodesState,
+  useEdgesState,
+  Connection,
+} from "@xyflow/react";
+import {
+  Keyboard,
+  Info,
+  LayoutGrid,
+  FileText,
+  BookOpen,
+  Terminal,
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+import "@xyflow/react/dist/style.css";
 
-import { TextUpdaterNode } from './CustomNode';
-import { CustomEdge } from './CustomEdge';
+import { TextUpdaterNode } from "./CustomNode";
+import { CustomEdge } from "./CustomEdge";
+import { useNodePositionSync } from "@/hooks/useNodePositionSync";
+import {
+  postTaskDependency,
+  deleteTaskDependencyByEdgeId,
+} from "@/libs/modelAPI/task";
 
 interface TaskFlowProps {
   initialNodes: Node[];
@@ -20,40 +47,64 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-  'custom-edge': CustomEdge,
+  "custom-edge": CustomEdge,
 };
 
 // Time calculation utilities
 const parseTime = (timeStr: string): number => {
   if (!timeStr) return 0;
-  const [hours, minutes] = timeStr.split(':').map(Number);
+  const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
 const formatTime = (minutes: number): string => {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 };
 
 // Removed unused function addMinutesToTime
 
-export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesChange }: TaskFlowProps) {
+export function TaskFlow({
+  initialNodes,
+  initialEdges,
+  onNodesChange,
+  onEdgesChange,
+}: TaskFlowProps) {
   const pathname = usePathname();
   const [nodes, setNodes, onNodesStateChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesStateChange] = useEdgesState(initialEdges);
-  const [projectStartTime] = useState('09:00');
+  const [projectStartTime] = useState("09:00");
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+
+  // Extract projectId from pathname: /[userName]/[projectId]
+  const projectId = useMemo(() => pathname?.split("/")[2], [pathname]);
+
+  // Node position sync hook for persisting positions to backend
+  const { queuePositionUpdate, queueMultiplePositionUpdates } =
+    useNodePositionSync({ debounceMs: 500 });
+
+  // Build a map from node_id to task_id for edge operations
+  const nodeToTaskMap = useMemo(() => {
+    const map = new Map<string, string>();
+    nodes.forEach((node) => {
+      const taskId = node.data?.task_id as string | undefined;
+      if (taskId) {
+        map.set(node.id, taskId);
+      }
+    });
+    return map;
+  }, [nodes]);
 
   // Timer logic (removed - not currently used in UI)
 
   // Auto-calculate task times based on dependencies
   const calculateTaskTimes = useCallback(() => {
-    const nodeMap = new Map(nodes.map(node => [node.id, { ...node }]));
+    const nodeMap = new Map(nodes.map((node) => [node.id, { ...node }]));
     const edgeMap = new Map<string, string[]>();
 
     // Build dependency graph
-    edges.forEach(edge => {
+    edges.forEach((edge) => {
       if (!edgeMap.has(edge.target)) {
         edgeMap.set(edge.target, []);
       }
@@ -71,18 +122,18 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
       processing.add(nodeId);
       const dependencies = edgeMap.get(nodeId) || [];
-      dependencies.forEach(depId => dfs(depId));
+      dependencies.forEach((depId) => dfs(depId));
       processing.delete(nodeId);
       visited.add(nodeId);
       processedOrder.push(nodeId);
     };
 
-    nodes.forEach(node => dfs(node.id));
+    nodes.forEach((node) => dfs(node.id));
 
     let hasChanges = false;
 
     // Calculate start times
-    processedOrder.forEach(nodeId => {
+    processedOrder.forEach((nodeId) => {
       const node = nodeMap.get(nodeId);
       if (!node) return;
 
@@ -91,17 +142,21 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
       if (dependencies.length === 0) {
         // Start node - use project start time
-        if (node.id === 'start') {
+        if (node.id === "start") {
           newStartTime = projectStartTime;
         }
       } else {
         // Calculate based on latest dependency completion
         let latestEndTime = 0;
-        dependencies.forEach(depId => {
+        dependencies.forEach((depId) => {
           const depNode = nodeMap.get(depId);
-          if (depNode?.data?.startTime && typeof depNode.data.estimatedHours === 'number') {
+          if (
+            depNode?.data?.startTime &&
+            typeof depNode.data.estimatedHours === "number"
+          ) {
             const depStartMinutes = parseTime(depNode.data.startTime as string);
-            const depDurationMinutes = (depNode.data.estimatedHours as number) * 60;
+            const depDurationMinutes =
+              (depNode.data.estimatedHours as number) * 60;
             const depEndMinutes = depStartMinutes + depDurationMinutes;
             latestEndTime = Math.max(latestEndTime, depEndMinutes);
           }
@@ -140,37 +195,68 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if user is typing in input fields
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
         return;
       }
 
       switch (event.key.toLowerCase()) {
-        case '?':
-        case 'h':
+        case "?":
+        case "h":
           setShowKeyboardHelp(!showKeyboardHelp);
           break;
-        case 'escape':
+        case "escape":
           setShowKeyboardHelp(false);
           break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showKeyboardHelp]);
 
   const onConnect = useCallback(
-    (params: Connection) => {
-      const newEdge = {
+    async (params: Connection) => {
+      if (!params.source || !params.target) return;
+
+      const newEdge: Edge = {
         ...params,
-        type: 'custom-edge',
-        data: { animated: true, isNextDay: false }
+        id: `${params.source}-${params.target}`,
+        source: params.source,
+        target: params.target,
+        type: "custom-edge",
+        data: { animated: true, isNextDay: false },
       };
       const updatedEdges = addEdge(newEdge, edges);
       setEdges(updatedEdges);
-      onEdgesChange?.(updatedEdges);
+      onEdgesChange?.(updatedEdges as Edge[]);
+
+      // Save edge to backend
+      const sourceTaskId = nodeToTaskMap.get(params.source);
+      const targetTaskId = nodeToTaskMap.get(params.target);
+
+      if (sourceTaskId && targetTaskId) {
+        try {
+          await postTaskDependency(
+            {
+              source_task_id: sourceTaskId,
+              target_task_id: targetTaskId,
+              source_node_id: params.source,
+              target_node_id: params.target,
+              is_animated: true,
+              is_next_day: false,
+            },
+            projectId,
+          );
+        } catch (error) {
+          console.error("Failed to save edge to backend:", error);
+        }
+      }
     },
-    [edges, setEdges, onEdgesChange],
+    [edges, setEdges, onEdgesChange, nodeToTaskMap, projectId],
   );
 
   const handleNodesChange = useCallback(
@@ -178,21 +264,71 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
       onNodesStateChange(changes);
       const updatedNodes = applyNodeChanges(changes, nodes);
       onNodesChange?.(updatedNodes);
+
+      // Check for position changes (drag end) and queue position updates
+      const positionChanges = changes.filter(
+        (
+          change,
+        ): change is NodeChange<Node> & {
+          type: "position";
+          dragging: boolean;
+        } =>
+          change.type === "position" &&
+          "dragging" in change &&
+          change.dragging === false,
+      );
+
+      if (positionChanges.length > 0) {
+        // Find the nodes that were just dragged
+        const movedNodes = positionChanges
+          .map((change) => updatedNodes.find((n) => n.id === change.id))
+          .filter((node): node is Node => node !== undefined);
+
+        if (movedNodes.length === 1) {
+          queuePositionUpdate(movedNodes[0]);
+        } else if (movedNodes.length > 1) {
+          queueMultiplePositionUpdates(movedNodes);
+        }
+      }
     },
-    [onNodesStateChange, nodes, onNodesChange],
+    [
+      onNodesStateChange,
+      nodes,
+      onNodesChange,
+      queuePositionUpdate,
+      queueMultiplePositionUpdates,
+    ],
   );
 
   const handleEdgesChange = useCallback(
-    (changes: EdgeChange<Edge>[]) => {
+    async (changes: EdgeChange<Edge>[]) => {
+      // Check for edge deletions and delete them from the backend
+      const removeChanges = changes.filter(
+        (change): change is EdgeChange<Edge> & { type: "remove"; id: string } =>
+          change.type === "remove",
+      );
+
+      // Delete edges from backend
+      for (const change of removeChanges) {
+        try {
+          await deleteTaskDependencyByEdgeId(change.id, projectId);
+        } catch (error) {
+          console.error(
+            `Failed to delete edge ${change.id} from backend:`,
+            error,
+          );
+        }
+      }
+
       onEdgesStateChange(changes);
       const updatedEdges = applyEdgeChanges(changes, edges);
-      onEdgesChange?.(updatedEdges);
+      onEdgesChange?.(updatedEdges as Edge[]);
     },
-    [onEdgesStateChange, edges, onEdgesChange],
+    [onEdgesStateChange, edges, onEdgesChange, projectId],
   );
 
   // Calculate project stats
-  const completedTasks = nodes.filter(node => node.data?.completed).length;
+  const completedTasks = nodes.filter((node) => node.data?.completed).length;
   const totalTasks = nodes.length;
 
   return (
@@ -208,9 +344,8 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
         fitView
         colorMode="dark"
         className="cyber-flow"
-        style={{ background: 'transparent' }}
+        style={{ background: "transparent" }}
       >
-
         {/* Enhanced Project Stats Panel */}
         <Panel position="top-right" className="space-y-3">
           <div className="backdrop-blur-xl rounded-2xl p-5 shadow-2xl border-2 bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-purple-500/40 hover:border-purple-400/60 transition-all duration-300">
@@ -224,7 +359,9 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
             {/* Task Progress */}
             <div className="p-3 rounded-xl bg-gradient-to-br from-gray-900/60 to-black/40 border border-cyan-500/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-300">✅ 完了タスク</span>
+                <span className="text-sm font-medium text-gray-300">
+                  ✅ 完了タスク
+                </span>
                 <span className="font-mono font-bold text-lg bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
                   {completedTasks}/{totalTasks}
                 </span>
@@ -232,11 +369,16 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               <div className="w-full bg-gray-700/60 rounded-full h-3 overflow-hidden">
                 <div
                   className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-3 rounded-full transition-all duration-500 shadow-lg shadow-cyan-500/30"
-                  style={{ width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` }}
+                  style={{
+                    width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%`,
+                  }}
                 />
               </div>
               <div className="text-xs text-gray-400 mt-1 text-center">
-                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% 完了
+                {totalTasks > 0
+                  ? Math.round((completedTasks / totalTasks) * 100)
+                  : 0}
+                % 完了
               </div>
             </div>
           </div>
@@ -247,8 +389,8 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
           <div className="flex flex-col gap-2">
             <button
               onClick={() => {
-                const userName = pathname?.split('/')[1];
-                const projectId = pathname?.split('/')[2];
+                const userName = pathname?.split("/")[1];
+                const projectId = pathname?.split("/")[2];
                 window.location.href = `/${userName}/${projectId}/kanban`;
               }}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 hover:from-cyan-400/40 hover:to-purple-400/40 border-2 border-cyan-400/60 text-cyan-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
@@ -266,8 +408,8 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
             <button
               onClick={() => {
-                const userName = pathname?.split('/')[1];
-                const projectId = pathname?.split('/')[2];
+                const userName = pathname?.split("/")[1];
+                const projectId = pathname?.split("/")[2];
                 window.location.href = `/${userName}/${projectId}/specification`;
               }}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-pink-500/30 to-rose-500/30 hover:from-pink-400/40 hover:to-rose-400/40 border-2 border-pink-400/60 text-pink-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
@@ -278,8 +420,8 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
             <button
               onClick={() => {
-                const userName = pathname?.split('/')[1];
-                const projectId = pathname?.split('/')[2];
+                const userName = pathname?.split("/")[1];
+                const projectId = pathname?.split("/")[2];
                 window.location.href = `/${userName}/${projectId}/function-requirements`;
               }}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 hover:from-amber-400/40 hover:to-yellow-400/40 border-2 border-amber-400/60 text-amber-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
@@ -290,8 +432,8 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
             <button
               onClick={() => {
-                const userName = pathname?.split('/')[1];
-                const projectId = pathname?.split('/')[2];
+                const userName = pathname?.split("/")[1];
+                const projectId = pathname?.split("/")[2];
                 window.location.href = `/${userName}/${projectId}/env`;
               }}
               className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-green-500/30 to-cyan-500/30 hover:from-green-400/40 hover:to-cyan-400/40 border-2 border-green-400/60 text-green-300 text-sm font-medium rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105 active:scale-95 backdrop-blur-sm"
@@ -304,8 +446,14 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
 
         {/* Keyboard Help Modal */}
         {showKeyboardHelp && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
-            <div className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-6 border-2 border-purple-500/40 shadow-2xl max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={() => setShowKeyboardHelp(false)}
+          >
+            <div
+              className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-6 border-2 border-purple-500/40 shadow-2xl max-w-md mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center gap-3 mb-4">
                 <Keyboard className="text-purple-400" size={24} />
                 <h3 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -316,11 +464,15 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center p-2 rounded-lg bg-gray-800/50">
                   <span className="text-gray-300">ヘルプ表示</span>
-                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">H または ?</kbd>
+                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">
+                    H または ?
+                  </kbd>
                 </div>
                 <div className="flex justify-between items-center p-2 rounded-lg bg-gray-800/50">
                   <span className="text-gray-300">ヘルプを閉じる</span>
-                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">ESC</kbd>
+                  <kbd className="px-2 py-1 bg-gray-700 rounded text-cyan-300 font-mono">
+                    ESC
+                  </kbd>
                 </div>
               </div>
 
@@ -353,14 +505,22 @@ export function TaskFlow({ initialNodes, initialEdges, onNodesChange, onEdgesCha
           nodeColor={(node) => {
             const category = node.data?.category;
             switch (category) {
-              case '環境構築': return '#6b7280';
-              case 'フロントエンド': return '#06b6d4';
-              case 'バックエンド': return '#3b82f6';
-              case 'DB設計': return '#14b8a6';
-              case 'AI設計': return '#8b5cf6';
-              case 'デプロイ': return '#f59e0b';
-              case 'スライド資料作成': return '#10b981';
-              default: return '#06b6d4';
+              case "環境構築":
+                return "#6b7280";
+              case "フロントエンド":
+                return "#06b6d4";
+              case "バックエンド":
+                return "#3b82f6";
+              case "DB設計":
+                return "#14b8a6";
+              case "AI設計":
+                return "#8b5cf6";
+              case "デプロイ":
+                return "#f59e0b";
+              case "スライド資料作成":
+                return "#10b981";
+              default:
+                return "#06b6d4";
             }
           }}
         />

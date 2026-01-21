@@ -24,23 +24,23 @@ const sanitizeTechnologyContent = (input: string) => {
     .trim();
 
   // 深いネストを防ぐため、見出しレベルを制限
-  content = content.replace(/^#{4,}/gm, '###'); // 4レベル以上の見出しを3レベルに
+  content = content.replace(/^#{4,}/gm, "###"); // 4レベル以上の見出しを3レベルに
 
   // 深いリストネストを制限（3階層以上を2階層に）
-  const lines = content.split('\n');
-  const processedLines = lines.map(line => {
+  const lines = content.split("\n");
+  const processedLines = lines.map((line) => {
     const indentMatch = line.match(/^(\s*)([-*+]|\d+\.)\s/);
     if (indentMatch) {
       const indent = indentMatch[1];
       // 8スペース以上（3階層以上）のインデントを4スペース（2階層）に制限
       if (indent.length >= 8) {
-        return line.replace(/^\s+/, '    ');
+        return line.replace(/^\s+/, "    ");
       }
     }
     return line;
   });
 
-  return processedLines.join('\n');
+  return processedLines.join("\n");
 };
 
 interface TechnologyEditorProps {
@@ -56,9 +56,8 @@ export default function TechnologyEditor({
   onContentChange,
   onSave,
   onRegenerate,
-  isRegenerating = false
+  isRegenerating = false,
 }: TechnologyEditorProps) {
-
   // ヘッダーアクション
   const headerActions = (
     <div className="flex gap-2">

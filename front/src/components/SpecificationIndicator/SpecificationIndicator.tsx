@@ -16,7 +16,7 @@ export default function SpecificationIndicator({
   feedback,
   onRefresh,
   refreshing,
-  compact = false
+  compact = false,
 }: SpecificationIndicatorProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -32,8 +32,9 @@ export default function SpecificationIndicator({
             onClick={onRefresh}
             disabled={refreshing}
             className={`p-1 rounded transition-colors ${
-              refreshing ? "opacity-50 cursor-not-allowed" :
-              "hover:bg-gray-200 dark:hover:bg-gray-700"
+              refreshing
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
             title="仕様書を評価"
           >
@@ -54,7 +55,9 @@ export default function SpecificationIndicator({
             onClick={onRefresh}
             disabled={refreshing}
             className={`p-1 rounded transition-colors ${
-              refreshing ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 dark:hover:bg-gray-600"
+              refreshing
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
             title="仕様書を評価"
           >
@@ -68,7 +71,9 @@ export default function SpecificationIndicator({
     );
   }
 
-  const hasHighPriorityIssues = feedback.missing_info.some(info => info.priority === "high");
+  const hasHighPriorityIssues = feedback.missing_info.some(
+    (info) => info.priority === "high",
+  );
   const missingInfoCount = feedback.missing_info.length;
 
   // Helper function to get status color classes
@@ -106,8 +111,9 @@ export default function SpecificationIndicator({
             onClick={onRefresh}
             disabled={refreshing}
             className={`p-1 rounded transition-colors ${
-              refreshing ? "opacity-50 cursor-not-allowed" :
-              "hover:bg-gray-200 dark:hover:bg-gray-700"
+              refreshing
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
             title="仕様書を再評価"
           >
@@ -127,7 +133,9 @@ export default function SpecificationIndicator({
 
   return (
     <>
-      <div className={`${compact ? 'fixed top-20 right-4' : ''} ${compact ? 'p-4' : 'p-3'} rounded-lg ${compact ? 'shadow-lg' : 'shadow'} border ${compact ? 'backdrop-blur-sm' : ''} bg-white/90 border-purple-500/30 dark:bg-gray-800/90 dark:border-cyan-500/30`}>
+      <div
+        className={`${compact ? "fixed top-20 right-4" : ""} ${compact ? "p-4" : "p-3"} rounded-lg ${compact ? "shadow-lg" : "shadow"} border ${compact ? "backdrop-blur-sm" : ""} bg-white/90 border-purple-500/30 dark:bg-gray-800/90 dark:border-cyan-500/30`}
+      >
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-purple-700 dark:text-cyan-400">
             仕様書評価
@@ -136,7 +144,9 @@ export default function SpecificationIndicator({
             onClick={onRefresh}
             disabled={refreshing}
             className={`p-1 rounded transition-colors ${
-              refreshing ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 dark:hover:bg-gray-600"
+              refreshing
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
             title="仕様書を再評価"
           >
@@ -144,11 +154,10 @@ export default function SpecificationIndicator({
           </button>
         </div>
 
-        <div
-          className="cursor-pointer"
-          onClick={() => setShowModal(true)}
-        >
-          <div className={`flex items-center space-x-2 mb-2 ${getStatusColorClass()}`}>
+        <div className="cursor-pointer" onClick={() => setShowModal(true)}>
+          <div
+            className={`flex items-center space-x-2 mb-2 ${getStatusColorClass()}`}
+          >
             {missingInfoCount === 0 ? (
               <>
                 <CheckCircle size={16} />
@@ -157,7 +166,9 @@ export default function SpecificationIndicator({
             ) : (
               <>
                 <AlertCircle size={16} />
-                <span className="text-sm font-bold">{missingInfoCount}件の不足情報</span>
+                <span className="text-sm font-bold">
+                  {missingInfoCount}件の不足情報
+                </span>
               </>
             )}
           </div>

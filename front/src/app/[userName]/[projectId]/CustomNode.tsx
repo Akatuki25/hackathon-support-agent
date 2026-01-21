@@ -1,9 +1,18 @@
 "use client";
 import { Handle, Position, NodeProps, useReactFlow } from "@xyflow/react";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Pencil } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 
-type NodeCategory = '環境構築' | 'フロントエンド' | 'バックエンド' | 'DB設計' | 'AI設計' | 'デプロイ' | 'スライド資料作成' | 'default';
+type NodeCategory =
+  | "環境構築"
+  | "フロントエンド"
+  | "バックエンド"
+  | "DB設計"
+  | "AI設計"
+  | "デプロイ"
+  | "スライド資料作成"
+  | "default";
 
 interface NodeData {
   label: string;
@@ -12,78 +21,89 @@ interface NodeData {
   estimatedHours?: number;
   completed?: boolean;
   assignee?: string;
+  task_id?: string;
 }
 
 // Category color configurations for light and dark modes using Tailwind classes
-const categoryColors: Record<NodeCategory, { bg: string; border: string; text: string; glow: string }> = {
-  '環境構築': {
-    bg: 'bg-gray-300/80 dark:bg-gray-600/60',
-    border: 'border-gray-500/60 dark:border-gray-400/60',
-    text: 'text-gray-700 dark:text-gray-200',
-    glow: 'shadow-gray-500/30 dark:shadow-gray-400/30'
+const categoryColors: Record<
+  NodeCategory,
+  { bg: string; border: string; text: string; glow: string }
+> = {
+  環境構築: {
+    bg: "bg-gray-300/80 dark:bg-gray-600/60",
+    border: "border-gray-500/60 dark:border-gray-400/60",
+    text: "text-gray-700 dark:text-gray-200",
+    glow: "shadow-gray-500/30 dark:shadow-gray-400/30",
   },
-  'フロントエンド': {
-    bg: 'bg-cyan-300/80 dark:bg-cyan-600/60',
-    border: 'border-cyan-500/60 dark:border-cyan-400/60',
-    text: 'text-cyan-700 dark:text-cyan-200',
-    glow: 'shadow-cyan-500/30 dark:shadow-cyan-400/30'
+  フロントエンド: {
+    bg: "bg-cyan-300/80 dark:bg-cyan-600/60",
+    border: "border-cyan-500/60 dark:border-cyan-400/60",
+    text: "text-cyan-700 dark:text-cyan-200",
+    glow: "shadow-cyan-500/30 dark:shadow-cyan-400/30",
   },
-  'バックエンド': {
-    bg: 'bg-blue-300/80 dark:bg-blue-600/60',
-    border: 'border-blue-500/60 dark:border-blue-400/60',
-    text: 'text-blue-700 dark:text-blue-200',
-    glow: 'shadow-blue-500/30 dark:shadow-blue-400/30'
+  バックエンド: {
+    bg: "bg-blue-300/80 dark:bg-blue-600/60",
+    border: "border-blue-500/60 dark:border-blue-400/60",
+    text: "text-blue-700 dark:text-blue-200",
+    glow: "shadow-blue-500/30 dark:shadow-blue-400/30",
   },
-  'DB設計': {
-    bg: 'bg-teal-300/80 dark:bg-teal-600/60',
-    border: 'border-teal-500/60 dark:border-teal-400/60',
-    text: 'text-teal-700 dark:text-teal-200',
-    glow: 'shadow-teal-500/30 dark:shadow-teal-400/30'
+  DB設計: {
+    bg: "bg-teal-300/80 dark:bg-teal-600/60",
+    border: "border-teal-500/60 dark:border-teal-400/60",
+    text: "text-teal-700 dark:text-teal-200",
+    glow: "shadow-teal-500/30 dark:shadow-teal-400/30",
   },
-  'AI設計': {
-    bg: 'bg-purple-300/80 dark:bg-purple-600/60',
-    border: 'border-purple-500/60 dark:border-purple-400/60',
-    text: 'text-purple-700 dark:text-purple-200',
-    glow: 'shadow-purple-500/30 dark:shadow-purple-400/30'
+  AI設計: {
+    bg: "bg-purple-300/80 dark:bg-purple-600/60",
+    border: "border-purple-500/60 dark:border-purple-400/60",
+    text: "text-purple-700 dark:text-purple-200",
+    glow: "shadow-purple-500/30 dark:shadow-purple-400/30",
   },
-  'デプロイ': {
-    bg: 'bg-yellow-300/80 dark:bg-yellow-600/60',
-    border: 'border-yellow-500/60 dark:border-yellow-400/60',
-    text: 'text-yellow-700 dark:text-yellow-200',
-    glow: 'shadow-yellow-500/30 dark:shadow-yellow-400/30'
+  デプロイ: {
+    bg: "bg-yellow-300/80 dark:bg-yellow-600/60",
+    border: "border-yellow-500/60 dark:border-yellow-400/60",
+    text: "text-yellow-700 dark:text-yellow-200",
+    glow: "shadow-yellow-500/30 dark:shadow-yellow-400/30",
   },
-  'スライド資料作成': {
-    bg: 'bg-emerald-300/80 dark:bg-emerald-600/60',
-    border: 'border-emerald-500/60 dark:border-emerald-400/60',
-    text: 'text-emerald-700 dark:text-emerald-200',
-    glow: 'shadow-emerald-500/30 dark:shadow-emerald-400/30'
+  スライド資料作成: {
+    bg: "bg-emerald-300/80 dark:bg-emerald-600/60",
+    border: "border-emerald-500/60 dark:border-emerald-400/60",
+    text: "text-emerald-700 dark:text-emerald-200",
+    glow: "shadow-emerald-500/30 dark:shadow-emerald-400/30",
   },
-  'default': {
-    bg: 'bg-purple-50/80 dark:bg-gray-700/60',
-    border: 'border-purple-300/60 dark:border-cyan-500/60',
-    text: 'text-gray-700 dark:text-gray-200',
-    glow: 'shadow-purple-500/30 dark:shadow-cyan-500/30'
-  }
+  default: {
+    bg: "bg-purple-50/80 dark:bg-gray-700/60",
+    border: "border-purple-300/60 dark:border-cyan-500/60",
+    text: "text-gray-700 dark:text-gray-200",
+    glow: "shadow-purple-500/30 dark:shadow-cyan-500/30",
+  },
 };
 
 export function TextUpdaterNode({ data, id, selected }: NodeProps) {
   const nodeData = data as unknown as NodeData;
-  const [label, setLabel] = useState(nodeData?.label || 'Node');
+  const [label, setLabel] = useState(nodeData?.label || "Node");
   const [isEditing, setIsEditing] = useState(false);
-  const [showAddButton, setShowAddButton] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [completed, setCompleted] = useState(nodeData?.completed || false);
-  const [category, setCategory] = useState<NodeCategory>(nodeData?.category || 'default');
-  const [startTime] = useState(nodeData?.startTime || '');
-  const [estimatedHours, setEstimatedHours] = useState(nodeData?.estimatedHours || 1);
-  const [assignee] = useState(nodeData?.assignee || '');
+  const [category, setCategory] = useState<NodeCategory>(
+    nodeData?.category || "default",
+  );
+  const [startTime] = useState(nodeData?.startTime || "");
+  const [estimatedHours, setEstimatedHours] = useState(
+    nodeData?.estimatedHours || 1,
+  );
+  const [assignee] = useState(nodeData?.assignee || "");
+  const taskId = nodeData?.task_id;
   const { getNodes, setNodes, getEdges, setEdges } = useReactFlow();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
+      textarea.style.height = "auto";
+      textarea.style.height = Math.min(textarea.scrollHeight, 80) + "px";
     }
   };
 
@@ -97,90 +117,129 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
 
   // Calculate end time based on start time and estimated hours
   const getEndTime = () => {
-    if (!startTime || !estimatedHours) return '';
-    const [hours, minutes] = startTime.split(':').map(Number);
+    if (!startTime || !estimatedHours) return "";
+    const [hours, minutes] = startTime.split(":").map(Number);
     const startMinutes = hours * 60 + minutes;
-    const endMinutes = startMinutes + (estimatedHours * 60);
+    const endMinutes = startMinutes + estimatedHours * 60;
     const endHours = Math.floor(endMinutes / 60);
     const endMins = endMinutes % 60;
-    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+    return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
   };
 
   const addNewNode = () => {
     const nodes = getNodes();
     const edges = getEdges();
-    const currentNode = nodes.find(node => node.id === id);
+    const currentNode = nodes.find((node) => node.id === id);
 
     const newNodeId = `node-${Date.now()}`;
     const newNode = {
       id: newNodeId,
-      type: 'textUpdater',
+      type: "textUpdater",
       position: {
         x: (currentNode?.position.x || 0) + 200,
-        y: (currentNode?.position.y || 0) - 50
+        y: (currentNode?.position.y || 0) - 50,
       },
       data: {
-        label: 'New Node',
-        category: 'default',
+        label: "New Node",
+        category: "default",
         completed: false,
-        startTime: '',
+        startTime: "",
         estimatedHours: 1,
-        assignee: ''
-      }
+        assignee: "",
+      },
     };
 
     const newEdge = {
       id: `edge-${id}-${newNodeId}`,
       source: id,
       target: newNodeId,
-      type: 'custom-edge',
-      data: { animated: true }
+      type: "custom-edge",
+      data: { animated: true },
     };
 
     setNodes([...nodes, newNode]);
     setEdges([...edges, newEdge]);
-    setShowAddButton(false);
+  };
+
+  // Navigate to task detail page
+  const navigateToTaskDetail = () => {
+    if (!taskId || !pathname) return;
+    // pathname is /{userName}/{projectId}, we need to navigate to /{userName}/{projectId}/{taskId}
+    router.push(`${pathname}/${taskId}`);
+  };
+
+  // Handle node click - navigate to task detail if taskId exists
+  const handleNodeClick = () => {
+    if (taskId) {
+      navigateToTaskDetail();
+    }
   };
 
   return (
     <div
       className={`
-        relative group min-w-[180px] max-w-[250px] p-2 rounded-lg border transition-all duration-300 cursor-pointer
+        relative group min-w-[180px] max-w-[250px] p-2 rounded-lg border transition-all duration-300
         backdrop-blur-sm transform hover:scale-[1.02] hover:z-10
-        ${completed
-          ? 'bg-green-50/70 dark:bg-green-900/50 border-green-400/50 hover:border-green-500/70 dark:hover:border-green-300/70 shadow-md shadow-green-500/20'
-          : `${colors.bg} ${colors.border} shadow-sm ${colors.glow}`
+        ${taskId ? "cursor-pointer" : "cursor-default"}
+        ${
+          completed
+            ? "bg-green-50/70 dark:bg-green-900/50 border-green-400/50 hover:border-green-500/70 dark:hover:border-green-300/70 shadow-md shadow-green-500/20"
+            : `${colors.bg} ${colors.border} shadow-sm ${colors.glow}`
         }
-        ${selected
-          ? completed
-            ? 'border-green-500 dark:border-green-300 shadow-lg shadow-green-500/30 dark:shadow-green-400/30 ring-1 ring-green-500/20 dark:ring-green-400/20'
-            : `border-current shadow-lg ring-1 ring-current/20`
-          : ''
+        ${
+          selected
+            ? completed
+              ? "border-green-500 dark:border-green-300 shadow-lg shadow-green-500/30 dark:shadow-green-400/30 ring-1 ring-green-500/20 dark:ring-green-400/20"
+              : `border-current shadow-lg ring-1 ring-current/20`
+            : ""
         }
       `}
-      onClick={() => setShowAddButton(!showAddButton)}
+      onClick={handleNodeClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-
-      {/* Add button - smaller */}
-      {showAddButton && (
-        <div className="absolute -top-2 -right-2 z-10">
+      {/* Action buttons - show on hover */}
+      {isHovered && (
+        <div className="absolute -top-3 -right-2 z-10 flex gap-1.5 animate-in fade-in duration-200">
+          {/* Edit button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+            className="
+              w-7 h-7 rounded-full border-2 transition-all duration-300
+              flex items-center justify-center hover:scale-110 active:scale-95
+              backdrop-blur-md shadow-lg
+              bg-amber-500/30 dark:bg-amber-500/30
+              border-amber-400/60 dark:border-amber-400/60
+              text-amber-700 dark:text-amber-200
+              hover:bg-amber-400/50 dark:hover:bg-amber-400/50
+              hover:border-amber-300/80 dark:hover:border-amber-300/80
+            "
+            title="タスク名を編集"
+          >
+            <Pencil size={14} />
+          </button>
+          {/* Add button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               addNewNode();
             }}
             className="
-              w-6 h-6 rounded-full border transition-all duration-300
+              w-7 h-7 rounded-full border-2 transition-all duration-300
               flex items-center justify-center hover:scale-110 active:scale-95
-              backdrop-blur-md text-xs
-              bg-blue-500/20 dark:bg-cyan-500/20
-              border-blue-400/30 dark:border-cyan-400/30
-              text-blue-600 dark:text-cyan-300
-              hover:bg-blue-400/30 dark:hover:bg-cyan-400/30
-              hover:border-blue-300/50 dark:hover:border-cyan-300/50
+              backdrop-blur-md shadow-lg
+              bg-blue-500/30 dark:bg-cyan-500/30
+              border-blue-400/60 dark:border-cyan-400/60
+              text-blue-700 dark:text-cyan-200
+              hover:bg-blue-400/50 dark:hover:bg-cyan-400/50
+              hover:border-blue-300/80 dark:hover:border-cyan-300/80
             "
+            title="新しいノードを追加"
           >
-            <Plus size={12} />
+            <Plus size={14} />
           </button>
         </div>
       )}
@@ -196,9 +255,10 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
           className={`
             w-5 h-5 rounded border-2 transition-all duration-200
             flex items-center justify-center flex-shrink-0
-            ${completed
-              ? 'bg-green-500 border-green-400 text-white'
-              : 'border-purple-400/50 dark:border-cyan-400/50 hover:border-purple-400 dark:hover:border-cyan-400 bg-white/50 dark:bg-gray-800/50'
+            ${
+              completed
+                ? "bg-green-500 border-green-400 text-white"
+                : "border-purple-400/50 dark:border-cyan-400/50 hover:border-purple-400 dark:hover:border-cyan-400 bg-white/50 dark:bg-gray-800/50"
             }
           `}
         >
@@ -246,7 +306,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
             adjustTextareaHeight();
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey) {
               setIsEditing(false);
             }
           }}
@@ -264,17 +324,22 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
         />
       ) : (
         <div
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-          }}
-          className={`p-1 text-xs cursor-pointer rounded transition-all break-words whitespace-pre-wrap leading-snug ${
+          className={`p-1 text-xs rounded transition-all break-words whitespace-pre-wrap leading-snug ${
             completed
-              ? 'line-through opacity-70 text-green-700 dark:text-green-300 hover:bg-green-100/50 dark:hover:bg-green-900/30'
+              ? "line-through opacity-70 text-green-700 dark:text-green-300"
               : `${colors.text}`
           }`}
         >
-          {label || 'クリックして編集'}
+          {label || "タスク名"}
+        </div>
+      )}
+
+      {/* Click hint for tasks with taskId */}
+      {taskId && isHovered && !isEditing && (
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full mt-1 z-20">
+          <div className="bg-slate-800 dark:bg-slate-700 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap">
+            クリックでハンズオンへ →
+          </div>
         </div>
       )}
 
@@ -292,9 +357,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
         </div>
 
         {/* Minimal assignee */}
-        <div>
-          {assignee}
-        </div>
+        <div>{assignee}</div>
       </div>
 
       {/* Category badge - very small */}
@@ -343,7 +406,6 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
           hover:!bg-blue-400 dark:hover:!bg-purple-300
         "
       />
-
     </div>
   );
 }

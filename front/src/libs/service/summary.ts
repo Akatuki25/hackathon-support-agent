@@ -1,64 +1,50 @@
-import axios from 'axios';
-import {
-  MVPJudge,
-  SpecificationFeedback
-} from '@/types/modelTypes';
+import axios from "axios";
+import { MVPJudge, SpecificationFeedback } from "@/types/modelTypes";
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-
-export const generateSummary = async (
-  projectId: string,
-):Promise<string>=>{
-
-   const response = await axios.post(
-     `${API_BASE_URL}/api/summary/`,
-     { project_id: projectId }
-   );
-   return response.data;
+export const generateSummary = async (projectId: string): Promise<string> => {
+  const response = await axios.post(`${API_BASE_URL}/api/summary/`, {
+    project_id: projectId,
+  });
+  return response.data;
 };
-
 
 export const saveSummary = async (
   projectId: string,
-  summary: string
+  summary: string,
 ): Promise<{ message: string; project_id: string; doc_id: string }> => {
-  const response = await axios.post(
-    `${API_BASE_URL}/api/summary/save`,
-    { 
-      project_id: projectId,
-      summary: summary
-    }
+  const response = await axios.post(`${API_BASE_URL}/api/summary/save`, {
+    project_id: projectId,
+    summary: summary,
+  });
+  return response.data;
+};
+
+export const evaluateSummary = async (projectId: string): Promise<MVPJudge> => {
+  const response = await axios.post<MVPJudge>(
+    `${API_BASE_URL}/api/summary/evaluate`,
+    { project_id: projectId },
   );
   return response.data;
 };
 
-export const evaluateSummary = async (
-  projectId: string
-) : Promise<MVPJudge> => {
-  const response = await axios.post<MVPJudge>(
-    `${API_BASE_URL}/api/summary/evaluate`,
-    { project_id: projectId }
-  );
-  return response.data;
-}
-
 export const getSpecificationFeedback = async (
-  projectId: string
+  projectId: string,
 ): Promise<SpecificationFeedback> => {
   const response = await axios.post<SpecificationFeedback>(
     `${API_BASE_URL}/api/summary/confidence-feedback`,
-    { project_id: projectId }
+    { project_id: projectId },
   );
   return response.data;
-}
+};
 
 // Legacy alias - deprecated, use getSpecificationFeedback instead
 export const getConfidenceFeedback = getSpecificationFeedback;
 
 export const generateSummaryWithFeedback = async (
-  projectId: string
+  projectId: string,
 ): Promise<{
   summary: string;
   doc_id: string;
@@ -66,10 +52,10 @@ export const generateSummaryWithFeedback = async (
 }> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/summary/generate-with-feedback`,
-    { project_id: projectId }
+    { project_id: projectId },
   );
   return response.data;
-}
+};
 
 // --- SSE Streaming Types ---
 
@@ -107,12 +93,12 @@ export interface SummaryStreamingResult {
  */
 export const streamGenerateSummary = async (
   projectId: string,
-  callbacks: SummaryStreamingCallbacks = {}
+  callbacks: SummaryStreamingCallbacks = {},
 ): Promise<SummaryStreamingResult> => {
-  let accumulatedText = '';
-  let docId = '';
+  let accumulatedText = "";
+  let docId = "";
   let feedback: SpecificationFeedback = {
-    summary: '',
+    summary: "",
     strengths: [],
     missing_info: [],
     suggestions: [],
@@ -120,9 +106,9 @@ export const streamGenerateSummary = async (
 
   return new Promise((resolve, reject) => {
     fetch(`${API_BASE_URL}/api/summary/stream/${projectId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     })
       .then(async (response) => {
@@ -132,12 +118,12 @@ export const streamGenerateSummary = async (
 
         const reader = response.body?.getReader();
         if (!reader) {
-          throw new Error('Response body is not readable');
+          throw new Error("Response body is not readable");
         }
 
         const decoder = new TextDecoder();
-        let buffer = '';
-        let currentEvent = '';  // whileループの外で定義
+        let buffer = "";
+        let currentEvent = ""; // whileループの外で定義
 
         while (true) {
           const { done, value } = await reader.read();
@@ -149,33 +135,33 @@ export const streamGenerateSummary = async (
           buffer += decoder.decode(value, { stream: true });
 
           // SSEイベントをパース
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // 最後の不完全な行を保持
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 最後の不完全な行を保持
           for (const line of lines) {
-            if (line.startsWith('event: ')) {
+            if (line.startsWith("event: ")) {
               currentEvent = line.substring(7).trim();
-            } else if (line.startsWith('data: ') && currentEvent) {
+            } else if (line.startsWith("data: ") && currentEvent) {
               const data = line.substring(6);
               try {
                 const parsed = JSON.parse(data);
 
                 switch (currentEvent) {
-                  case 'start':
+                  case "start":
                     callbacks.onStart?.(parsed);
                     break;
-                  case 'chunk':
+                  case "chunk":
                     accumulatedText += parsed.text;
                     callbacks.onChunk?.(parsed.text, accumulatedText);
                     break;
-                  case 'spec_done':
+                  case "spec_done":
                     docId = parsed.doc_id;
                     callbacks.onSpecDone?.(parsed);
                     break;
-                  case 'feedback':
+                  case "feedback":
                     feedback = parsed as SpecificationFeedback;
                     callbacks.onFeedback?.(feedback);
                     break;
-                  case 'done':
+                  case "done":
                     callbacks.onDone?.();
                     resolve({
                       summary: accumulatedText,
@@ -183,15 +169,15 @@ export const streamGenerateSummary = async (
                       specification_feedback: feedback,
                     });
                     return;
-                  case 'error':
+                  case "error":
                     callbacks.onError?.(parsed);
-                    reject(new Error(parsed.message || 'Unknown error'));
+                    reject(new Error(parsed.message || "Unknown error"));
                     return;
                 }
               } catch (e) {
-                console.error('Failed to parse SSE data:', data, e);
+                console.error("Failed to parse SSE data:", data, e);
               }
-              currentEvent = '';
+              currentEvent = "";
             }
           }
         }
@@ -208,5 +194,4 @@ export const streamGenerateSummary = async (
         reject(error);
       });
   });
-}
-
+};
