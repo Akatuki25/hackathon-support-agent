@@ -80,9 +80,7 @@ export default function HackathonSupportAgentLandingPage() {
   ];
 
   return (
-    <div
-      className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
-    >
+    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="relative z-50">
         <CyberHeader />
       </div>
@@ -90,22 +88,18 @@ export default function HackathonSupportAgentLandingPage() {
       <div className="relative z-10 container mx-auto px-6 pt-32 pb-12">
         {/* Hero */}
         <div className="text-center mb-20">
-          <div
-            className="inline-block px-4 py-2 rounded-lg font-mono text-sm mb-6 bg-purple-500/10 text-purple-600 border border-purple-300/30 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/30"
-          >
+          <div className="inline-block px-4 py-2 rounded-lg font-mono text-sm mb-6 bg-purple-500/10 text-purple-600 border border-purple-300/30 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/30">
             {"// HACKATHON_SUPPORT_AI"}
           </div>
 
-          <h1
-            className="text-4xl md:text-6xl font-bold mb-6 font-mono tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-cyan-400 dark:via-purple-400 dark:to-pink-400"
-          >
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 font-mono tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-cyan-400 dark:via-purple-400 dark:to-pink-400">
             HACKATHON_SUPPORT_AGENT
           </h1>
 
-          <p
-            className="text-lg md:text-xl mb-8 text-gray-600 dark:text-gray-300 font-mono max-w-3xl mx-auto"
-          >
-            {"// ハッカソンを成長する機会に！AIがあなたの開発を全方位からサポートします。"}
+          <p className="text-lg md:text-xl mb-8 text-gray-600 dark:text-gray-300 font-mono max-w-3xl mx-auto">
+            {
+              "// ハッカソンを成長する機会に！AIがあなたの開発を全方位からサポートします。"
+            }
           </p>
 
           <button
@@ -118,9 +112,7 @@ export default function HackathonSupportAgentLandingPage() {
 
         {/* Features */}
         <div className="mb-24">
-          <h2
-            className="text-2xl md:text-3xl font-bold text-center mb-12 font-mono tracking-wider text-purple-600 dark:text-cyan-400"
-          >
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 font-mono tracking-wider text-purple-600 dark:text-cyan-400">
             {"// WHAT_YOU_CAN_DO"}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -129,24 +121,16 @@ export default function HackathonSupportAgentLandingPage() {
                 key={index}
                 className="relative p-6 rounded-lg backdrop-blur-sm border transition-all duration-300 hover:scale-105 group overflow-hidden bg-white/50 border-purple-300/30 hover:border-purple-400/50 dark:bg-gray-900/50 dark:border-cyan-500/30 dark:hover:border-cyan-400/50 shadow-lg hover:shadow-xl"
               >
-                <div
-                  className="text-purple-600 dark:text-cyan-400 mb-4"
-                >
+                <div className="text-purple-600 dark:text-cyan-400 mb-4">
                   {feature.icon}
                 </div>
-                <h3
-                  className="text-lg font-semibold mb-2 font-mono tracking-wider text-gray-900 dark:text-white"
-                >
+                <h3 className="text-lg font-semibold mb-2 font-mono tracking-wider text-gray-900 dark:text-white">
                   {feature.title}
                 </h3>
-                <p
-                  className="text-xs mb-3 font-mono text-gray-500 dark:text-gray-400"
-                >
+                <p className="text-xs mb-3 font-mono text-gray-500 dark:text-gray-400">
                   {feature.code}
                 </p>
-                <p
-                  className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed"
-                >
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -156,9 +140,7 @@ export default function HackathonSupportAgentLandingPage() {
 
         {/* Execution Flow */}
         <div className="mb-20">
-          <h2
-            className="text-2xl md:text-3xl font-bold text-center mb-12 font-mono tracking-wider text-purple-600 dark:text-cyan-400"
-          >
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 font-mono tracking-wider text-purple-600 dark:text-cyan-400">
             {"// HOW_IT_WORKS"}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -167,24 +149,16 @@ export default function HackathonSupportAgentLandingPage() {
                 key={index}
                 className="relative text-center p-6 rounded-lg backdrop-blur-sm border bg-white/30 border-purple-300/20 dark:bg-gray-900/30 dark:border-cyan-500/20"
               >
-                <div
-                  className="w-16 h-16 mx-auto mb-4 rounded border-2 flex items-center justify-center text-xl font-bold font-mono border-purple-500 text-purple-600 bg-white/50 dark:border-cyan-500 dark:text-cyan-400 dark:bg-gray-900/50"
-                >
+                <div className="w-16 h-16 mx-auto mb-4 rounded border-2 flex items-center justify-center text-xl font-bold font-mono border-purple-500 text-purple-600 bg-white/50 dark:border-cyan-500 dark:text-cyan-400 dark:bg-gray-900/50">
                   {item.step}
                 </div>
-                <h3
-                  className="text-lg font-semibold mb-2 font-mono tracking-wider text-gray-900 dark:text-white"
-                >
+                <h3 className="text-lg font-semibold mb-2 font-mono tracking-wider text-gray-900 dark:text-white">
                   {item.title}
                 </h3>
-                <p
-                  className="text-xs mb-3 font-mono text-gray-500 dark:text-gray-400"
-                >
+                <p className="text-xs mb-3 font-mono text-gray-500 dark:text-gray-400">
                   {`// ${item.code}`}
                 </p>
-                <p
-                  className="text-gray-600 dark:text-gray-300 text-sm"
-                >
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
                   {item.description}
                 </p>
               </div>
@@ -193,17 +167,11 @@ export default function HackathonSupportAgentLandingPage() {
         </div>
 
         {/* CTA */}
-        <div
-          className="relative text-center p-12 rounded-lg backdrop-blur-sm border bg-white/50 border-purple-300/30 dark:bg-gray-900/50 dark:border-cyan-500/30 shadow-lg mb-20"
-        >
-          <h2
-            className="text-2xl md:text-3xl font-bold mb-4 font-mono tracking-wider text-gray-900 dark:text-white"
-          >
+        <div className="relative text-center p-12 rounded-lg backdrop-blur-sm border bg-white/50 border-purple-300/30 dark:bg-gray-900/50 dark:border-cyan-500/30 shadow-lg mb-20">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 font-mono tracking-wider text-gray-900 dark:text-white">
             LET&apos;S_CREATE_WITH_AI
           </h2>
-          <p
-            className="text-lg mb-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
-          >
+          <p className="text-lg mb-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             初心者でもハッカソンを楽しめるように。AIがあなたの&quot;作りたい&quot;を形にします。
           </p>
           <button

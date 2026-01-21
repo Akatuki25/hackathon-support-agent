@@ -4,7 +4,11 @@ import { useCallback, useState, useEffect } from "react";
 import { RefreshCcw, Loader2, Edit3 } from "lucide-react";
 import { ProjectDocumentType, SpecificationFeedback } from "@/types/modelTypes";
 import { patchProjectDocument } from "@/libs/modelAPI/document";
-import { evaluateSummary, getSpecificationFeedback, generateSummaryWithFeedback } from "@/libs/service/summary";
+import {
+  evaluateSummary,
+  getSpecificationFeedback,
+  generateSummaryWithFeedback,
+} from "@/libs/service/summary";
 import { QAType } from "@/types/modelTypes";
 import { BaseEditor } from "@/components/BaseEditor";
 
@@ -18,14 +22,17 @@ const sanitizeSpecificationContent = (input: string) =>
     .replace(/[、]/g, ",")
     .trim();
 
-
 interface SpecificationEditorProps {
   projectId: string;
   projectDocument: ProjectDocumentType | null;
   score?: number;
   mvpFeasible?: boolean;
   onDocumentUpdate: (document: ProjectDocumentType) => void;
-  onEvaluationUpdate: (evaluation: { qa: QAType[]; score_0_100: number; mvp_feasible: boolean }) => void;
+  onEvaluationUpdate: (evaluation: {
+    qa: QAType[];
+    score_0_100: number;
+    mvp_feasible: boolean;
+  }) => void;
   /** 仕様書がストリーミング生成中かどうか */
   isStreaming?: boolean;
   /** フィードバック更新時のコールバック */
@@ -43,7 +50,8 @@ export default function SpecificationEditor({
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
-  const [specificationFeedback, setSpecificationFeedback] = useState<SpecificationFeedback | null>(null);
+  const [specificationFeedback, setSpecificationFeedback] =
+    useState<SpecificationFeedback | null>(null);
 
   // フィードバック更新のヘルパー
   const updateFeedback = (feedback: SpecificationFeedback | null) => {
@@ -68,7 +76,12 @@ export default function SpecificationEditor({
     loadInitialFeedback();
     // specificationFeedbackを依存配列に含めると無限ループになるため除外
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectDocument?.specification, projectId, isStreaming, projectDocument?.doc_id]);
+  }, [
+    projectDocument?.specification,
+    projectId,
+    isStreaming,
+    projectDocument?.doc_id,
+  ]);
 
   // 再生成と評価
   const regenerateAndEvaluate = async () => {
@@ -77,7 +90,9 @@ export default function SpecificationEditor({
     try {
       const result = await generateSummaryWithFeedback(projectId);
 
-      const updatedDocument = projectDocument ? { ...projectDocument, specification: result.summary } : null;
+      const updatedDocument = projectDocument
+        ? { ...projectDocument, specification: result.summary }
+        : null;
       if (updatedDocument) {
         onDocumentUpdate(updatedDocument);
       }
@@ -119,22 +134,24 @@ export default function SpecificationEditor({
   };
 
   // コンテンツ変更処理
-  const handleContentChange = useCallback(async (markdown: string) => {
-    // ストリーミング中またはドキュメントがない場合は保存しない
-    if (!projectDocument || isStreaming || !projectDocument.doc_id) return;
+  const handleContentChange = useCallback(
+    async (markdown: string) => {
+      // ストリーミング中またはドキュメントがない場合は保存しない
+      if (!projectDocument || isStreaming || !projectDocument.doc_id) return;
 
-    try {
-      await patchProjectDocument(projectId, {
-        specification: markdown
-      });
+      try {
+        await patchProjectDocument(projectId, {
+          specification: markdown,
+        });
 
-      const updatedDocument = { ...projectDocument, specification: markdown };
-      onDocumentUpdate(updatedDocument);
-    } catch (error) {
-      console.error("仕様書の更新に失敗:", error);
-    }
-  }, [projectDocument, projectId, onDocumentUpdate, isStreaming]);
-
+        const updatedDocument = { ...projectDocument, specification: markdown };
+        onDocumentUpdate(updatedDocument);
+      } catch (error) {
+        console.error("仕様書の更新に失敗:", error);
+      }
+    },
+    [projectDocument, projectId, onDocumentUpdate, isStreaming],
+  );
 
   // フッターアクション
   const footerActions = (

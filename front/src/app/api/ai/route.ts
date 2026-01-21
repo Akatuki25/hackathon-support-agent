@@ -11,7 +11,8 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-blocknote-ai-key, x-goog-api-key",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, x-blocknote-ai-key, x-goog-api-key",
 };
 
 // --- OPTIONS: preflight ---
@@ -38,7 +39,10 @@ export async function POST(req: NextRequest) {
 
     if (!url || !provider) {
       return withCORS(
-        NextResponse.json({ error: "url and provider required" }, { status: 400 })
+        NextResponse.json(
+          { error: "url and provider required" },
+          { status: 400 },
+        ),
       );
     }
 
@@ -62,11 +66,10 @@ export async function POST(req: NextRequest) {
       status: response.status,
       headers: withCORS(new NextResponse()).headers,
     });
-
   } catch (error) {
     console.error("Error in AI proxy:", error);
     return withCORS(
-      NextResponse.json({ error: "Internal server error" }, { status: 500 })
+      NextResponse.json({ error: "Internal server error" }, { status: 500 }),
     );
   }
 }

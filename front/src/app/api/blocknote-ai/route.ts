@@ -22,18 +22,22 @@ export async function POST(req: NextRequest) {
       console.error("❌ GOOGLE_API_KEY is not configured");
       return new Response(
         JSON.stringify({ error: "GOOGLE_API_KEY is not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
     // Gemini APIの制約: system messagesは会話の最初にのみ配置可能
     // BlockNoteから送られるメッセージを並び替えて、systemメッセージを先頭に移動
-    const systemMessages = messages.filter((m: CoreMessage) => m.role === "system");
-    const otherMessages = messages.filter((m: CoreMessage) => m.role !== "system");
+    const systemMessages = messages.filter(
+      (m: CoreMessage) => m.role === "system",
+    );
+    const otherMessages = messages.filter(
+      (m: CoreMessage) => m.role !== "system",
+    );
     const reorderedMessages = [...systemMessages, ...otherMessages];
 
     console.log(
-      `  - System messages: ${systemMessages.length}, Other messages: ${otherMessages.length}`
+      `  - System messages: ${systemMessages.length}, Other messages: ${otherMessages.length}`,
     );
 
     // Vercel AI SDKを使ってストリーミングレスポンスを生成
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
         error: "Internal server error",
         details: error instanceof Error ? error.message : String(error),
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }

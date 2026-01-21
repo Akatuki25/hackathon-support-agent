@@ -44,9 +44,7 @@ const MemberSettings = () => {
   if (loading) return <PageLoading />;
 
   return (
-    <div
-      className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-black dark:bg-gray-900 dark:text-white"
-    >
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-black dark:bg-gray-900 dark:text-white">
       <h1 className="text-2xl font-bold mb-6">Member Registration</h1>
 
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">

@@ -8,9 +8,8 @@ interface SpecificationFeedbackModalProps {
 
 export default function SpecificationFeedbackModal({
   feedback,
-  onClose
+  onClose,
 }: SpecificationFeedbackModalProps) {
-
   const getPriorityColor = (priority: "high" | "medium" | "low") => {
     switch (priority) {
       case "high":
@@ -35,9 +34,7 @@ export default function SpecificationFeedbackModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div
-        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg shadow-2xl bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-      >
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg shadow-2xl bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <h2 className="text-xl font-bold">仕様書評価レポート</h2>
@@ -103,9 +100,11 @@ export default function SpecificationFeedbackModal({
                         <span className="text-xs font-medium px-2 py-1 rounded bg-gray-200 dark:bg-gray-600">
                           {info.category}
                         </span>
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${
-                          getPriorityColor(info.priority)
-                        }`}>
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded ${getPriorityColor(
+                            info.priority,
+                          )}`}
+                        >
                           優先度: {getPriorityLabel(info.priority)}
                         </span>
                       </div>

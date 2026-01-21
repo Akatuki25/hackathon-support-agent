@@ -1,8 +1,8 @@
-import { ProjectMemberType } from '@/types/modelTypes';
+import { ProjectMemberType } from "@/types/modelTypes";
 
 type MemberAvatarProps = {
   member: ProjectMemberType;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   showName?: boolean;
 };
 
@@ -14,22 +14,22 @@ type MemberAvatarProps = {
  */
 export function MemberAvatar({
   member,
-  size = 'sm',
+  size = "sm",
   showName = false,
 }: MemberAvatarProps) {
   // イニシャルを生成（最大2文字）
   const initials = member.member_name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 
   // サイズに応じたクラス
   const sizeClasses = {
-    sm: 'w-6 h-6 text-xs',
-    md: 'w-8 h-8 text-sm',
-    lg: 'w-10 h-10 text-base',
+    sm: "w-6 h-6 text-xs",
+    md: "w-8 h-8 text-sm",
+    lg: "w-10 h-10 text-base",
   };
 
   return (

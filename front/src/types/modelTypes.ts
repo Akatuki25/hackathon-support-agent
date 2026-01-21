@@ -183,7 +183,7 @@ export interface IdeaPromptType {
  * AIによるQ&A生成API (`POST /qas/{project_id}`) のレスポンス
  */
 export interface QuestionResponseType {
-    QA: QAType[];
+  QA: QAType[];
 }
 
 // --- Summary Types ---
@@ -204,7 +204,7 @@ export interface SummaryResponse {
 export type MVPJudge = {
   mvp_feasible: boolean;
   score_0_100: number; // 0〜100 の範囲 (ランタイムでチェック推奨)
-  confidence: number;  // 0.0〜1.0 の範囲 (ランタイムでチェック推奨)
+  confidence: number; // 0.0〜1.0 の範囲 (ランタイムでチェック推奨)
   qa: QAType[];
 };
 
@@ -231,29 +231,29 @@ export type ConfidenceFeedback = SpecificationFeedback;
  * Google Search Grounding や外部検索で取得したドキュメントへのリンク
  */
 export type ReferenceUrl = {
-  title: string;            // ドキュメントのタイトル
-  url: string;              // URL
-  snippet?: string;         // 抜粋テキスト
-  source?: string;          // ソース種別 (grounding_chunk, documentation など)
+  title: string; // ドキュメントのタイトル
+  url: string; // URL
+  snippet?: string; // 抜粋テキスト
+  source?: string; // ソース種別 (grounding_chunk, documentation など)
 };
 
 // --- ChatHanson Types ---
 export type ChatHansonRequest = {
-  project_id: string;       // Project ID
-  user_question: string;    // User's question
-  chat_history?: string;    // Chat history (optional)
-  return_plan?: boolean;    // Whether to return plan (optional, default: false)
-  enable_search?: boolean;  // Whether to enable web search (optional, default: true)
+  project_id: string; // Project ID
+  user_question: string; // User's question
+  chat_history?: string; // Chat history (optional)
+  return_plan?: boolean; // Whether to return plan (optional, default: false)
+  enable_search?: boolean; // Whether to enable web search (optional, default: true)
 };
 
 export type ChatHansonResponse = {
-  answer: string;           // AI-generated answer
-  plan?: string;            // Response plan (only when return_plan=true)
-  reference_urls?: ReferenceUrl[];  // Reference URLs from search
+  answer: string; // AI-generated answer
+  plan?: string; // Response plan (only when return_plan=true)
+  reference_urls?: ReferenceUrl[]; // Reference URLs from search
 };
 
 export type ChatHansonPlanResponse = {
-  plan: string;             // Response plan only
+  plan: string; // Response plan only
 };
 
 // --- EnvSetup Types (AI Generated) ---
@@ -271,7 +271,7 @@ export type EnvSetupResponse = {
   database: string | null;
   deploy: string | null;
   message: string;
-  reference_urls?: ReferenceUrl[];  // Reference URLs from search
+  reference_urls?: ReferenceUrl[]; // Reference URLs from search
 };
 
 export type EnvGetResponse = {
@@ -283,7 +283,7 @@ export type EnvGetResponse = {
   database: string | null;
   deploy: string | null;
   created_at: string | null;
-  reference_urls?: ReferenceUrl[];  // Reference URLs from search
+  reference_urls?: ReferenceUrl[]; // Reference URLs from search
 };
 
 // --- Environment Hands-on Types (Legacy API) ---
@@ -292,11 +292,11 @@ export type EnvGetResponse = {
  * /api/environment で使用
  */
 export type EnvironmentHandsOnResponse = {
-  overall: string;          // 全体のハンズオン説明
-  devcontainer: string;     // .devcontainerの設定説明
-  frontend: string;         // フロントエンド構築手順
-  backend: string;          // バックエンド構築手順
-  reference_urls?: ReferenceUrl[];  // 参照した公式ドキュメントURL
+  overall: string; // 全体のハンズオン説明
+  devcontainer: string; // .devcontainerの設定説明
+  frontend: string; // フロントエンド構築手順
+  backend: string; // バックエンド構築手順
+  reference_urls?: ReferenceUrl[]; // 参照した公式ドキュメントURL
 };
 
 // --- Page Context Chat Types ---
@@ -306,46 +306,46 @@ export type EnvironmentHandsOnResponse = {
  * 各ページで異なるチャットの役割を持つ
  */
 export type PageContext =
-  | 'hackQA'           // Q&A回答支援
-  | 'summaryQA'        // 仕様書レビュー
-  | 'functionSummary'  // 機能要件書編集
-  | 'functionStructuring' // 機能設計支援
-  | 'selectFramework'  // 技術選定支援
-  | 'kanban'           // タスク分担支援
-  | 'taskDetail';      // タスク詳細・実装支援
+  | "hackQA" // Q&A回答支援
+  | "summaryQA" // 仕様書レビュー
+  | "functionSummary" // 機能要件書編集
+  | "functionStructuring" // 機能設計支援
+  | "selectFramework" // 技術選定支援
+  | "kanban" // タスク分担支援
+  | "taskDetail"; // タスク詳細・実装支援
 
 /**
  * チャットで利用可能なアクションタイプ
  */
 export type ChatActionType =
   // hackQA用
-  | 'suggest_answer'    // 回答候補を提示
-  | 'add_question'      // 追加質問を生成
+  | "suggest_answer" // 回答候補を提示
+  | "add_question" // 追加質問を生成
   // functionStructuring用
-  | 'explain_function'  // 機能の意図説明
-  | 'suggest_priority'  // 優先度変更提案
-  | 'add_function'      // 機能追加提案
-  | 'update_function'   // 機能更新
-  | 'delete_function'   // 機能削除
+  | "explain_function" // 機能の意図説明
+  | "suggest_priority" // 優先度変更提案
+  | "add_function" // 機能追加提案
+  | "update_function" // 機能更新
+  | "delete_function" // 機能削除
   // summaryQA/functionSummary用
-  | 'regenerate_questions'  // 質問再生成
+  | "regenerate_questions" // 質問再生成
   // selectFramework用
-  | 'compare_tech'      // 技術比較表示
-  | 'recommend_tech'    // 技術推薦
+  | "compare_tech" // 技術比較表示
+  | "recommend_tech" // 技術推薦
   // kanban用
-  | 'suggest_assignee'  // 担当者提案
-  | 'show_workload'     // 負荷分析表示
+  | "suggest_assignee" // 担当者提案
+  | "show_workload" // 負荷分析表示
   // taskDetail用
-  | 'explain_code'      // コード解説
-  | 'show_hint'         // 実装ヒント
-  | 'explain_error'     // エラー原因説明
-  | 'adjust_hands_on';  // ハンズオン内容調整
+  | "explain_code" // コード解説
+  | "show_hint" // 実装ヒント
+  | "explain_error" // エラー原因説明
+  | "adjust_hands_on"; // ハンズオン内容調整
 
 /**
  * チャットメッセージ
  */
 export type ChatMessageType = {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 };
 
@@ -377,7 +377,7 @@ export type PageChatResponse = {
   message: string;
   suggested_actions: ChatAction[];
   context_used: string[];
-  reference_urls?: ReferenceUrl[];  // 検索で参照したURL
+  reference_urls?: ReferenceUrl[]; // 検索で参照したURL
 };
 
 /**

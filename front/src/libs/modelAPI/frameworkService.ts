@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface FrameworkProposal {
   name: string;
@@ -26,13 +26,15 @@ export interface FrameworkDocumentResponse {
 }
 
 // フレームワーク優先順位取得API
-export const getFrameworkPriority = async (specification: string): Promise<FrameworkResponse> => {
+export const getFrameworkPriority = async (
+  specification: string,
+): Promise<FrameworkResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/framework/`,
     { specification },
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
@@ -41,7 +43,7 @@ export const getFrameworkPriority = async (specification: string): Promise<Frame
 export const generateFrameworkDocument = async (
   projectId: string,
   specification: string,
-  framework: string
+  framework: string,
 ): Promise<FrameworkDocumentResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/framework/generate-document`,
@@ -51,8 +53,8 @@ export const generateFrameworkDocument = async (
       framework,
     },
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
@@ -63,8 +65,8 @@ export const getProjectDocument = async (projectId: string) => {
     const response = await axios.get(
       `${API_BASE_URL}/project_document/${projectId}`,
       {
-        headers: { 'Content-Type': 'application/json' },
-      }
+        headers: { "Content-Type": "application/json" },
+      },
     );
     return response.data;
   } catch (error) {
@@ -75,7 +77,7 @@ export const getProjectDocument = async (projectId: string) => {
         framework_doc: "",
         directory_doc: "",
         task_doc: "",
-        env_doc: ""
+        env_doc: "",
       };
     }
     // その他のエラーは再スロー
@@ -86,14 +88,14 @@ export const getProjectDocument = async (projectId: string) => {
 // フレームワークドキュメント更新API
 export const updateFrameworkDocument = async (
   projectId: string,
-  frameworkDoc: string
+  frameworkDoc: string,
 ): Promise<{ message: string }> => {
   const response = await axios.put(
     `${API_BASE_URL}/api/projects/${projectId}/framework-document`,
     { frame_work_doc: frameworkDoc },
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
