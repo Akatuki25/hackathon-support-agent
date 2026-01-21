@@ -61,7 +61,7 @@ def test_service_mock():
     service = QuestionService(db=db)
 
     print(f"✅ QuestionService初期化成功")
-    print(f"   llm_flash_thinking: {type(service.llm_flash_thinking)}")
+    print(f"   llm_with_thinking: {type(service.llm_with_thinking)}")
     print(f"   logger: {service.logger.name}")
 
     # プロンプトが読み込めるか確認

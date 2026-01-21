@@ -79,6 +79,22 @@ class ProjectBase(Base):
         back_populates="project",
         cascade="all, delete-orphan",
     )
+    # 仕様変更リクエストシステム
+    change_requests = relationship(
+        "ChangeRequest",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    document_chunks = relationship(
+        "DocumentChunk",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    hands_on_jobs = relationship(
+        "HandsOnGenerationJob",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     def __repr__(self):
         return f"<Project(id={self.project_id}, title={self.title})>"
 
@@ -520,6 +536,49 @@ class TaskHandsOn(Base):
     verification_result = Column(JSON, nullable=True, comment="情報齟齬検証の詳細結果")
 
     # ========================================
+    # インタラクティブ生成用フィールド
+    # ========================================
+
+    # 生成モード: "batch"（一括生成）or "interactive"（対話型）
+    generation_mode = Column(
+        Enum("batch", "interactive", name="generation_mode_enum"),
+        default="batch",
+        nullable=False,
+        comment="生成モード"
+    )
+
+    # 生成状態: "pending", "generating", "waiting_input", "completed"
+    generation_state = Column(
+        Enum("pending", "generating", "waiting_input", "completed", name="generation_state_enum"),
+        default="pending",
+        nullable=False,
+        comment="生成状態"
+    )
+
+    # ユーザーの選択・入力履歴
+    user_interactions = Column(
+        JSON,
+        nullable=True,
+        comment="ユーザーの選択・入力履歴 [{type, choice_id, selected, user_note}]"
+    )
+
+    # セッションID（インタラクティブ生成時）
+    session_id = Column(
+        String(50),
+        nullable=True,
+        index=True,
+        comment="インタラクティブ生成セッションID"
+    )
+
+    # 実装済みリソースサマリー（タスク完了時に生成）
+    # 他のタスクが重複実装を避けるための参照用
+    implementation_resources = Column(
+        JSON,
+        nullable=True,
+        comment="実装済みリソース {apis: [], components: [], services: [], summary: str}"
+    )
+
+    # ========================================
     # リレーション
     # ========================================
 
@@ -681,6 +740,9 @@ class HandsOnGenerationJob(Base):
     # 設定
     config = Column(JSON, nullable=True, comment="生成設定（並列数、モデル等）")
 
+    # Relationships
+    project = relationship("ProjectBase", back_populates="hands_on_jobs")
+
     __table_args__ = (
         Index("ix_hands_on_job_project_id", "project_id"),
         Index("ix_hands_on_job_status", "status"),
@@ -689,3 +751,136 @@ class HandsOnGenerationJob(Base):
 
     def __repr__(self):
         return f"<HandsOnGenerationJob(job_id={self.job_id}, status={self.status}, progress={self.completed_tasks}/{self.total_tasks})>"
+
+
+# =========================
+# 仕様変更リクエストシステム
+# =========================
+
+ChangeRequestStatusEnum = Enum(
+    "PROPOSING", "APPROVED", "APPLIED", "CANCELLED",
+    name="change_request_status_enum"
+)
+
+
+class ChangeRequest(Base):
+    """
+    仕様変更リクエスト
+
+    ユーザーの変更要望を受け付け、影響分析と変更案を管理する。
+    対話ループにより、承認されるまで修正を繰り返すことができる。
+    """
+    __tablename__ = "change_request"
+
+    request_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projectBase.project_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # ユーザーの元の要望
+    description = Column(Text, nullable=False)
+
+    # ステータス: PROPOSING / APPROVED / APPLIED / CANCELLED
+    status = Column(ChangeRequestStatusEnum, default="PROPOSING", nullable=False)
+
+    # 現在の提案（JSON）
+    # {
+    #   "approach": "変更アプローチの概要",
+    #   "specification": {"updated": bool, "content": "全文"},
+    #   "function_doc": {"updated": bool, "content": "全文"},
+    #   "functions": {"keep": [], "discard": [], "add": [], "modify": []},
+    #   "tasks": {"discard": [], "add": [], "modify": []},
+    #   "hands_on_to_regenerate": []
+    # }
+    proposal = Column(JSON, nullable=True)
+
+    # 対話履歴（JSON配列）- UIチャット表示用
+    # [
+    #   {"role": "user", "content": "...", "timestamp": "..."},
+    #   {"role": "assistant", "type": "proposal", "summary": "...", "timestamp": "..."}
+    # ]
+    conversation = Column(JSON, default=list, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
+
+    # Relationships
+    project = relationship("ProjectBase", back_populates="change_requests")
+
+    __table_args__ = (
+        Index("ix_change_request_project_status", "project_id", "status"),
+        Index("ix_change_request_created_at", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<ChangeRequest(id={self.request_id}, project_id={self.project_id}, status={self.status})>"
+
+    def add_user_message(self, content: str) -> None:
+        """ユーザーメッセージを対話履歴に追加"""
+        from datetime import datetime
+        if self.conversation is None:
+            self.conversation = []
+        self.conversation = self.conversation + [{
+            "role": "user",
+            "content": content,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }]
+
+    def add_proposal_message(self, summary: str) -> None:
+        """提案メッセージを対話履歴に追加"""
+        from datetime import datetime
+        if self.conversation is None:
+            self.conversation = []
+        self.conversation = self.conversation + [{
+            "role": "assistant",
+            "type": "proposal",
+            "summary": summary,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }]
+
+
+class DocumentChunk(Base):
+    """
+    ドキュメントチャンク（semantic検索用）
+
+    仕様書・機能要件書を小さなチャンクに分割して保存。
+    ベクトル検索により関連部分のみをLLMコンテキストに含める。
+    """
+    __tablename__ = "document_chunk"
+
+    chunk_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projectBase.project_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # チャンク情報
+    document_type = Column(String(30), nullable=False)  # SPECIFICATION / FUNCTION_DOC
+    section_id = Column(String(100), nullable=False)  # セクション識別子（重複排除用）
+
+    # コンテンツ
+    chunk_content = Column(Text, nullable=False)   # 検索用（小さいチャンク）
+    parent_content = Column(Text, nullable=False)  # コンテキスト用（セクション全体）
+
+    # ベクトル埋め込み（pgvectorを使う場合はVector型に変更）
+    # 現時点ではFLOAT配列として定義
+    embedding = Column(JSON, nullable=True)  # [float, float, ...]
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
+
+    # Relationships
+    project = relationship("ProjectBase", back_populates="document_chunks")
+
+    __table_args__ = (
+        UniqueConstraint('project_id', 'document_type', 'section_id'),
+        Index("ix_document_chunk_project_type", "project_id", "document_type"),
+    )
+
+    def __repr__(self):
+        return f"<DocumentChunk(id={self.chunk_id}, type={self.document_type}, section={self.section_id})>"

@@ -93,7 +93,7 @@ export function TextUpdaterNode({ data, id, selected }: NodeProps) {
     }
   }, [isEditing, label]);
 
-  const colors = categoryColors[category];
+  const colors = categoryColors[category] || categoryColors['default'];
 
   // Calculate end time based on start time and estimated hours
   const getEndTime = () => {

@@ -21,9 +21,9 @@ from sqlalchemy.orm import Session
 
 from .actions import ActionType, get_available_actions
 
-# Google Search Grounding 用
+# Google Search Grounding 用（新SDK: google-genai）
 try:
-    from google.ai.generativelanguage_v1beta.types import Tool as GenAITool
+    from google.genai import types as genai_types
     GROUNDING_AVAILABLE = True
 except ImportError:
     GROUNDING_AVAILABLE = False
@@ -187,10 +187,13 @@ class BaseChatHandler(ABC):
                 api_key=os.getenv("GOOGLE_API_KEY"),
             )
 
-            # 検索ツール付きで呼び出し（直接メッセージオブジェクトを使用）
+            # 新SDK: google-genai の Tool/GoogleSearch を使用
+            grounding_tool = genai_types.Tool(
+                google_search=genai_types.GoogleSearch()
+            )
             response = llm_with_search.invoke(
                 messages,
-                tools=[GenAITool(google_search={})],
+                tools=[grounding_tool],
             )
 
             # grounding metadata からURLを抽出
