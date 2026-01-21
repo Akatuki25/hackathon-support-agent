@@ -17,14 +17,16 @@ import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@
 import { TaskType, TaskStatusEnum, TaskAssignmentType, ProjectMemberType } from '@/types/modelTypes';
 import { getProjectMembersByProjectId, postProjectMember } from '@/libs/modelAPI/project_member';
 import { getMemberByGithubName } from '@/libs/modelAPI/member';
-import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
+// NOTE: 旧一括生成は廃止。各タスクページでインタラクティブ生成を使用
+// import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
 import CyberHeader from '@/components/Session/Header';
 import axios from 'axios';
 import { AgentChatWidget } from '@/components/chat';
 import { ChangeRequestChatWidget } from '@/components/ChangeRequest';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const triggeredHandsOnProjects = new Set<string>();
+// NOTE: 旧一括生成用の重複防止Setは廃止
+// const triggeredHandsOnProjects = new Set<string>();
 
 // TaskType with assignments
 type TaskWithAssignments = TaskType & {
@@ -729,45 +731,14 @@ export default function KanbanBoardPage() {
     fetchAssignments();
   }, [tasks]);
 
-  useEffect(() => {
-    if (!projectId || triggeredHandsOnProjects.has(projectId)) {
-      return;
-    }
-
-    const checkAndStartHandsOnGeneration = async () => {
-      try {
-        // Step 1: タスクを取得
-        const tasksResponse = await axios.get<TaskType[]>(`${API_URL}/task/project/${projectId}`);
-        const tasks = tasksResponse.data;
-
-        if (tasks.length === 0) {
-          console.log('[HandsOn] No tasks found, skipping hands-on generation');
-          return;
-        }
-        
-        // Step 2: 最初のタスクのハンズオンが既に存在するかチェック
-        const firstTask = tasks[0];
-        const handsOnResponse = await fetchTaskHandsOn(firstTask.task_id!);
-
-        if (handsOnResponse.has_hands_on) {
-          console.log('[HandsOn] Hands-on already exists, skipping generation');
-          triggeredHandsOnProjects.add(projectId);
-          return;
-        }
-
-        // Step 3: ハンズオン生成を開始
-        console.log('[HandsOn] Starting hands-on generation for project:', projectId);
-        await startHandsOnGeneration({ project_id: projectId });
-        triggeredHandsOnProjects.add(projectId);
-      } catch (error) {
-        console.error('[HandsOn] Failed to check/start hands-on generation:', error);
-        // エラーが発生してもSetに追加して、無限ループを防ぐ
-        triggeredHandsOnProjects.add(projectId);
-      }
-    };
-
-    checkAndStartHandsOnGeneration();
-  }, [projectId]);
+  // NOTE: 旧一括生成トリガーは廃止。インタラクティブハンズオンは各タスクページで個別に生成される
+  // useEffect(() => {
+  //   if (!projectId || triggeredHandsOnProjects.has(projectId)) {
+  //     return;
+  //   }
+  //   const checkAndStartHandsOnGeneration = async () => { ... };
+  //   checkAndStartHandsOnGeneration();
+  // }, [projectId]);
 
   const handleCardDragStart = useCallback((taskId?: string) => {
     if (taskId) {

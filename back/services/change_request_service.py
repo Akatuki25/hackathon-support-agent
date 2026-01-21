@@ -33,7 +33,6 @@ from models.project_base import (
 )
 from .base_service import BaseService
 from .task_hands_on_service import TaskHandsOnService
-from tasks.hands_on_tasks import generate_all_hands_on
 
 
 # =============================================================================
@@ -927,20 +926,13 @@ class ChangeRequestService(BaseService):
         # フラッシュしてタスクのIDを確定
         self.db.flush()
 
-        # 4. ハンズオン再生成ジョブを作成（追加・変更されたタスクが対象）
+        # 4. 変更されたタスクの既存ハンズオンを削除（インタラクティブで再生成される）
         if tasks_to_regenerate:
             target_task_ids = [task.task_id for task in tasks_to_regenerate]
-            hands_on_service = TaskHandsOnService(self.db)
-            job = hands_on_service.create_generation_job(
-                project_id=project_id,
-                target_task_ids=target_task_ids
-            )
-            # Celeryタスクを起動（非同期で再生成）
-            generate_all_hands_on.apply_async(
-                args=[str(job.job_id), str(project_id), job.config],
-                task_id=str(job.job_id)
-            )
-            print(f"[ChangeRequest] ハンズオン再生成ジョブ作成: {len(target_task_ids)} タスク")
+            deleted_count = self.db.query(TaskHandsOn).filter(
+                TaskHandsOn.task_id.in_(target_task_ids)
+            ).delete(synchronize_session=False)
+            print(f"[ChangeRequest] 既存ハンズオン削除: {deleted_count} 件（インタラクティブモードで再生成）")
 
         self.db.commit()
 
