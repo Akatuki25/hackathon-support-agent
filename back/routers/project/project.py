@@ -205,44 +205,47 @@ async def patch_project(project_id: str, project: ProjectPatch, db: Session = De
 async def get_project_progress(project_id: uuid.UUID, db: Session = Depends(get_db)):
     """
     プロジェクトの現在の進捗ステップを取得。
-    逆順で最大の進捗を判定し、次に行くべきステップを返す。
+    フロー順（前から）で判定し、最初に足りないステップを返す。
+
+    フロー: QA → 仕様書 → 機能要件 → 技術選定 → 機能構造化 → タスク
     """
     # プロジェクト存在確認
     db_project = db.query(ProjectBase).filter(ProjectBase.project_id == project_id).first()
     if db_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # 逆順で判定（最大の進捗を探す）
-
-    # タスクがあるか
-    has_tasks = db.query(Task).filter(Task.project_id == project_id).first() is not None
-    if has_tasks:
-        return {"step": ProjectStep.TASK_FLOW, "step_name": "task_flow"}
-
-    # StructuredFunctionsがあるか
-    has_functions = db.query(StructuredFunction).filter(StructuredFunction.project_id == project_id).first() is not None
-    if has_functions:
-        return {"step": ProjectStep.TASK_FLOW, "step_name": "task_flow"}
-
     # ProjectDocumentを取得
     doc = db.query(ProjectDocument).filter(ProjectDocument.project_id == project_id).first()
 
-    # frame_work_docがあるか
-    if doc and doc.frame_work_doc and doc.frame_work_doc.strip():
-        return {"step": ProjectStep.FUNCTION_STRUCTURING, "step_name": "function_structuring"}
-
-    # function_docがあるか
-    if doc and doc.function_doc and doc.function_doc.strip():
-        return {"step": ProjectStep.SELECT_FRAMEWORK, "step_name": "select_framework"}
-
-    # specificationがあるか
-    if doc and doc.specification and doc.specification.strip():
-        return {"step": ProjectStep.FUNCTION_SUMMARY, "step_name": "function_summary"}
-
-    # QAがあるか（specificationなしでQAあり = 回答中）
+    # 1. QAがあるか
     has_qa = db.query(QA).filter(QA.project_id == project_id).first() is not None
-    if has_qa:
+    if not has_qa:
+        return {"step": ProjectStep.HACK_QA, "step_name": "hack_qa"}
+
+    # 2. 仕様書があるか
+    has_specification = doc and doc.specification and doc.specification.strip()
+    if not has_specification:
+        return {"step": ProjectStep.HACK_QA, "step_name": "hack_qa"}
+
+    # 3. 機能要件があるか
+    has_function_doc = doc and doc.function_doc and doc.function_doc.strip()
+    if not has_function_doc:
         return {"step": ProjectStep.SUMMARY_QA, "step_name": "summary_qa"}
 
-    # 何もない場合はhackQA（QA生成/回答）
-    return {"step": ProjectStep.HACK_QA, "step_name": "hack_qa"}
+    # 4. 技術選定があるか
+    has_frame_work_doc = doc and doc.frame_work_doc and doc.frame_work_doc.strip()
+    if not has_frame_work_doc:
+        return {"step": ProjectStep.FUNCTION_SUMMARY, "step_name": "function_summary"}
+
+    # 5. 機能構造化があるか
+    has_functions = db.query(StructuredFunction).filter(StructuredFunction.project_id == project_id).first() is not None
+    if not has_functions:
+        return {"step": ProjectStep.SELECT_FRAMEWORK, "step_name": "select_framework"}
+
+    # 6. タスクがあるか
+    has_tasks = db.query(Task).filter(Task.project_id == project_id).first() is not None
+    if not has_tasks:
+        return {"step": ProjectStep.FUNCTION_STRUCTURING, "step_name": "function_structuring"}
+
+    # 全て完了 → タスクフロー
+    return {"step": ProjectStep.TASK_FLOW, "step_name": "task_flow"}

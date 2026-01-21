@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
-from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, chatHanson, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chatHanson, env_setup_agent, chat
+from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, chatHanson, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chatHanson, env_setup_agent, chat, change_request, idea_support, interactive_hands_on
 
 # ページコンテキスト対応チャットハンドラを登録（ChatRouterにデコレータで自動登録）
 from services.chat.handlers import (
@@ -92,11 +92,20 @@ app.include_router(ai_document.router, prefix="/api/ai_document", tags=["AIDocum
 # Phase 3: Task Hands-On Generation
 app.include_router(task_hands_on.router)
 
+# Interactive Hands-On (インタラクティブハンズオン生成)
+app.include_router(interactive_hands_on.router)
+
 # Environment Setup Agent
 app.include_router(env_setup_agent.router, prefix="/api/env_setup", tags=["EnvSetupAgent"])
 
 # Page Context Chat (ページコンテキスト対応チャット)
 app.include_router(chat.router, prefix="/api/chat", tags=["PageContextChat"])
+
+# Change Request (仕様変更リクエスト)
+app.include_router(change_request.router, prefix="/api", tags=["ChangeRequest"])
+
+# Idea Support (アイデア発想サポート)
+app.include_router(idea_support.router, prefix="/api/idea_support", tags=["IdeaSupport"])
 
 # 適宜追加
 

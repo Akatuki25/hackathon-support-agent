@@ -6,8 +6,12 @@ from json_repair import repair_json
 from copy import deepcopy
 
 class DeployService(BaseService):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, db=None):
+        super().__init__(db=db)
+        # デプロイ設定生成にはthinkingを使用
+        self.llm_with_thinking = self._load_llm(
+            self.default_model_provider, "gemini-2.5-flash", thinking_budget=None
+        )
 
     def generate_deploy_service(self, specification:str ,framework :str):
         """
@@ -52,7 +56,7 @@ class DeployService(BaseService):
                 # それ以外の場合は修復された文字列を返す
                 return repaired_json
 
-        chain = prompt_template | self.llm_flash_thinking | (lambda x: capture_output(x)) | parser
+        chain = prompt_template | self.llm_with_thinking | (lambda x: capture_output(x)) | parser
         result = chain.invoke({"specification": specification, "framework": framework})
         
         result["deploy"] = result["deploy"].replace("```markdown",'').replace("```",'')

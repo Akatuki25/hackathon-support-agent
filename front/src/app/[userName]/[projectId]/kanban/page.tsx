@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, GitBranch } from "lucide-react";
+
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, GitBranch, ChevronDown } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -11,34 +12,23 @@ import {
   useState,
   type DragEvent,
   type KeyboardEventHandler,
-} from "react";
-import { useSession } from "next-auth/react";
-import {
-  useTasksByProjectId,
-  postTaskAssignment,
-  deleteTaskAssignment,
-} from "@/libs/modelAPI/task";
-import {
-  TaskType,
-  TaskStatusEnum,
-  TaskAssignmentType,
-  ProjectMemberType,
-} from "@/types/modelTypes";
-import {
-  getProjectMembersByProjectId,
-  postProjectMember,
-} from "@/libs/modelAPI/project_member";
-import { getMemberByGithubName } from "@/libs/modelAPI/member";
-import {
-  startHandsOnGeneration,
-  fetchTaskHandsOn,
-} from "@/libs/service/taskHandsOnService";
-import CyberHeader from "@/components/Session/Header";
-import axios from "axios";
-import { AgentChatWidget } from "@/components/chat";
+
+} from 'react';
+import { useSession } from 'next-auth/react';
+import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
+import { TaskType, TaskStatusEnum, TaskAssignmentType, ProjectMemberType } from '@/types/modelTypes';
+import { getProjectMembersByProjectId, postProjectMember } from '@/libs/modelAPI/project_member';
+import { getMemberByGithubName } from '@/libs/modelAPI/member';
+// NOTE: 旧一括生成は廃止。各タスクページでインタラクティブ生成を使用
+// import { startHandsOnGeneration, fetchTaskHandsOn } from '@/libs/service/taskHandsOnService';
+import CyberHeader from '@/components/Session/Header';
+import axios from 'axios';
+import { AgentChatWidget } from '@/components/chat';
+import { ChangeRequestChatWidget } from '@/components/ChangeRequest';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const triggeredHandsOnProjects = new Set<string>();
+// NOTE: 旧一括生成用の重複防止Setは廃止
+// const triggeredHandsOnProjects = new Set<string>();
 
 // TaskType with assignments
 type TaskWithAssignments = TaskType & {
@@ -157,15 +147,12 @@ type KanbanNavigationProps = {
   projectId?: string;
   userName?: string;
   isUpdating: boolean;
+  onChangeRequest?: () => void;
 };
 
-function KanbanNavigation({
-  projectId,
-  userName,
-  isUpdating,
-}: KanbanNavigationProps) {
-  const overviewHref =
-    projectId && userName ? `/${userName}/${projectId}` : "#";
+
+function KanbanNavigation({ projectId, userName, isUpdating, onChangeRequest }: KanbanNavigationProps) {
+  const overviewHref = projectId && userName ? `/${userName}/${projectId}` : '#';
 
   return (
     <div className="mb-6 rounded-lg border border-purple-300/20 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-cyan-500/20 dark:bg-slate-950/60 dark:shadow-[0_0_20px_rgba(6,182,212,0.12)]">
@@ -181,15 +168,27 @@ function KanbanNavigation({
           )}
         </div>
 
-        {/* 戻るボタン - 右側に目立つように配置 */}
-        <Link
-          href={overviewHref}
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all duration-200 border-2 border-purple-500 bg-purple-500 text-white shadow-lg hover:bg-purple-600 hover:border-purple-600 dark:border-cyan-400 dark:bg-cyan-500/20 dark:text-cyan-100 dark:shadow-[0_0_20px_rgba(6,182,212,0.4)] dark:hover:bg-cyan-500/30 dark:hover:border-cyan-300 dark:hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]"
-        >
-          <ArrowLeft size={18} />
-          <GitBranch size={16} />
-          <span>依存グラフに戻る</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* 仕様変更ボタン */}
+          {onChangeRequest && (
+            <button
+              onClick={onChangeRequest}
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all duration-200 border-2 border-purple-500 bg-white text-purple-600 shadow-md hover:bg-purple-50 hover:border-purple-600 dark:border-purple-400 dark:bg-purple-500/20 dark:text-purple-100 dark:shadow-[0_0_20px_rgba(168,85,247,0.3)] dark:hover:bg-purple-500/30 dark:hover:border-purple-300"
+            >
+              <span>仕様変更</span>
+            </button>
+          )}
+
+          {/* 戻るボタン */}
+          <Link
+            href={overviewHref}
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all duration-200 border-2 border-purple-500 bg-purple-500 text-white shadow-lg hover:bg-purple-600 hover:border-purple-600 dark:border-cyan-400 dark:bg-cyan-500/20 dark:text-cyan-100 dark:shadow-[0_0_20px_rgba(6,182,212,0.4)] dark:hover:bg-cyan-500/30 dark:hover:border-cyan-300 dark:hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]"
+          >
+            <ArrowLeft size={18} />
+            <GitBranch size={16} />
+            <span>依存グラフに戻る</span>
+          </Link>
+        </div>
       </header>
 
       {isUpdating && (
@@ -362,11 +361,10 @@ function TaskCard({
       role="button"
       tabIndex={canDrag ? 0 : -1}
     >
-      <h3 className={`font-semibold ${styles.title}`}>{task.title}</h3>
+      <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
       {task.description && (
-        <p className={`mt-2 text-xs ${styles.description}`}>
-          {task.description}
-        </p>
+
+        <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
       )}
       <div
         className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}
@@ -387,6 +385,77 @@ function TaskCard({
         </div>
       </div>
     </article>
+  );
+}
+
+// カテゴリの定義と表示設定
+const TASK_CATEGORIES = [
+  { key: 'フロントエンド', label: 'フロントエンド', icon: '🎨', color: 'text-blue-600 dark:text-cyan-300' },
+  { key: 'バックエンド', label: 'バックエンド', icon: '⚙️', color: 'text-green-600 dark:text-emerald-300' },
+  { key: 'DB設計', label: 'DB設計', icon: '🗄️', color: 'text-purple-600 dark:text-purple-300' },
+  { key: 'other', label: 'その他', icon: '📋', color: 'text-gray-600 dark:text-slate-300' },
+] as const;
+
+// カテゴリセクション（トグル付き）
+type CategorySectionProps = {
+  categoryKey: string;
+  label: string;
+  icon: string;
+  color: string;
+  tasks: TaskWithAssignments[];
+  styles: ColumnStyle;
+  onDragStart: (taskId?: string) => void;
+  onDragEnd: () => void;
+  onSelect: (taskId?: string) => void;
+};
+
+function CategorySection({
+  categoryKey,
+  label,
+  icon,
+  color,
+  tasks,
+  styles,
+  onDragStart,
+  onDragEnd,
+  onSelect,
+}: CategorySectionProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  if (tasks.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      {/* カテゴリヘッダー（クリックでトグル） */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={`flex items-center gap-1.5 text-xs font-medium ${color} hover:opacity-80 transition-opacity w-full text-left`}
+      >
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+        />
+        <span>{icon}</span>
+        <span>{label}</span>
+        <span className="text-[10px] opacity-70">({tasks.length})</span>
+      </button>
+      {/* カテゴリ内のタスク */}
+      {isExpanded && (
+        <div className="flex flex-col gap-2 pl-1 w-full">
+          {tasks.map((task, index) => (
+            <TaskCard
+              key={task.task_id ?? `category-${categoryKey}-${index}`}
+              task={task}
+              styles={styles}
+              showStatus={true}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -417,10 +486,31 @@ function MemberColumn({
     event.preventDefault();
   };
 
+  // タスクをカテゴリ別にグループ化
+  const groupedTasks = useMemo(() => {
+    const groups: Record<string, TaskWithAssignments[]> = {
+      'フロントエンド': [],
+      'バックエンド': [],
+      'DB設計': [],
+      'other': [],
+    };
+
+    tasks.forEach((task) => {
+      const category = task.category || 'other';
+      if (groups[category]) {
+        groups[category].push(task);
+      } else {
+        groups['other'].push(task);
+      }
+    });
+
+    return groups;
+  }, [tasks]);
+
   return (
     <section
       aria-label={`${memberName} column`}
-      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit ${styles.column}`}
+      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit w-full min-w-[280px] overflow-hidden ${styles.column}`}
       data-member-id={memberId}
       onDragOver={handleDragOver}
       onDrop={onDrop}
@@ -447,18 +537,101 @@ function MemberColumn({
           {tasks.length}
         </span>
       </header>
-      <div className="flex flex-col gap-3 min-h-[150px]">
+      <div className="flex flex-col gap-4 min-h-[150px] w-full">
         {tasks.length === 0 ? (
           <p className={`mt-4 text-center text-xs ${styles.empty}`}>
             タスクなし
           </p>
         ) : (
-          tasks.map((task, index) => (
-            <TaskCard
-              key={task.task_id ?? `${memberId}-${index}`}
-              task={task}
+          TASK_CATEGORIES.map(({ key, label, icon, color }) => (
+            <CategorySection
+              key={key}
+              categoryKey={key}
+              label={label}
+              icon={icon}
+              color={color}
+              tasks={groupedTasks[key] || []}
               styles={styles}
-              showStatus={true}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              onSelect={onSelect}
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+// 未割り当てタスクをカテゴリ別に表示するコンポーネント
+type UnassignedColumnProps = {
+  tasks: TaskWithAssignments[];
+  styles: ColumnStyle;
+  onDrop: (event: DragEvent<HTMLDivElement>) => void;
+  onDragStart: (taskId?: string) => void;
+  onDragEnd: () => void;
+  onSelect: (taskId?: string) => void;
+};
+
+function UnassignedColumn({
+  tasks,
+  styles,
+  onDrop,
+  onDragStart,
+  onDragEnd,
+  onSelect,
+}: UnassignedColumnProps) {
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  // タスクをカテゴリ別にグループ化
+  const groupedTasks = useMemo(() => {
+    const groups: Record<string, TaskWithAssignments[]> = {
+      'フロントエンド': [],
+      'バックエンド': [],
+      'DB設計': [],
+      'other': [],
+    };
+
+    tasks.forEach((task) => {
+      const category = task.category || 'other';
+      if (groups[category]) {
+        groups[category].push(task);
+      } else {
+        groups['other'].push(task);
+      }
+    });
+
+    return groups;
+  }, [tasks]);
+
+  return (
+    <section
+      aria-label="未割り当て column"
+      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit w-full min-w-[280px] overflow-hidden ${styles.column}`}
+      data-member-id={UNASSIGNED_KEY}
+      onDragOver={handleDragOver}
+      onDrop={onDrop}
+    >
+      <header className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}>
+        <span className="truncate">未割り当て</span>
+        <span className={`rounded px-2 py-0.5 text-[10px] shrink-0 ${styles.count}`}>{tasks.length}</span>
+      </header>
+
+      <div className="flex flex-col gap-4 min-h-[400px] w-full">
+        {tasks.length === 0 ? (
+          <p className={`mt-4 text-center text-xs ${styles.empty}`}>タスクなし</p>
+        ) : (
+          TASK_CATEGORIES.map(({ key, label, icon, color }) => (
+            <CategorySection
+              key={key}
+              categoryKey={key}
+              label={label}
+              icon={icon}
+              color={color}
+              tasks={groupedTasks[key] || []}
+              styles={styles}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
               onSelect={onSelect}
@@ -477,13 +650,13 @@ export default function KanbanBoardPage() {
   const projectId = params?.projectId as string | undefined;
   const userName = params?.userName as string | undefined;
 
-  const { tasks, isLoading, isError } = useTasksByProjectId(projectId);
+  const { tasks, isLoading, isError, mutate: mutateTasks } = useTasksByProjectId(projectId);
   const [board, setBoard] = useState<BoardState>({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [projectMembers, setProjectMembers] = useState<ProjectMemberType[]>([]);
-  const [taskAssignments, setTaskAssignments] = useState<
-    Record<string, TaskAssignmentType[]>
-  >({});
+
+  const [taskAssignments, setTaskAssignments] = useState<Record<string, TaskAssignmentType[]>>({});
+  const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
   const draggingTaskIdRef = useRef<string | null>(null);
 
   // ログインユーザーをプロジェクトメンバーに自動追加
@@ -602,53 +775,15 @@ export default function KanbanBoardPage() {
     fetchAssignments();
   }, [tasks]);
 
-  useEffect(() => {
-    if (!projectId || triggeredHandsOnProjects.has(projectId)) {
-      return;
-    }
 
-    const checkAndStartHandsOnGeneration = async () => {
-      try {
-        // Step 1: タスクを取得
-        const tasksResponse = await axios.get<TaskType[]>(
-          `${API_URL}/task/project/${projectId}`,
-        );
-        const tasks = tasksResponse.data;
-
-        if (tasks.length === 0) {
-          console.log("[HandsOn] No tasks found, skipping hands-on generation");
-          return;
-        }
-
-        // Step 2: 最初のタスクのハンズオンが既に存在するかチェック
-        const firstTask = tasks[0];
-        const handsOnResponse = await fetchTaskHandsOn(firstTask.task_id!);
-
-        if (handsOnResponse.has_hands_on) {
-          console.log("[HandsOn] Hands-on already exists, skipping generation");
-          triggeredHandsOnProjects.add(projectId);
-          return;
-        }
-
-        // Step 3: ハンズオン生成を開始
-        console.log(
-          "[HandsOn] Starting hands-on generation for project:",
-          projectId,
-        );
-        await startHandsOnGeneration({ project_id: projectId });
-        triggeredHandsOnProjects.add(projectId);
-      } catch (error) {
-        console.error(
-          "[HandsOn] Failed to check/start hands-on generation:",
-          error,
-        );
-        // エラーが発生してもSetに追加して、無限ループを防ぐ
-        triggeredHandsOnProjects.add(projectId);
-      }
-    };
-
-    checkAndStartHandsOnGeneration();
-  }, [projectId]);
+  // NOTE: 旧一括生成トリガーは廃止。インタラクティブハンズオンは各タスクページで個別に生成される
+  // useEffect(() => {
+  //   if (!projectId || triggeredHandsOnProjects.has(projectId)) {
+  //     return;
+  //   }
+  //   const checkAndStartHandsOnGeneration = async () => { ... };
+  //   checkAndStartHandsOnGeneration();
+  // }, [projectId]);
 
   const handleCardDragStart = useCallback((taskId?: string) => {
     if (taskId) {
@@ -778,20 +913,16 @@ export default function KanbanBoardPage() {
             projectId={projectId}
             userName={userName}
             isUpdating={isUpdating}
+            onChangeRequest={() => setIsChangeRequestOpen(true)}
           />
 
           {/* カンバンボード */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 items-start">
-            {/* 未割り当てカラム */}
-            <MemberColumn
+            {/* 未割り当てカラム（カテゴリ別表示） */}
+            <UnassignedColumn
               key={UNASSIGNED_KEY}
-              memberId={UNASSIGNED_KEY}
-              memberName="未割り当て"
               tasks={board[UNASSIGNED_KEY] || []}
-              styles={
-                columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle()
-              }
-              isUnassigned={true}
+              styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle()}
               onDrop={handleMemberDrop(UNASSIGNED_KEY)}
               onDragStart={handleCardDragStart}
               onDragEnd={handleCardDragEnd}
@@ -824,6 +955,19 @@ export default function KanbanBoardPage() {
       {/* AI Chat Widget */}
       {projectId && (
         <AgentChatWidget projectId={projectId} pageContext="kanban" />
+      )}
+
+      {/* Change Request Chat Widget */}
+      {projectId && (
+        <ChangeRequestChatWidget
+          projectId={projectId}
+          isOpen={isChangeRequestOpen}
+          onClose={() => setIsChangeRequestOpen(false)}
+          onApproved={() => {
+            // タスクを再取得してカンバンを更新
+            mutateTasks();
+          }}
+        />
       )}
     </div>
   );

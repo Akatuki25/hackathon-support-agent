@@ -201,7 +201,7 @@ class CompleteTaskGenerationService(BaseService):
                 task["node_id"] = f"n{i}"
         
         # カテゴリと優先度に基づいて依存関係を決定
-        category_order = ["環境構築", "DB設計", "バックエンド", "フロントエンド", "統合", "デプロイ"]
+        category_order = ["DB設計", "バックエンド", "フロントエンド"]
         
         # カテゴリでグループ化
         by_category = {}

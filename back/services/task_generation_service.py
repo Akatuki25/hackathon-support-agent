@@ -492,7 +492,7 @@ class TaskGenerationService(BaseService):
       "function_name": "機能名",
       "task_name": "具体的なタスク名（レイヤーを明示）",
       "task_description": "タスクの詳細説明（統合された作業内容を明記）",
-      "category": "DB設計|バックエンド|フロントエンド|認証|統合",
+      "category": "DB設計|バックエンド|フロントエンド",
       "priority": "Must|Should|Could",
       "estimated_hours": 6.0,
       "reason": "このタスクが必要な理由"
@@ -595,7 +595,7 @@ class TaskGenerationService(BaseService):
       "function_name": "機能名",
       "task_name": "具体的なタスク名",
       "task_description": "タスクの詳細説明（統合された作業内容を明記）",
-      "category": "DB設計|バックエンド|フロントエンド|認証|統合",
+      "category": "DB設計|バックエンド|フロントエンド",
       "priority": "Must|Should|Could",
       "estimated_hours": 6.0,
       "reason": "このタスクが必要な理由"

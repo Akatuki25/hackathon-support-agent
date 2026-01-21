@@ -31,6 +31,10 @@ class QuestionOutput(BaseModel):
 class QuestionService(BaseService):
     def __init__(self, db: Session):
         super().__init__(db=db)
+        # 非ストリーミング版の質問生成にはthinkingを使用
+        self.llm_with_thinking = self._load_llm(
+            self.default_model_provider, "gemini-2.5-flash", thinking_budget=None
+        )
 
     async def generate_question(self, idea_prompt: str, project_id=None):
         """
@@ -43,7 +47,7 @@ class QuestionService(BaseService):
         prompt_template = ChatPromptTemplate.from_template(
             template=self.get_prompt("question_service", "generate_question")
         )
-        chain = prompt_template | self.llm_flash_thinking.with_structured_output(QuestionOutput)
+        chain = prompt_template | self.llm_with_thinking.with_structured_output(QuestionOutput)
 
         # LLM呼び出し（非同期）
         result: QuestionOutput = await chain.ainvoke({"idea_prompt": idea_prompt})

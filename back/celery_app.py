@@ -1,6 +1,6 @@
 """
 Celery アプリケーション設定
-Phase 3: タスクハンズオン生成の非同期処理基盤
+非同期処理基盤（ハンズオン一括生成は廃止、インタラクティブモードに移行）
 """
 from celery import Celery
 import os
@@ -60,10 +60,8 @@ celery_app.conf.update(
     worker_send_task_events=False,  # タスクイベント送信無効化（Flower不使用）
     broker_heartbeat=None,  # ハートビート無効化
 
-    # タスク自動検出（tasksディレクトリ配下）
-    imports=[
-        "tasks.hands_on_tasks",  # Phase 3: ハンズオン生成タスク
-    ],
+    # タスク自動検出（現在は一括生成タスク廃止のため空）
+    imports=[],
 )
 
 if __name__ == "__main__":
