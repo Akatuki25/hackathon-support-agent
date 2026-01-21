@@ -99,11 +99,12 @@ export const useTasksByProjectId = (projectId?: string) => {
   console.log("🔗 projectId:", projectId);
   console.log("🔗 TASK_URL:", TASK_URL);
 
-  const { data, error } = useSWR<TaskType[]>(key, fetcher);
+  const { data, error, mutate } = useSWR<TaskType[]>(key, fetcher);
   return {
     tasks: data,
     isLoading: !!key && !error && !data,
     isError: error,
+    mutate,
   };
 };
 

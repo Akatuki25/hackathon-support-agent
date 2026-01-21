@@ -57,6 +57,10 @@ class QAForRequirement(BaseModel):
 class FunctionService(BaseService):
     def __init__(self, db: Session):
         super().__init__(db=db)
+        # 機能要件生成・評価にはthinkingを使用（非ストリーミング処理）
+        self.llm_with_thinking = self._load_llm(
+            self.default_model_provider, "gemini-2.5-flash", thinking_budget=None
+        )
 
     def generate_functional_requirements(self, project_id: str, confidence_threshold: float = 0.7) -> Dict[str, Any]:
         """
@@ -114,7 +118,7 @@ class FunctionService(BaseService):
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
 
-        chain = prompt_template | self.llm_flash_thinking | parser
+        chain = prompt_template | self.llm_with_thinking | parser
         result = chain.invoke({
             "specification": project_doc.specification,
             "qa_context": qa_context
@@ -188,7 +192,7 @@ class FunctionService(BaseService):
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
 
-        chain = prompt_template | self.llm_flash_thinking | parser
+        chain = prompt_template | self.llm_with_thinking | parser
         result = chain.invoke({
             "specification": specification,
             "requirements_text": requirements_text
@@ -427,7 +431,7 @@ class FunctionService(BaseService):
         prompt_text = self.get_prompt("summary_service", "evaluate_specification")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_flash_thinking.with_structured_output(SpecificationFeedback)
+        chain = prompt_template | self.llm_with_thinking.with_structured_output(SpecificationFeedback)
 
         result: SpecificationFeedback = chain.invoke({
             "specification": project_doc.function_doc,
@@ -607,7 +611,7 @@ class FunctionService(BaseService):
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
 
-        chain = prompt_template | self.llm_flash_thinking | parser
+        chain = prompt_template | self.llm_with_thinking | parser
         result = await chain.ainvoke({
             "specification": specification,
             "function_doc": function_doc

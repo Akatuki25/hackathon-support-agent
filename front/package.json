@@ -36,6 +36,9 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.60.0",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "swr": "^2.3.6",
     "undici": "^7.16.0",
     "zod": "^3.25.76"

@@ -1,7 +1,7 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Clock, ChevronRight, Loader2, AlertCircle } from "lucide-react";
+import { Zap, Clock, ChevronRight, Loader2, AlertCircle, Lightbulb } from "lucide-react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 
@@ -9,6 +9,8 @@ import { postProject } from "@/libs/modelAPI/project";
 import { getMemberByGithubName } from "@/libs/modelAPI/member";
 import Header from "@/components/Session/Header";
 import HackthonSupportAgent from "@/components/Logo/HackthonSupportAgent";
+import { IdeaSupportModal } from "@/components/IdeaSupportModal";
+import { useIdleDetection } from "@/hooks/useIdleDetection";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -22,6 +24,51 @@ export default function Home() {
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [endTime, setEndTime] = useState(now);
+
+  // アイデア発想サポートモーダルの状態
+  const [isIdeaSupportModalOpen, setIsIdeaSupportModalOpen] = useState(false);
+  const [showIdleHint, setShowIdleHint] = useState(false);
+  const [hasShownHint, setHasShownHint] = useState(false); // 一度だけ表示
+
+  // アイドル検知: フォームが空の状態で1分放置すると吹き出しヒントを表示（一度だけ）
+  const handleIdleDetected = useCallback(() => {
+    // タイトルとアイデアが両方空で、モーダルが開いておらず、まだヒントを表示していない場合のみ
+    if (!title.trim() && !idea.trim() && !isIdeaSupportModalOpen && !hasShownHint) {
+      setShowIdleHint(true);
+      setHasShownHint(true);
+    }
+  }, [title, idea, isIdeaSupportModalOpen, hasShownHint]);
+
+  const { reset: resetIdleTimer, pause: pauseIdleDetection, resume: resumeIdleDetection } = useIdleDetection({
+    timeout: 60000, // 1分
+    onIdle: handleIdleDetected,
+    enabled: !loading && !isIdeaSupportModalOpen,
+  });
+
+  // モーダルを開く
+  const openIdeaSupportModal = useCallback(() => {
+    pauseIdleDetection();
+    setIsIdeaSupportModalOpen(true);
+    setShowIdleHint(false); // ヒントを非表示に
+  }, [pauseIdleDetection]);
+
+  // モーダルを閉じる
+  const closeIdeaSupportModal = useCallback(() => {
+    setIsIdeaSupportModalOpen(false);
+    resumeIdleDetection();
+    resetIdleTimer();
+  }, [resumeIdleDetection, resetIdleTimer]);
+
+  // アイデアが選択されたときの処理
+  const handleIdeaSelected = useCallback((selectedTitle: string, selectedIdea: string) => {
+    setTitle(selectedTitle);
+    setIdea(selectedIdea);
+  }, []);
+
+  // ヒントを閉じる
+  const dismissIdleHint = useCallback(() => {
+    setShowIdleHint(false);
+  }, []);
 
   // バリデーション: 終了日時が現在より未来かチェック
   const isEndDateTimeValid = useMemo(() => {
@@ -142,15 +189,25 @@ export default function Home() {
             <form id="project-form" onSubmit={handleSubmit}>
               {/* input space  */}
               <div className="mb-5">
-                <label
-                  className="flex items-center text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  <Zap
-                    size={16}
-                    className="mr-2 text-blue-600 dark:text-pink-500"
-                  />
-                  <span>プロジェクトタイトル</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    className="flex items-center text-gray-700 dark:text-gray-300"
+                  >
+                    <Zap
+                      size={16}
+                      className="mr-2 text-blue-600 dark:text-pink-500"
+                    />
+                    <span>プロジェクトタイトル</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={openIdeaSupportModal}
+                    className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 dark:text-cyan-400 dark:hover:text-cyan-300 transition-colors"
+                  >
+                    <Lightbulb size={14} />
+                    <span>アイデアが思いつかない方へ</span>
+                  </button>
+                </div>
                 <input
                   value={title}
                   onChange={(e) => {
@@ -282,6 +339,16 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* アイデア発想サポートウィジェット */}
+      <IdeaSupportModal
+        isOpen={isIdeaSupportModalOpen}
+        onOpen={openIdeaSupportModal}
+        onClose={closeIdeaSupportModal}
+        onIdeaSelected={handleIdeaSelected}
+        showIdleHint={showIdleHint}
+        onDismissHint={dismissIdleHint}
+      />
     </div>
   );
 }

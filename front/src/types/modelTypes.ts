@@ -395,3 +395,210 @@ export type PageActionsResponse = {
   page_context: PageContext;
   actions: ChatActionType[];
 };
+
+// --- Change Request Types (仕様変更リクエスト) ---
+
+/**
+ * 変更リクエストのステータス
+ */
+export type ChangeRequestStatus = 'PROPOSING' | 'APPROVED' | 'APPLIED' | 'CANCELLED';
+
+/**
+ * 影響項目
+ */
+export type ImpactItem = {
+  name: string;
+  reason: string;
+};
+
+/**
+ * 依存関係の変更
+ */
+export type DependencyChanges = {
+  add: string[];
+  remove: string[];
+};
+
+/**
+ * 影響サマリー
+ */
+export type ImpactSummary = {
+  tasks_to_discard: number;
+  tasks_to_add: number;
+  tasks_to_modify: number;
+  dependencies_to_add?: number;
+  dependencies_to_remove?: number;
+};
+
+/**
+ * 変更項目（名前と理由）
+ */
+export type ChangeItem = {
+  name: string;
+  reason: string;
+};
+
+/**
+ * 機能の追加
+ */
+export type FunctionChange = {
+  function_name: string;
+  description: string;
+  category: string;
+  priority: string;
+  reason: string;
+};
+
+/**
+ * 機能の変更
+ */
+export type FunctionModify = {
+  target_name: string;
+  description: string;
+  reason: string;
+};
+
+/**
+ * タスクの追加
+ */
+export type TaskChange = {
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  reason: string;
+};
+
+/**
+ * タスクの変更
+ */
+export type TaskModify = {
+  target_title: string;
+  description: string;
+  reason: string;
+};
+
+/**
+ * 機能の変更提案
+ */
+export type FunctionsProposal = {
+  keep: string[];
+  discard: ChangeItem[];
+  add: FunctionChange[];
+  modify: FunctionModify[];
+};
+
+/**
+ * タスクの変更提案
+ */
+export type TasksProposal = {
+  discard: ChangeItem[];
+  add: TaskChange[];
+  modify: TaskModify[];
+};
+
+/**
+ * 変更提案（API初期レスポンス用）
+ */
+export type ChangeProposal = {
+  understood_intent?: string;
+  approach: string;
+  // 概要レベルの変更（LLMの意図理解）
+  keep: (string | ImpactItem)[];
+  discard: (string | ImpactItem)[];
+  add: (string | ImpactItem)[];
+  modify: (string | ImpactItem)[];
+  // 機能の変更
+  functions: FunctionsProposal;
+  // タスクの変更（実際にカンバンに反映されるもの）
+  tasks: TasksProposal;
+  dependency_changes?: DependencyChanges;
+  impact?: ImpactSummary;
+};
+
+/**
+ * UI用の簡略化された提案
+ * 注: revise後もkeep/discard/add/modifyが正しく表示されるよう、
+ * トップレベルにもこれらのフィールドを含む
+ */
+export type ChangeProposalUI = {
+  understood_intent?: string;
+  approach: string;
+  // トップレベルのkeep/discard/add/modify（revise後も正しく表示するため）
+  keep?: (string | ImpactItem)[];
+  discard?: (string | ImpactItem)[];
+  add?: (string | ImpactItem)[];
+  modify?: (string | ImpactItem)[];
+  functions: FunctionsProposal;
+  tasks: TasksProposal;
+  dependency_changes?: DependencyChanges;
+  impact: ImpactSummary;
+};
+
+/**
+ * 対話メッセージ
+ */
+export type ChangeConversationMessage = {
+  role: 'user' | 'assistant';
+  content?: string;
+  type?: 'proposal';
+  summary?: string;
+  timestamp: string;
+};
+
+/**
+ * 変更リクエストのレスポンス
+ */
+export type ChangeRequestResponse = {
+  request_id: string;
+  status: ChangeRequestStatus;
+  proposal?: ChangeProposal | ChangeProposalUI;
+  conversation: ChangeConversationMessage[];
+};
+
+/**
+ * 変更リクエスト作成のリクエスト
+ */
+export type ProposeChangeRequest = {
+  project_id: string;
+  description: string;
+};
+
+/**
+ * 修正要求のリクエスト
+ */
+export type ReviseChangeRequest = {
+  feedback: string;
+};
+
+/**
+ * 承認後のレスポンス
+ */
+export type ApprovalResponse = {
+  request_id: string;
+  status: 'APPLIED';
+  changes_applied: {
+    specification_updated: boolean;
+    function_doc_updated: boolean;
+    functions_added: string[];
+    functions_deleted: string[];
+    functions_modified: string[];
+    tasks_added: string[];
+    tasks_deleted: string[];
+    tasks_modified: string[];
+  };
+};
+
+/**
+ * 変更リクエストの全情報
+ */
+export type FullChangeRequest = {
+  request_id: string;
+  project_id: string;
+  description: string;
+  status: ChangeRequestStatus;
+  proposal?: ChangeProposal | ChangeProposalUI;
+  conversation: ChangeConversationMessage[];
+  created_at?: string;
+  updated_at?: string;
+};

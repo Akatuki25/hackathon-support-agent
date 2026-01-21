@@ -54,6 +54,10 @@ class SummaryService(BaseService):
     def __init__(self,db: Session):
         super().__init__(db=db)
         self._cache = {}  # project_id -> (summary_snapshot, qa_snapshot, cache_name)
+        # 仕様書評価にはthinkingを使用（非ストリーミング処理）
+        self.llm_with_thinking = self._load_llm(
+            self.default_model_provider, "gemini-2.5-flash", thinking_budget=None
+        )
         # Google GenAI クライアント初期化
         if HAS_GENAI:
             self.genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -255,7 +259,7 @@ class SummaryService(BaseService):
         prompt_text = self.get_prompt("summary_service", "evaluate_specification")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_flash_thinking.with_structured_output(SpecificationFeedback)
+        chain = prompt_template | self.llm_with_thinking.with_structured_output(SpecificationFeedback)
 
         result: SpecificationFeedback = await chain.ainvoke({
             "specification": project_doc.specification,

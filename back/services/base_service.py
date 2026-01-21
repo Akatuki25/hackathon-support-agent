@@ -15,11 +15,11 @@ from models.project_base import ProjectDocument  # 未使用なら削除可
 from sqlalchemy.orm import Session
 
 # Streaming JSON parser
-from utils.streaming_json import IncrementalJsonEmitter, sse_event
+from utils.streaming_json import IncrementalJsonEmitter
 
-# Google Search Grounding 用
+# Google Search Grounding 用（新SDK: google-genai）
 try:
-    from google.ai.generativelanguage_v1beta.types import Tool as GenAITool
+    from google.genai import types as genai_types
     GROUNDING_AVAILABLE = True
 except ImportError:
     GROUNDING_AVAILABLE = False
@@ -100,27 +100,37 @@ class BaseService:
         # AIモデルの初期化
         # ※ APIキーそのものはログに出さない
         # gemini-2.5-flash は高性能でagenticタスクに適している
+        # デフォルトはすべてthinking無効（TTFT優先）
+        # thinkingが必要なサービスは _load_llm(thinking_budget=None) で独自に生成する
+        self.default_model_provider = default_model_provider
         self.llm_pro = self._load_llm(default_model_provider, "gemini-2.5-flash")
         self.llm_flash = self._load_llm(default_model_provider, "gemini-2.5-flash")
-        self.llm_flash_thinking = self._load_llm(default_model_provider, "gemini-2.5-flash")
         self.llm_lite = self._load_llm(default_model_provider, "gemini-2.5-flash-lite")
         self.logger.debug("LLMs initialized")
 
-    def _load_llm(self, model_provider: str, model_type: str, temperature: float = 0.5):
-        self.logger.debug("Loading LLM (provider=%s, model=%s, temp=%.2f)",
-                          model_provider, model_type, temperature)
+    def _load_llm(
+        self,
+        model_provider: str,
+        model_type: str,
+        temperature: float = 0.5,
+        thinking_budget: Optional[int] = 0,
+    ):
+        self.logger.debug("Loading LLM (provider=%s, model=%s, temp=%.2f, thinking_budget=%s)",
+                          model_provider, model_type, temperature, thinking_budget)
         try:
             match model_provider:
                 case "google":
                     has_key = bool(os.getenv("GOOGLE_API_KEY"))
                     if not has_key:
                         self.logger.warning("GOOGLE_API_KEY is not set")
-                    llm = ChatGoogleGenerativeAI(
-                        model=model_type,
-                        temperature=temperature,
-                        api_key=os.getenv("GOOGLE_API_KEY"),
-                        thinking_budget=0,  # Disable thinking for faster TTFT
-                    )
+                    kwargs: Dict[str, Any] = {
+                        "model": model_type,
+                        "temperature": temperature,
+                        "api_key": os.getenv("GOOGLE_API_KEY"),
+                    }
+                    if thinking_budget is not None:
+                        kwargs["thinking_budget"] = thinking_budget
+                    llm = ChatGoogleGenerativeAI(**kwargs)
                 case "openai":
                     has_key = bool(os.getenv("OPENAI_API_KEY"))
                     if not has_key:
@@ -191,7 +201,7 @@ class BaseService:
               [{"title": "...", "url": "...", "snippet": "..."}, ...]
         """
         if not GROUNDING_AVAILABLE:
-            self.logger.warning("Google Search Grounding is not available (missing google-genai package)")
+            self.logger.warning("Google Search Grounding is not available (missing google.genai.types)")
             # フォールバック: 通常のLLM呼び出し
             response = self.llm_flash.invoke(prompt)
             return response.content, []
@@ -205,9 +215,13 @@ class BaseService:
                 api_key=os.getenv("GOOGLE_API_KEY"),
             )
 
+            # 新SDK: google-genai の Tool/GoogleSearch を使用
+            grounding_tool = genai_types.Tool(
+                google_search=genai_types.GoogleSearch()
+            )
             response = llm_with_search.invoke(
                 prompt,
-                tools=[GenAITool(google_search={})],
+                tools=[grounding_tool],
             )
 
             # grounding metadata からURLを抽出
@@ -389,66 +403,3 @@ class BaseService:
         except Exception as e:
             self.logger.exception("Error during streaming: %s", e)
             raise
-
-    async def stream_chain_as_sse(
-        self,
-        chain,
-        inputs: Dict[str, Any],
-        item_model: Type[BaseModel],
-        event_name: str = "item",
-        mode: Literal["ndjson", "json_array"] = "ndjson",
-    ) -> AsyncGenerator[bytes, None]:
-        """
-        LangChainチェーンをストリーミングし、Server-Sent Events形式でyieldする。
-
-        FastAPIのStreamingResponseと組み合わせて使用する。
-
-        Args:
-            chain: LangChainのチェーン
-            inputs: チェーンへの入力
-            item_model: 各アイテムのPydanticモデル
-            event_name: SSEイベント名（デフォルト: "item"）
-            mode: 出力形式（"ndjson"推奨）
-
-        Yields:
-            SSE形式のバイト列
-
-        Example:
-            from starlette.responses import StreamingResponse
-
-            @router.post("/stream/{project_id}")
-            async def stream_questions(project_id: str):
-                async def generate():
-                    yield sse_event("start", {"ok": True})
-                    async for chunk in service.stream_chain_as_sse(
-                        chain=prompt | llm,
-                        inputs={"idea_prompt": idea_prompt},
-                        item_model=QuestionItem,
-                        event_name="qa",
-                    ):
-                        yield chunk
-                    yield sse_event("done", {"count": count})
-
-                return StreamingResponse(
-                    generate(),
-                    media_type="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
-                )
-        """
-        item_count = 0
-
-        try:
-            async for item in self.stream_chain_as_structured(
-                chain=chain,
-                inputs=inputs,
-                item_model=item_model,
-                mode=mode,
-            ):
-                item_count += 1
-                yield sse_event(event_name, item.model_dump())
-
-            yield sse_event("done", {"count": item_count})
-
-        except Exception as e:
-            self.logger.exception("Error during SSE streaming: %s", e)
-            yield sse_event("error", {"message": str(e)})
