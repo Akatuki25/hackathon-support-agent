@@ -35,8 +35,8 @@ export default function TaskHandsOnPage() {
   }, [taskId]);
 
   // ハンズオン完了ハンドラー
-  const handleHandsOnComplete = useCallback((handsOnId: string) => {
-    console.log('Hands-on completed:', handsOnId);
+  const handleHandsOnComplete = useCallback(() => {
+    console.log('Hands-on completed');
   }, []);
 
   // スタイルクラス

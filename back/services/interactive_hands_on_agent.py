@@ -25,12 +25,16 @@ from models.project_base import Task, TaskHandsOn, TaskDependency
 
 class GenerationPhase(str, Enum):
     """生成フェーズ"""
+    DEPENDENCY_CHECK = "dependency_check"  # 依存タスクチェック
+    WAITING_DEPENDENCY_DECISION = "waiting_dep_decision"  # 依存タスク対応方針待ち
     CONTEXT = "context"                    # タスクの位置づけ説明
-    OVERVIEW = "overview"                  # 概要生成
-    CHOICE_REQUIRED = "choice"             # 選択が必要
-    WAITING_CHOICE_CONFIRM = "waiting_choice_confirm"  # 選択確認待ち
+    OVERVIEW = "overview"                  # 概要生成（生成のみ、技術選定は別）
+    TECH_CHECK = "tech_check"              # 技術選定判断
+    CHOICE_REQUIRED = "choice"             # 選択肢提示待ち
+    WAITING_CHOICE_CONFIRM = "waiting_choice_confirm"  # 決定済み技術の確認待ち
     IMPLEMENTATION_PLANNING = "impl_planning"  # 実装ステップ計画
     IMPLEMENTATION_STEP = "impl_step"      # 実装ステップ生成中
+    WAITING_STEP_CHOICE = "waiting_step_choice"  # ステップ内技術選定待ち
     WAITING_STEP_COMPLETE = "waiting_step" # ステップ完了待ち
     VERIFICATION = "verification"          # 動作確認
     COMPLETE = "complete"                  # 完了
@@ -86,6 +90,27 @@ class Decision:
 
 
 @dataclass
+class DependencyTaskInfo:
+    """依存タスク情報"""
+    task_id: str
+    title: str
+    description: str
+    hands_on_status: str  # "completed" | "in_progress" | "not_started"
+    implementation_summary: Optional[str] = None  # 完了済みの場合のサマリー
+
+
+@dataclass
+class StepRequirements:
+    """ステップ内の要件（概念説明・技術選定）"""
+    objective: str  # このステップの目的
+    prerequisite_concept: Optional[str] = None  # 前提概念名（例: "DBマイグレーション"）
+    prerequisite_brief: Optional[str] = None  # 前提概念の簡潔な説明
+    tech_selection_needed: bool = False  # 技術選定が必要か
+    tech_selection_question: Optional[str] = None  # 選定の質問
+    tech_selection_options: List[Dict[str, str]] = field(default_factory=list)  # 選択肢
+
+
+@dataclass
 class SessionState:
     """セッション状態"""
     session_id: str
@@ -99,10 +124,20 @@ class SessionState:
     # 実装ステップ管理
     implementation_steps: List[ImplementationStep] = field(default_factory=list)
     current_step_index: int = 0
+    # ステップ内の要件（概念説明・技術選定）
+    current_step_requirements: Optional[StepRequirements] = None
+    # ステップごとの技術選択（step_number -> 選択内容）
+    step_choices: Dict[int, Dict[str, Any]] = field(default_factory=dict)
     # ユーザーが採用した決定事項（次のステップ生成に反映）
     decisions: List[Decision] = field(default_factory=list)
     # 保留中の変更提案（ユーザーの採用確認待ち）
     pending_decision: Optional[Dict[str, str]] = None
+    # 依存タスク情報
+    predecessor_tasks: List[DependencyTaskInfo] = field(default_factory=list)
+    successor_tasks: List[DependencyTaskInfo] = field(default_factory=list)
+    dependency_decision: Optional[str] = None  # "proceed" | "mock" | "redirect"
+    # プロジェクト全体の実装概要（重複実装回避用）
+    project_implementation_overview: str = ""
     # タイムスタンプ
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
@@ -116,25 +151,19 @@ class InteractiveHandsOnAgent:
     各ステップ完了時にDBに保存し、中断しても進捗を保持する。
     """
 
-    # 選択ポイント検出用キーワード
-    CHOICE_KEYWORDS = [
-        "ライブラリ", "フレームワーク", "パッケージ", "ツール",
-        "認証", "DB", "データベース", "ORM", "API", "状態管理",
-        "スタイリング", "CSS", "UI", "コンポーネント", "マップ", "地図",
-        "選定", "選択", "比較", "検討"
-    ]
-
     def __init__(
         self,
         db: Session,
         task: Task,
         project_context: Dict,
-        config: Optional[Dict] = None
+        config: Optional[Dict] = None,
+        dependency_context: Optional[Dict] = None
     ):
         self.db = db
         self.task = task
         self.project_context = project_context
         self.config = config or {}
+        self.dependency_context = dependency_context or {}
 
         # LLM初期化
         self.llm = ChatGoogleGenerativeAI(
@@ -208,61 +237,207 @@ class InteractiveHandsOnAgent:
 
         return " → ".join(parts)
 
-    def _detect_choice_points(self) -> List[Dict]:
-        """タスク説明から選択ポイントを検出"""
-        choice_points = []
-        task_text = f"{self.task.title} {self.task.description or ''}"
+    async def _check_tech_selection(self, session: SessionState, force_choice: bool = False) -> Dict:
+        """
+        技術選定が必要かどうかを判断し、必要なら選択肢も生成
 
-        for keyword in self.CHOICE_KEYWORDS:
-            if keyword in task_text:
-                choice_type = self._get_choice_type(keyword)
-                if choice_type and choice_type not in [cp["type"] for cp in choice_points]:
-                    choice_points.append({
-                        "type": choice_type,
-                        "keyword": keyword,
-                        "question": self._get_choice_question(choice_type)
-                    })
+        Returns:
+            選択が必要な場合:
+            {
+                "needs_choice": True,
+                "question": "何を選定するか",
+                "options": [{"id": "...", "label": "...", "description": "...", "pros": [...], "cons": [...]}]
+            }
+            既に決まっている場合:
+            {
+                "needs_choice": False,
+                "decided": "PostgreSQL",
+                "reason": "タスク説明で指定済み"
+            }
+        """
+        if force_choice:
+            # 強制的に選択肢を出す
+            prompt = f"""
+以下のタスクで技術選定の選択肢を提示してください。
 
-        return choice_points
+## タスク情報
+- タイトル: {self.task.title}
+- 説明: {self.task.description or 'なし'}
 
-    def _get_choice_type(self, keyword: str) -> Optional[str]:
-        """キーワードから選択タイプを判定"""
-        mapping = {
-            "ライブラリ": "library",
-            "フレームワーク": "framework",
-            "パッケージ": "library",
-            "ツール": "tool",
-            "認証": "auth",
-            "DB": "database",
-            "データベース": "database",
-            "ORM": "orm",
-            "API": "api",
-            "状態管理": "state_management",
-            "スタイリング": "styling",
-            "CSS": "styling",
-            "UI": "ui_library",
-            "コンポーネント": "ui_library",
-            "マップ": "map_library",
-            "地図": "map_library",
-        }
-        return mapping.get(keyword)
+## プロジェクト情報
+- 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
+- フレームワーク: {self.project_context.get('framework', '未設定')}
 
-    def _get_choice_question(self, choice_type: str) -> str:
-        """選択タイプに応じた質問文を生成"""
-        questions = {
-            "library": "使用するライブラリを選定しましょう",
-            "framework": "使用するフレームワークを選定しましょう",
-            "tool": "使用するツールを選定しましょう",
-            "auth": "認証方式を選定しましょう",
-            "database": "データベースを選定しましょう",
-            "orm": "ORMを選定しましょう",
-            "api": "API設計方式を選定しましょう",
-            "state_management": "状態管理ライブラリを選定しましょう",
-            "styling": "スタイリング手法を選定しましょう",
-            "ui_library": "UIライブラリを選定しましょう",
-            "map_library": "地図ライブラリを選定しましょう",
-        }
-        return questions.get(choice_type, "技術を選定しましょう")
+## 出力形式（JSON）
+{{
+  "needs_choice": true,
+  "question": "何を選定するか",
+  "options": [
+    {{"id": "option1", "label": "選択肢名", "description": "説明", "pros": ["メリット"], "cons": ["デメリット"]}}
+  ]
+}}
+"""
+        else:
+            prompt = f"""
+以下のタスクを実装するにあたり、技術選定が必要かどうか判断してください。
+
+## タスク情報
+- タイトル: {self.task.title}
+- 説明: {self.task.description or 'なし'}
+
+## プロジェクト情報
+- 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
+- フレームワーク: {self.project_context.get('framework', '未設定')}
+
+## プロジェクト内で既に決定済みの技術
+{session.project_implementation_overview or 'なし'}
+
+## 判断基準
+- タスク説明で既に技術が明記されている場合（例: PostgreSQL、REST API等） → 選択不要
+- プロジェクトで既に決定済みの場合 → 選択不要
+- 複数の選択肢があり得て、ユーザーに確認すべき場合のみ → 選択必要
+
+## 出力形式（JSON）
+選択が必要な場合:
+{{
+  "needs_choice": true,
+  "question": "何を選定するか",
+  "options": [
+    {{"id": "option1", "label": "選択肢名", "description": "説明", "pros": ["メリット"], "cons": ["デメリット"]}}
+  ]
+}}
+
+既に決まっている場合:
+{{
+  "needs_choice": false,
+  "decided": "決定済みの技術名",
+  "reason": "判断理由"
+}}
+"""
+
+        try:
+            response = await self.llm.ainvoke([
+                SystemMessage(content="技術選定を判断するアシスタントです。JSON形式で回答してください。"),
+                HumanMessage(content=prompt)
+            ])
+
+            content = response.content
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+
+            return json.loads(content.strip())
+        except Exception:
+            return {"needs_choice": False, "decided": None, "reason": "判断できませんでした"}
+
+    async def _check_step_requirements(
+        self,
+        step: 'ImplementationStep',
+        session: 'SessionState'
+    ) -> 'StepRequirements':
+        """
+        ステップ内の要件をチェック（概念説明・技術選定が必要かを判断）
+
+        1回のLLMリクエストで以下を取得：
+        - objective: ステップの目的
+        - prerequisite: 前提概念（必要な場合）
+        - tech_selection: 技術選定（必要な場合）
+
+        Returns:
+            StepRequirements オブジェクト
+        """
+        # 既にこのステップで選択済みの技術があれば含める
+        step_choice_text = ""
+        if step.step_number in session.step_choices:
+            choice = session.step_choices[step.step_number]
+            step_choice_text = f"\n## このステップで選択済みの技術\n- {choice.get('selected', '')}\n"
+
+        # プロジェクトで決定済みの技術
+        decided_tech_text = ""
+        if session.project_implementation_overview:
+            decided_tech_text = f"\n## プロジェクトで決定済みの技術\n{session.project_implementation_overview}\n"
+
+        prompt = f"""
+以下のステップを実装するにあたり、前提知識の説明と技術選定が必要かを判断してください。
+
+## タスク情報
+- タイトル: {self.task.title}
+- 説明: {self.task.description or 'なし'}
+- カテゴリ: {self.task.category or '未分類'}
+
+## 現在のステップ
+- ステップ{step.step_number}: {step.title}
+- 説明: {step.description}
+
+## プロジェクト情報
+- 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
+- フレームワーク: {self.project_context.get('framework', '未設定')}
+{decided_tech_text}
+{step_choice_text}
+
+## 判断基準
+
+### 前提概念（prerequisite）
+- このステップで使う概念・用語で、初心者が知らない可能性があるものがあれば提示
+- 概念名と簡潔な説明（1-2文）のみ
+- 既知の基本概念（変数、関数など）は不要
+
+### 技術選定（tech_selection）
+- このステップで複数の選択肢がある技術決定が必要な場合のみ
+- プロジェクトや前のステップで既に決まっている場合は不要
+- 選択肢は代表的なもの2-4個、それぞれ名前と簡潔な説明
+
+## 出力形式（JSON）
+{{
+  "objective": "このステップで何をするか（1文）",
+  "prerequisite": {{
+    "needed": true/false,
+    "concept": "概念名（例: DBマイグレーション）",
+    "brief": "簡潔な説明（1-2文）"
+  }},
+  "tech_selection": {{
+    "needed": true/false,
+    "question": "選定の質問（例: マイグレーションツールを選びましょう）",
+    "options": [
+      {{"id": "tool1", "name": "ツール名", "description": "簡潔な説明"}}
+    ]
+  }}
+}}
+"""
+
+        try:
+            response = await self.llm.ainvoke([
+                SystemMessage(content="ハンズオンレクチャーのアシスタントです。初心者向けに必要な説明を判断してJSON形式で回答してください。"),
+                HumanMessage(content=prompt)
+            ])
+
+            content = response.content
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+
+            data = json.loads(content.strip())
+
+            # StepRequirements オブジェクトを構築
+            prereq = data.get("prerequisite", {})
+            tech = data.get("tech_selection", {})
+
+            return StepRequirements(
+                objective=data.get("objective", step.description),
+                prerequisite_concept=prereq.get("concept") if prereq.get("needed") else None,
+                prerequisite_brief=prereq.get("brief") if prereq.get("needed") else None,
+                tech_selection_needed=tech.get("needed", False),
+                tech_selection_question=tech.get("question") if tech.get("needed") else None,
+                tech_selection_options=tech.get("options", []) if tech.get("needed") else []
+            )
+        except Exception:
+            # エラー時はデフォルト（選定不要）
+            return StepRequirements(
+                objective=step.description,
+                tech_selection_needed=False
+            )
 
     async def _save_progress(self, session: SessionState, state: str = "generating") -> TaskHandsOn:
         """進捗をDBに保存（中間保存）"""
@@ -312,6 +487,11 @@ class InteractiveHandsOnAgent:
                 "options": session.pending_input.options
             }
 
+        # ステップごとの技術選択をJSON化（キーをstrに変換）
+        step_choices_data = {
+            str(k): v for k, v in session.step_choices.items()
+        }
+
         user_interactions_data = {
             "choices": interactions,
             "inputs": session.user_inputs,
@@ -320,8 +500,15 @@ class InteractiveHandsOnAgent:
             "phase": session.phase.value,
             "decisions": decisions_data,
             "pending_decision": pending_decision_data,
-            "pending_input": pending_input_data
+            "pending_input": pending_input_data,
+            "step_choices": step_choices_data,
+            "project_implementation_overview": session.project_implementation_overview
         }
+
+        # 完了時は実装リソースサマリーを生成
+        implementation_resources = None
+        if state == "completed":
+            implementation_resources = await self._generate_implementation_resources(session)
 
         if existing:
             existing.overview = session.generated_content.get("overview", "")
@@ -333,6 +520,8 @@ class InteractiveHandsOnAgent:
             existing.generation_state = state
             existing.session_id = session.session_id
             existing.updated_at = datetime.now()
+            if implementation_resources:
+                existing.implementation_resources = implementation_resources
             self.db.commit()
             return existing
         else:
@@ -347,99 +536,164 @@ class InteractiveHandsOnAgent:
                 generation_mode="interactive",
                 generation_state=state,
                 session_id=session.session_id,
-                user_interactions=user_interactions_data
+                user_interactions=user_interactions_data,
+                implementation_resources=implementation_resources
             )
             self.db.add(hands_on)
             self.db.commit()
             self.db.refresh(hands_on)
             return hands_on
 
-    async def _generate_choice_options(
-        self,
-        choice_type: str,
-        choice_question: str
-    ) -> ChoiceRequest:
-        """選択肢をAIで生成"""
+    async def _summarize_implementation(self, predecessor_task: Dict) -> Optional[str]:
+        """
+        完了済み依存タスクの実装内容をサマリー
+
+        Args:
+            predecessor_task: 依存タスク情報（hands_on_contentを含む）
+
+        Returns:
+            実装サマリー（例：「POST /api/chat エンドポイント実装済み、Gemini API統合済み」）
+        """
+        hands_on_content = predecessor_task.get("hands_on_content")
+        if not hands_on_content:
+            return None
+
+        overview = hands_on_content.get("overview", "")
+        steps = hands_on_content.get("steps", [])
+        impl_summary = hands_on_content.get("implementation_summary", "")
+
+        # ステップ内容を結合
+        steps_text = "\n".join([
+            f"- {s.get('title', '')}: {s.get('content', '')[:300]}"
+            for s in steps[:5]  # 最大5ステップ
+        ])
+
         prompt = f"""
-以下のタスクで{choice_question}。
-主要な選択肢を3つ程度提案してください。
+以下の完了済みタスクの実装内容から、「何が実装されたか」を簡潔に箇条書きでまとめてください。
+特にAPIエンドポイント、コンポーネント、データ構造、外部サービス連携などを抽出してください。
+
+## タスク
+タイトル: {predecessor_task.get('title', '')}
+説明: {predecessor_task.get('description', '')}
+
+## 概要
+{overview[:500]}
+
+## 実装ステップ
+{steps_text}
+
+## 実装内容サマリー
+{impl_summary[:500]}
+
+## 出力形式
+- 実装されたAPIエンドポイント（あれば）
+- 実装されたコンポーネント/クラス（あれば）
+- 連携した外部サービス（あれば）
+- その他の実装内容
+
+簡潔に3-5行で出力してください。
+"""
+
+        try:
+            response = await self.llm.ainvoke([
+                SystemMessage(content="実装内容を簡潔にまとめるアシスタントです。"),
+                HumanMessage(content=prompt)
+            ])
+            return response.content.strip()
+        except Exception as e:
+            return f"サマリー生成エラー: {str(e)}"
+
+    async def _generate_implementation_resources(self, session: SessionState) -> Dict:
+        """
+        タスク完了時に実装済みリソースをJSON形式で抽出
+
+        Returns:
+            {
+                "apis": ["POST /api/chat", "GET /api/users/{id}"],
+                "components": ["ChatComponent", "UserList"],
+                "services": ["GeminiService"],
+                "files": ["src/app/api/chat/route.ts"],
+                "summary": "チャットAPIとGemini統合を実装"
+            }
+        """
+        overview = session.generated_content.get("overview", "")
+        implementation = session.generated_content.get("implementation", "")
+
+        # ステップ内容を取得
+        steps_text = ""
+        for step in session.implementation_steps:
+            if step.content:
+                steps_text += f"\n### {step.title}\n{step.content[:500]}\n"
+
+        # ユーザーの技術選択を取得
+        choices_text = ""
+        if session.user_choices:
+            choices_text = "\n## 技術選択\n"
+            for choice_id, choice_data in session.user_choices.items():
+                selected = choice_data.get("selected", "")
+                if selected:
+                    choices_text += f"- {selected}\n"
+
+        prompt = f"""
+以下の完了したタスクから、実装されたリソースと技術決定をJSON形式で抽出してください。
 
 ## タスク情報
 - タイトル: {self.task.title}
 - 説明: {self.task.description or 'なし'}
-- カテゴリ: {self.task.category or '未分類'}
 
-## プロジェクト情報
-- 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
-- フレームワーク: {self.project_context.get('framework', '未設定')}
+## 概要
+{overview[:500]}
 
+## 実装内容
+{implementation[:1500]}
+
+## ステップ
+{steps_text[:1500]}
+{choices_text}
 ## 出力形式（JSON）
 {{
-  "options": [
-    {{
-      "id": "option1",
-      "label": "選択肢名",
-      "description": "簡潔な説明（1行）",
-      "pros": ["メリット1", "メリット2"],
-      "cons": ["デメリット1"]
-    }}
-  ],
-  "research_hint": "調べる際のヒント（任意）"
+  "apis": ["POST /api/xxx", "GET /api/yyy"],  // 実装したAPIエンドポイント
+  "components": ["XxxComponent"],  // 実装したReactコンポーネント等
+  "services": ["XxxService"],  // 実装したサービスクラス等
+  "files": ["src/xxx/yyy.ts"],  // 主要な作成・修正ファイル
+  "tech_decisions": ["REST APIを使用", "TypeScriptを採用"],  // 技術決定
+  "summary": "〇〇機能を実装"  // 1行サマリー
 }}
+
+**注意:**
+- 存在しないものは空配列[]にする
+- ファイルパスは主要なもののみ（最大5つ）
+- summaryは20文字以内
 """
 
-        response = await self.llm.ainvoke([
-            SystemMessage(content="あなたは技術選定のエキスパートです。JSON形式で回答してください。"),
-            HumanMessage(content=prompt)
-        ])
-
         try:
+            response = await self.llm.ainvoke([
+                SystemMessage(content="実装内容からリソースを抽出するアシスタントです。JSON形式で回答してください。"),
+                HumanMessage(content=prompt)
+            ])
+
             content = response.content
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0]
             elif "```" in content:
                 content = content.split("```")[1].split("```")[0]
 
-            data = json.loads(content.strip())
-
-            options = [
-                ChoiceOption(
-                    id=opt["id"],
-                    label=opt["label"],
-                    description=opt["description"],
-                    pros=opt.get("pros", []),
-                    cons=opt.get("cons", [])
-                )
-                for opt in data.get("options", [])
-            ]
-
-            return ChoiceRequest(
-                choice_id=f"choice_{choice_type}_{uuid.uuid4().hex[:8]}",
-                question=choice_question,
-                options=options,
-                allow_custom=True,
-                skip_allowed=True,
-                research_hint=data.get("research_hint")
-            )
-        except (json.JSONDecodeError, KeyError):
-            return ChoiceRequest(
-                choice_id=f"choice_{choice_type}_{uuid.uuid4().hex[:8]}",
-                question=choice_question,
-                options=[
-                    ChoiceOption(
-                        id="custom",
-                        label="自分で調べて決める",
-                        description="ドキュメントや記事を参考に自分で選定します"
-                    )
-                ],
-                allow_custom=True,
-                skip_allowed=True,
-                research_hint="公式ドキュメントや比較記事を参考にしてください"
-            )
+            return json.loads(content.strip())
+        except Exception as e:
+            # エラー時は空のリソース
+            return {
+                "apis": [],
+                "components": [],
+                "services": [],
+                "files": [],
+                "tech_decisions": [],
+                "summary": self.task.title[:20] if self.task.title else ""
+            }
 
     async def _generate_implementation_plan(
         self,
-        user_choices: Dict[str, Any]
+        user_choices: Dict[str, Any],
+        session: SessionState
     ) -> List[ImplementationStep]:
         """MVPアプローチで実装ステップを計画"""
         choices_text = ""
@@ -447,17 +701,77 @@ class InteractiveHandsOnAgent:
             for choice_id, choice_data in user_choices.items():
                 choices_text += f"- 選択: {choice_data.get('selected', 'なし')}\n"
 
+        # 依存タスクの実装サマリーを取得（直接依存のみ詳細）
+        dependency_summary = ""
+        if session.predecessor_tasks:
+            completed_deps = [
+                dep for dep in session.predecessor_tasks
+                if dep.hands_on_status == "completed" and dep.implementation_summary
+            ]
+            if completed_deps:
+                dependency_summary = "\n## 直接依存タスクで実装済みの内容（必ず利用すること）\n"
+                for dep in completed_deps:
+                    dependency_summary += f"\n### {dep.title}\n{dep.implementation_summary}\n"
+
+        # プロジェクト全体の実装概要（高レベル、重複回避用）
+        project_overview_section = ""
+        if session.project_implementation_overview:
+            project_overview_section = f"""
+## プロジェクト内で実装済みの機能（重複実装を避けること）
+以下の機能は既に他のタスクで実装済みです。再実装せず、既存のものを利用してください。
+
+{session.project_implementation_overview}
+"""
+
+        # モック実装モードの場合の追加指示
+        mock_instruction = ""
+        if session.dependency_decision == "mock":
+            incomplete_deps = [
+                dep for dep in session.predecessor_tasks
+                if dep.hands_on_status != "completed"
+            ]
+            if incomplete_deps:
+                dep_titles = ", ".join([dep.title for dep in incomplete_deps])
+                mock_instruction = f"""
+## モック実装について
+依存タスク「{dep_titles}」が未完了のため、モック実装で進めます。
+- 依存タスクとの接続部分はインターフェースを明確に定義
+- モックデータやスタブ関数を使用
+- 後で結合しやすいように設計
+"""
+
+        # 後続タスク情報を取得（スコープ判断用）
+        successor_tasks_text = ""
+        if session.successor_tasks:
+            successor_tasks_text = "\n## このタスクの後に実装予定のタスク（これらはこのタスクのスコープ外）\n"
+            for st in session.successor_tasks:
+                successor_tasks_text += f"- {st.title}: {st.description[:100] if st.description else 'なし'}\n"
+
         prompt = f"""
 以下のタスクをMVPアプローチで段階的に実装する計画を立ててください。
+{dependency_summary}
+{project_overview_section}
 
 ## タスク情報
 - タイトル: {self.task.title}
 - 説明: {self.task.description or 'なし'}
+- カテゴリ: {self.task.category or '未分類'}
 {choices_text}
+{successor_tasks_text}
 
 ## プロジェクト情報
 - 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
 - フレームワーク: {self.project_context.get('framework', '未設定')}
+{mock_instruction}
+
+## 重要：スコープの制約
+**このタスクのスコープ（カテゴリ: {self.task.category or '未分類'}）内のみで計画を立ててください。**
+
+- タスクのタイトルと説明に記載された範囲のみを実装する
+- 後続タスクとして挙げられている内容は絶対に含めない
+- 例: 「DB設計」タスクならスキーマ定義・マイグレーションまで。API実装は後続タスク
+- 例: 「モデル定義」タスクならモデルクラスの作成まで。CRUD操作は後続タスク
+- スコープ外の実装が必要に見えても、それは後続タスクで行う
 
 ## 計画のルール
 1. 最初のステップは必ず「プロジェクト/ファイルの作成・初期設定」
@@ -465,6 +779,8 @@ class InteractiveHandsOnAgent:
 3. その後、コア機能を段階的に追加
 4. 各ステップは独立して動作確認できる単位にする
 5. ステップ数は3〜5個程度
+6. **実装済みの機能は再実装しない**
+7. **後続タスクの内容は絶対に含めない**
 
 ## 出力形式（JSON）
 {{
@@ -513,13 +829,21 @@ class InteractiveHandsOnAgent:
         step: ImplementationStep,
         user_choices: Dict[str, Any],
         previous_steps: List[ImplementationStep],
-        decisions: List[Decision] = None
+        decisions: List[Decision] = None,
+        session: SessionState = None
     ) -> AsyncGenerator[str, None]:
         """ステップの実装内容をストリーミング生成"""
+        # タスク全体の選択
         choices_text = ""
         if user_choices:
             for choice_id, choice_data in user_choices.items():
                 choices_text += f"- 選択: {choice_data.get('selected', 'なし')}\n"
+
+        # このステップで選択した技術
+        step_choice_text = ""
+        if session and step.step_number in session.step_choices:
+            step_choice = session.step_choices[step.step_number]
+            step_choice_text = f"\n## このステップで選択した技術（必ずこれを使って実装すること）\n- **{step_choice.get('selected', '')}**\n"
 
         prev_steps_text = ""
         if previous_steps:
@@ -534,13 +858,24 @@ class InteractiveHandsOnAgent:
             for d in decisions:
                 decisions_context += f"- **{d.description}**（ステップ{d.step_number}で決定）\n"
 
+        # プロジェクト内で実装済みの機能
+        project_overview_context = ""
+        if session and session.project_implementation_overview:
+            project_overview_context = f"""
+## プロジェクト内で実装済みの機能（再実装しないこと）
+{session.project_implementation_overview}
+"""
+
         prompt = f"""
 以下のステップの詳細な実装手順を説明してください。
+{project_overview_context}
 
 ## タスク情報
 - タイトル: {self.task.title}
 - 説明: {self.task.description or 'なし'}
+- カテゴリ: {self.task.category or '未分類'}
 {choices_text}
+{step_choice_text}
 {prev_steps_text}
 {decisions_context}
 
@@ -554,9 +889,10 @@ class InteractiveHandsOnAgent:
 - ディレクトリ構造: {self.project_context.get('directory_info', '未設定')[:500]}
 
 ## 重要な注意事項
+- **このステップの範囲内のみで実装すること**（スコープ外の内容は次のステップまたは別タスクで行う）
+- 「このステップで選択した技術」は必ずそれを使って実装してください
 - 「ユーザーが採用した決定事項」は必ず反映してください
-- 例: TypeScriptを使うと決まっていたら、必ずTypeScriptでコード例を書いてください
-- 例: 特定のライブラリを使うと決まっていたら、必ずそのライブラリを使ってください
+- 「実装済みの機能」は再実装しないでください（既存のものをimport/呼び出しして利用）
 
 ## 出力形式
 Markdown形式で以下を含めてください：
@@ -612,6 +948,122 @@ Markdown形式で以下を含めてください：
             SSEイベント辞書
         """
         try:
+            # Phase 0: 依存タスクチェック
+            if session.phase == GenerationPhase.DEPENDENCY_CHECK:
+                # 依存タスク情報をセッションに設定
+                if self.dependency_context:
+                    predecessor_tasks = self.dependency_context.get("predecessor_tasks", [])
+                    has_incomplete = self.dependency_context.get("has_incomplete_predecessors", False)
+
+                    # プロジェクト全体の実装概要をセッションに設定
+                    session.project_implementation_overview = self.dependency_context.get(
+                        "project_implementation_overview", ""
+                    )
+
+                    # 依存タスク情報をセッションに保存（predecessors）
+                    for pt in predecessor_tasks:
+                        session.predecessor_tasks.append(DependencyTaskInfo(
+                            task_id=pt["task_id"],
+                            title=pt["title"],
+                            description=pt["description"],
+                            hands_on_status=pt["hands_on_status"],
+                            implementation_summary=None  # 後でサマリー生成
+                        ))
+
+                    # 後続タスク情報をセッションに保存（successors: スコープ判断用）
+                    successor_tasks = self.dependency_context.get("successor_tasks", [])
+                    for st in successor_tasks:
+                        session.successor_tasks.append(DependencyTaskInfo(
+                            task_id=st["task_id"],
+                            title=st["title"],
+                            description=st.get("description", ""),
+                            hands_on_status="not_started",  # 後続タスクのステータスは参照しない
+                            implementation_summary=None
+                        ))
+
+                    # 未完了の依存タスクがある場合はユーザーに確認
+                    if has_incomplete:
+                        incomplete_tasks = [
+                            pt for pt in predecessor_tasks
+                            if pt["hands_on_status"] != "completed"
+                        ]
+                        task_list = "\n".join([f"- {pt['title']}" for pt in incomplete_tasks])
+
+                        yield {"type": "section_start", "section": "dependency_check"}
+                        warning_text = f"""⚠️ **未完了の依存タスクがあります**
+
+このタスクは以下のタスクに依存していますが、まだ完了していません：
+
+{task_list}
+
+どのように進めますか？
+"""
+                        for chunk in self._chunk_text(warning_text):
+                            yield {"type": "chunk", "content": chunk}
+                            await asyncio.sleep(0.02)
+
+                        yield {"type": "section_complete", "section": "dependency_check"}
+
+                        # ユーザーに選択を求める
+                        session.phase = GenerationPhase.WAITING_DEPENDENCY_DECISION
+                        session.pending_input = InputPrompt(
+                            prompt_id="dependency_decision",
+                            question="依存タスクが未完了です。どのように進めますか？",
+                            options=["そのまま進める", "モックで進める（後で結合）", "先に依存タスクを完了させる"]
+                        )
+                        await self._save_progress(session, "waiting_input")
+                        yield {
+                            "type": "step_confirmation_required",
+                            "prompt": {
+                                "prompt_id": session.pending_input.prompt_id,
+                                "question": session.pending_input.question,
+                                "options": session.pending_input.options
+                            }
+                        }
+                        return
+
+                    # 完了済みの依存タスクがある場合はサマリーを生成
+                    completed_tasks = [
+                        pt for pt in predecessor_tasks
+                        if pt["hands_on_status"] == "completed" and pt.get("hands_on_content")
+                    ]
+                    if completed_tasks:
+                        yield {"type": "section_start", "section": "dependency_summary"}
+                        summary_text = "📋 **直接依存タスクの実装状況**\n\n"
+                        for pt in completed_tasks:
+                            summary_text += f"**{pt['title']}** は完了済みです。\n"
+                            # LLMでサマリーを生成
+                            impl_summary = await self._summarize_implementation(pt)
+                            if impl_summary:
+                                summary_text += f"{impl_summary}\n\n"
+                                # セッションに保存
+                                for dep_info in session.predecessor_tasks:
+                                    if dep_info.task_id == pt["task_id"]:
+                                        dep_info.implementation_summary = impl_summary
+                                        break
+
+                        for chunk in self._chunk_text(summary_text):
+                            yield {"type": "chunk", "content": chunk}
+                            await asyncio.sleep(0.02)
+                        yield {"type": "section_complete", "section": "dependency_summary"}
+                        session.generated_content["dependency_summary"] = summary_text
+
+                    # プロジェクト全体の実装概要がある場合は表示
+                    if session.project_implementation_overview:
+                        yield {"type": "section_start", "section": "project_overview"}
+                        project_text = "📦 **プロジェクト内の実装済み機能**\n\n以下の機能は既に他のタスクで実装済みです。重複して実装しないでください。\n\n"
+                        project_text += session.project_implementation_overview
+                        project_text += "\n"
+
+                        for chunk in self._chunk_text(project_text):
+                            yield {"type": "chunk", "content": chunk}
+                            await asyncio.sleep(0.02)
+                        yield {"type": "section_complete", "section": "project_overview"}
+                        session.generated_content["project_overview"] = project_text
+
+                # 依存タスクがない、または処理完了したらCONTEXTへ
+                session.phase = GenerationPhase.CONTEXT
+
             # Phase 1: コンテキスト（タスクの位置づけ）
             if session.phase == GenerationPhase.CONTEXT:
                 position = self._get_task_position()
@@ -639,65 +1091,116 @@ Markdown形式で以下を含めてください：
                 await self._save_progress(session, "generating")
                 yield {"type": "progress_saved", "phase": "context"}
 
-            # Phase 2: 概要生成
+            # Phase 2: 概要生成（概要生成のみ、技術選定は別フェーズ）
             if session.phase == GenerationPhase.OVERVIEW:
-                yield {"type": "section_start", "section": "overview"}
+                # 概要が未生成の場合のみ生成
+                if not session.generated_content.get("overview"):
+                    yield {"type": "section_start", "section": "overview"}
 
-                async for chunk in self._stream_overview():
-                    yield {"type": "chunk", "content": chunk}
-                    session.generated_content["overview"] = session.generated_content.get("overview", "") + chunk
+                    async for chunk in self._stream_overview():
+                        yield {"type": "chunk", "content": chunk}
+                        session.generated_content["overview"] = session.generated_content.get("overview", "") + chunk
 
-                yield {"type": "section_complete", "section": "overview"}
-
-                # 中間保存
-                await self._save_progress(session, "generating")
-                yield {"type": "progress_saved", "phase": "overview"}
-
-                # 選択ポイントをチェック
-                choice_points = self._detect_choice_points()
-                if choice_points and not session.user_choices:
-                    first_choice = choice_points[0]
-                    choice_request = await self._generate_choice_options(
-                        first_choice["type"],
-                        first_choice["question"]
-                    )
-                    session.pending_choice = choice_request
-                    session.phase = GenerationPhase.CHOICE_REQUIRED
+                    yield {"type": "section_complete", "section": "overview"}
 
                     # 中間保存
-                    await self._save_progress(session, "waiting_input")
+                    await self._save_progress(session, "generating")
+                    yield {"type": "progress_saved", "phase": "overview"}
 
-                    yield {
-                        "type": "choice_required",
-                        "choice": {
-                            "choice_id": choice_request.choice_id,
-                            "question": choice_request.question,
-                            "options": [
-                                {
-                                    "id": opt.id,
-                                    "label": opt.label,
-                                    "description": opt.description,
-                                    "pros": opt.pros,
-                                    "cons": opt.cons
-                                }
-                                for opt in choice_request.options
-                            ],
-                            "allow_custom": choice_request.allow_custom,
-                            "skip_allowed": choice_request.skip_allowed,
-                            "research_hint": choice_request.research_hint
-                        }
-                    }
-                    return
-                else:
+                # 次のフェーズへ
+                session.phase = GenerationPhase.TECH_CHECK
+
+            # Phase 2.5: 技術選定判断（独立フェーズ）
+            if session.phase == GenerationPhase.TECH_CHECK:
+                # 既に選択済みなら実装計画へ
+                if session.user_choices:
                     session.phase = GenerationPhase.IMPLEMENTATION_PLANNING
+                else:
+                    force_choice = session.generated_content.get("force_choice") == "true"
+                    if force_choice:
+                        del session.generated_content["force_choice"]  # フラグをクリア
+
+                    tech_check = await self._check_tech_selection(session, force_choice=force_choice)
+
+                    if tech_check.get("needs_choice"):
+                        # 選択肢を提示
+                        choice_id = f"choice_{uuid.uuid4().hex[:8]}"
+                        options = tech_check.get("options", [])
+
+                        session.pending_choice = ChoiceRequest(
+                            choice_id=choice_id,
+                            question=tech_check.get("question", "技術を選定しましょう"),
+                            options=[
+                                ChoiceOption(
+                                    id=opt.get("id", f"opt_{i}"),
+                                    label=opt.get("label", ""),
+                                    description=opt.get("description", ""),
+                                    pros=opt.get("pros", []),
+                                    cons=opt.get("cons", [])
+                                )
+                                for i, opt in enumerate(options)
+                            ],
+                            allow_custom=True,
+                            skip_allowed=True
+                        )
+                        session.phase = GenerationPhase.CHOICE_REQUIRED
+
+                        await self._save_progress(session, "waiting_input")
+
+                        yield {
+                            "type": "choice_required",
+                            "choice": {
+                                "choice_id": choice_id,
+                                "question": tech_check.get("question"),
+                                "options": options,
+                                "allow_custom": True,
+                                "skip_allowed": True
+                            }
+                        }
+                        return
+                    elif tech_check.get("decided"):
+                        # 既に決まっている場合は確認を求める
+                        decided = tech_check.get("decided")
+                        reason = tech_check.get("reason", "")
+
+                        yield {"type": "chunk", "content": f"\n\n**技術選定**: {decided}\n{reason}\n\n"}
+
+                        # 確認を求める
+                        session.pending_input = InputPrompt(
+                            prompt_id="confirm_auto_decided",
+                            question=f"{decided}で進めてよろしいですか？",
+                            options=["OK", "別の選択肢を検討"]
+                        )
+                        session.phase = GenerationPhase.WAITING_CHOICE_CONFIRM
+
+                        # 一時的に記録（確認後に正式記録）
+                        session.user_choices["auto_decided"] = {
+                            "selected": decided,
+                            "note": reason
+                        }
+
+                        await self._save_progress(session, "waiting_input")
+
+                        yield {
+                            "type": "user_input_required",
+                            "prompt": {
+                                "prompt_id": "confirm_auto_decided",
+                                "question": f"{decided}で進めてよろしいですか？",
+                                "options": ["OK", "別の選択肢を検討"]
+                            }
+                        }
+                        return
+                    else:
+                        # 技術選定不要の場合は実装計画へ
+                        session.phase = GenerationPhase.IMPLEMENTATION_PLANNING
 
             # Phase 3: 実装計画
             if session.phase == GenerationPhase.IMPLEMENTATION_PLANNING:
                 yield {"type": "section_start", "section": "planning"}
                 yield {"type": "chunk", "content": "\n\n### 実装計画\n\nMVPアプローチで段階的に実装していきます。\n\n"}
 
-                # ステップを計画
-                session.implementation_steps = await self._generate_implementation_plan(session.user_choices)
+                # ステップを計画（依存タスク情報も考慮）
+                session.implementation_steps = await self._generate_implementation_plan(session.user_choices, session)
 
                 # ステップ一覧を表示
                 steps_overview = ""
@@ -730,17 +1233,87 @@ Markdown形式で以下を含めてください：
                         "total_steps": len(session.implementation_steps)
                     }
 
-                    # セクション開始を通知（フロントエンドがchunkの行き先を知るため）
+                    # セクション開始を通知
                     section_name = f"step_{current_step.step_number}"
                     yield {"type": "section_start", "section": section_name}
 
-                    # ステップ内容を生成（決定事項を反映）
-                    step_content = ""
+                    # ステップ内の要件をチェック（概念説明・技術選定が必要か）
+                    requirements = await self._check_step_requirements(current_step, session)
+                    session.current_step_requirements = requirements
+
+                    # 目的を出力
+                    yield {"type": "chunk", "content": f"### ステップ{current_step.step_number}: {current_step.title}\n\n"}
+                    yield {"type": "chunk", "content": f"**目的**: {requirements.objective}\n\n"}
+
+                    # 前提概念があれば説明
+                    if requirements.prerequisite_concept:
+                        yield {"type": "chunk", "content": f"**{requirements.prerequisite_concept}とは**: {requirements.prerequisite_brief}\n\n"}
+
+                    # 技術選定が必要な場合
+                    if requirements.tech_selection_needed and requirements.tech_selection_options:
+                        # このステップで既に選択済みでなければ選択肢を提示
+                        if current_step.step_number not in session.step_choices:
+                            yield {"type": "section_complete", "section": section_name}
+
+                            # 選択肢を提示
+                            choice_id = f"step_{current_step.step_number}_tech"
+                            session.pending_choice = ChoiceRequest(
+                                choice_id=choice_id,
+                                question=requirements.tech_selection_question or "技術を選択してください",
+                                options=[
+                                    ChoiceOption(
+                                        id=opt.get("id", f"opt_{i}"),
+                                        label=opt.get("name", ""),
+                                        description=opt.get("description", ""),
+                                        pros=[],
+                                        cons=[]
+                                    )
+                                    for i, opt in enumerate(requirements.tech_selection_options)
+                                ],
+                                allow_custom=True,
+                                skip_allowed=False
+                            )
+                            session.phase = GenerationPhase.WAITING_STEP_CHOICE
+
+                            await self._save_progress(session, "waiting_input")
+
+                            yield {
+                                "type": "step_choice_required",
+                                "step_number": current_step.step_number,
+                                "choice": {
+                                    "choice_id": choice_id,
+                                    "question": requirements.tech_selection_question,
+                                    "options": [
+                                        {"id": opt.get("id", f"opt_{i}"), "name": opt.get("name", ""), "description": opt.get("description", "")}
+                                        for i, opt in enumerate(requirements.tech_selection_options)
+                                    ],
+                                    "allow_custom": True
+                                }
+                            }
+                            return
+
+                    # 技術選定不要 or 選択済み → 実装内容を生成
+                    step_content = f"### ステップ{current_step.step_number}: {current_step.title}\n\n"
+                    step_content += f"**目的**: {requirements.objective}\n\n"
+                    if requirements.prerequisite_concept:
+                        step_content += f"**{requirements.prerequisite_concept}とは**: {requirements.prerequisite_brief}\n\n"
+
+                    # 選択済みの技術があれば表示
+                    if current_step.step_number in session.step_choices:
+                        choice = session.step_choices[current_step.step_number]
+                        yield {"type": "chunk", "content": f"**選択した技術**: {choice.get('selected', '')}\n\n"}
+                        step_content += f"**選択した技術**: {choice.get('selected', '')}\n\n"
+
+                    yield {"type": "chunk", "content": "---\n\n"}
+                    step_content += "---\n\n"
+
+                    # 実装手順を生成
                     async for chunk in self._generate_step_content(
                         current_step,
                         session.user_choices,
                         previous_steps,
-                        session.decisions
+                        session.decisions,
+                        session
                     ):
                         yield {"type": "chunk", "content": chunk}
                         step_content += chunk
@@ -979,6 +1552,35 @@ Markdown形式で、以下の構成で説明してください：
         }
 
         if response_type == "choice":
+            # ステップ内技術選定の場合
+            if session.phase == GenerationPhase.WAITING_STEP_CHOICE:
+                current_step = session.implementation_steps[session.current_step_index]
+
+                # ステップごとの選択を記録
+                session.step_choices[current_step.step_number] = {
+                    "selected": selected or user_input,
+                    "note": user_note
+                }
+
+                # 全体の user_choices にも記録（後の参照用）
+                session.user_choices[choice_id] = {
+                    "selected": selected or user_input,
+                    "note": user_note
+                }
+
+                session.pending_choice = None
+                session.phase = GenerationPhase.IMPLEMENTATION_STEP
+
+                yield {"type": "chunk", "content": f"\n\n**選択**: {selected or user_input}\n\n"}
+
+                await self._save_progress(session, "generating")
+
+                # 生成を継続（実装内容の生成へ）
+                async for event in self.generate_stream(session):
+                    yield event
+                return
+
+            # タスク全体の技術選定の場合（従来の処理）
             # 選択を記録
             session.user_choices[choice_id] = {
                 "selected": selected or user_input,
@@ -1021,16 +1623,50 @@ Markdown形式で、以下の構成で説明してください：
                 return
 
         elif response_type == "input":
+            # 依存タスク対応方針への応答
+            if session.phase == GenerationPhase.WAITING_DEPENDENCY_DECISION:
+                session.pending_input = None
+                if user_input == "そのまま進める":
+                    session.dependency_decision = "proceed"
+                    yield {"type": "chunk", "content": "\n\n依存タスクを無視して進めます。\n\n"}
+                elif user_input == "モックで進める（後で結合）":
+                    session.dependency_decision = "mock"
+                    yield {"type": "chunk", "content": "\n\nモック実装で進めます。後で依存タスクと結合してください。\n\n"}
+                elif user_input == "先に依存タスクを完了させる":
+                    session.dependency_decision = "redirect"
+                    # 依存タスクへのリダイレクトを通知
+                    incomplete_tasks = [
+                        pt for pt in session.predecessor_tasks
+                        if pt.hands_on_status != "completed"
+                    ]
+                    if incomplete_tasks:
+                        yield {
+                            "type": "redirect_to_task",
+                            "task_id": incomplete_tasks[0].task_id,
+                            "task_title": incomplete_tasks[0].title,
+                            "message": f"先に「{incomplete_tasks[0].title}」を完了させてください。"
+                        }
+                    return
+                else:
+                    session.dependency_decision = "proceed"
+
+                session.phase = GenerationPhase.CONTEXT
+                await self._save_progress(session, "generating")
+
             # 選択確認への応答
-            if session.phase == GenerationPhase.WAITING_CHOICE_CONFIRM:
+            elif session.phase == GenerationPhase.WAITING_CHOICE_CONFIRM:
                 if user_input and user_input.upper() in ["OK", "はい", "YES", "進める"]:
                     session.phase = GenerationPhase.IMPLEMENTATION_PLANNING
                     session.pending_choice = None
                     session.pending_input = None
                 else:
-                    session.phase = GenerationPhase.OVERVIEW
+                    # 別の選択肢を検討 → TECH_CHECKに戻して強制的に選択肢を提示
+                    # OVERVIEWは生成済みなのでスキップされる
+                    session.phase = GenerationPhase.TECH_CHECK
                     session.pending_input = None
                     session.user_choices = {}
+                    # 選択肢を強制生成するフラグをセット
+                    session.generated_content["force_choice"] = "true"
 
             # ステップ完了確認への応答
             elif session.phase == GenerationPhase.WAITING_STEP_COMPLETE:
@@ -1090,7 +1726,8 @@ Markdown形式で、以下の構成で説明してください：
                         current_step,
                         session.user_choices,
                         previous_steps,
-                        session.decisions
+                        session.decisions,
+                        session
                     ):
                         yield {"type": "chunk", "content": chunk}
                         updated_content += chunk
@@ -1405,7 +2042,7 @@ def get_session(session_id: str) -> Optional[SessionState]:
     return _session_store.get(session_id)
 
 
-def create_session(task_id: str) -> SessionState:
+def create_session(task_id: str, initial_phase: GenerationPhase = GenerationPhase.DEPENDENCY_CHECK) -> SessionState:
     """新しいセッションを作成（同じtask_idの古いセッションは削除）"""
     # 同じtask_idの古いセッションを削除
     sessions_to_delete = [
@@ -1418,7 +2055,7 @@ def create_session(task_id: str) -> SessionState:
     session = SessionState(
         session_id=str(uuid.uuid4()),
         task_id=task_id,
-        phase=GenerationPhase.CONTEXT
+        phase=initial_phase
     )
     _session_store[session.session_id] = session
     return session
@@ -1501,6 +2138,12 @@ def restore_session_from_db(hands_on: 'TaskHandsOn', task_id: str) -> Optional[S
         "context": hands_on.technical_context or ""
     }
 
+    # ステップごとの技術選択を復元（キーをintに変換）
+    step_choices_data = interactions.get("step_choices", {})
+    step_choices = {
+        int(k): v for k, v in step_choices_data.items()
+    }
+
     # セッション作成
     session = SessionState(
         session_id=hands_on.session_id or str(uuid.uuid4()),
@@ -1512,8 +2155,10 @@ def restore_session_from_db(hands_on: 'TaskHandsOn', task_id: str) -> Optional[S
         pending_input=pending_input,
         implementation_steps=implementation_steps,
         current_step_index=interactions.get("current_step", 0),
+        step_choices=step_choices,
         decisions=decisions,
-        pending_decision=interactions.get("pending_decision")
+        pending_decision=interactions.get("pending_decision"),
+        project_implementation_overview=interactions.get("project_implementation_overview", "")
     )
 
     # セッションストアに登録

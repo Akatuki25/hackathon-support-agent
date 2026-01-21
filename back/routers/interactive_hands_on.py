@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from database import get_db
-from models.project_base import Task, ProjectBase, ProjectDocument, TaskHandsOn
+from models.project_base import Task, ProjectBase, ProjectDocument, TaskHandsOn, TaskDependency
 from services.interactive_hands_on_agent import (
     InteractiveHandsOnAgent,
     SessionState,
@@ -130,6 +130,192 @@ def _build_project_context(db: Session, project_id: UUID) -> Dict:
     }
 
 
+def _get_project_implementation_overview(db: Session, project_id: UUID, exclude_task_id: UUID) -> str:
+    """
+    プロジェクト全体の実装概要を取得
+
+    完了済みハンズオンのimplementation_resourcesから実装済みリソースを集約。
+
+    Returns:
+        実装概要文字列
+    """
+    # プロジェクト内の完了済みハンズオンを取得（現在のタスクを除く）
+    completed_hands_ons = db.query(TaskHandsOn).join(Task).filter(
+        Task.project_id == project_id,
+        Task.task_id != exclude_task_id,
+        TaskHandsOn.generation_state == "completed"
+    ).all()
+
+    if not completed_hands_ons:
+        return ""
+
+    # 実装済みリソースを集約
+    all_apis = []
+    all_components = []
+    all_services = []
+    all_tech_decisions = []
+    task_summaries = []
+
+    for ho in completed_hands_ons:
+        resources = ho.implementation_resources
+        if not resources:
+            continue
+
+        task = db.query(Task).filter(Task.task_id == ho.task_id).first()
+        task_name = task.title if task else "不明なタスク"
+
+        if resources.get("apis"):
+            all_apis.extend(resources["apis"])
+        if resources.get("components"):
+            all_components.extend(resources["components"])
+        if resources.get("services"):
+            all_services.extend(resources["services"])
+        if resources.get("tech_decisions"):
+            all_tech_decisions.extend(resources["tech_decisions"])
+        if resources.get("summary"):
+            task_summaries.append(f"- **{task_name}**: {resources['summary']}")
+
+    # 重複を除去
+    all_apis = list(set(all_apis))
+    all_components = list(set(all_components))
+    all_services = list(set(all_services))
+    all_tech_decisions = list(set(all_tech_decisions))
+
+    # 概要文字列を構築
+    parts = []
+
+    if all_apis:
+        parts.append(f"**実装済みAPI:** {', '.join(all_apis[:10])}")
+
+    if all_components:
+        parts.append(f"**実装済みコンポーネント:** {', '.join(all_components[:10])}")
+
+    if all_services:
+        parts.append(f"**実装済みサービス:** {', '.join(all_services[:10])}")
+
+    if all_tech_decisions:
+        parts.append(f"**技術決定:** {', '.join(all_tech_decisions[:10])}")
+
+    if task_summaries:
+        parts.append("\n**完了済みタスク:**")
+        parts.extend(task_summaries[:10])
+
+    return "\n".join(parts) if parts else ""
+
+
+def _get_dependency_context(db: Session, task_id: UUID, project_id: UUID = None) -> Dict:
+    """
+    依存タスクのハンズオン状況と、プロジェクト全体の実装概要を取得
+
+    Returns:
+        {
+            "predecessor_tasks": [  # このタスクが依存しているタスク（先にやるべき）
+                {
+                    "task_id": str,
+                    "title": str,
+                    "description": str,
+                    "hands_on_status": "completed" | "in_progress" | "not_started",
+                    "hands_on_content": {  # completedの場合のみ
+                        "overview": str,
+                        "steps": [...],
+                        "implementation": str,
+                    }
+                }
+            ],
+            "successor_tasks": [  # このタスクに依存しているタスク（後でやる）
+                {
+                    "task_id": str,
+                    "title": str,
+                    "description": str,
+                }
+            ],
+            "has_incomplete_predecessors": bool,
+            "project_implementation_overview": str  # プロジェクト全体の実装概要（高レベル）
+        }
+    """
+    # このタスクが依存しているタスク（predecessors）を取得
+    # target_task_id = 自分 → source_task_id = 先にやるべきタスク
+    predecessor_deps = db.query(TaskDependency).filter(
+        TaskDependency.target_task_id == task_id
+    ).all()
+
+    predecessor_tasks = []
+    has_incomplete_predecessors = False
+
+    for dep in predecessor_deps:
+        pred_task = db.query(Task).filter(Task.task_id == dep.source_task_id).first()
+        if not pred_task:
+            continue
+
+        # ハンズオン状況を確認
+        hands_on = db.query(TaskHandsOn).filter(
+            TaskHandsOn.task_id == dep.source_task_id
+        ).first()
+
+        if hands_on and hands_on.generation_state == "completed":
+            hands_on_status = "completed"
+            # 完了済みの場合は内容も取得
+            interactions = hands_on.user_interactions or {}
+            steps_data = interactions.get("steps", [])
+
+            hands_on_content = {
+                "overview": hands_on.overview or "",
+                "steps": [
+                    {
+                        "step_number": s.get("step_number"),
+                        "title": s.get("title"),
+                        "content": s.get("content", "")[:1000],  # 各ステップ1000文字まで
+                    }
+                    for s in steps_data if s.get("content")
+                ],
+                "implementation_summary": (hands_on.implementation_steps or "")[:2000],
+            }
+        elif hands_on:
+            hands_on_status = "in_progress"
+            hands_on_content = None
+            has_incomplete_predecessors = True
+        else:
+            hands_on_status = "not_started"
+            hands_on_content = None
+            has_incomplete_predecessors = True
+
+        predecessor_tasks.append({
+            "task_id": str(pred_task.task_id),
+            "title": pred_task.title,
+            "description": pred_task.description or "",
+            "hands_on_status": hands_on_status,
+            "hands_on_content": hands_on_content,
+        })
+
+    # このタスクに依存しているタスク（successors）を取得
+    # source_task_id = 自分 → target_task_id = 後でやるタスク
+    successor_deps = db.query(TaskDependency).filter(
+        TaskDependency.source_task_id == task_id
+    ).all()
+
+    successor_tasks = []
+    for dep in successor_deps:
+        succ_task = db.query(Task).filter(Task.task_id == dep.target_task_id).first()
+        if succ_task:
+            successor_tasks.append({
+                "task_id": str(succ_task.task_id),
+                "title": succ_task.title,
+                "description": succ_task.description or "",
+            })
+
+    # プロジェクト全体の実装概要を取得
+    project_overview = ""
+    if project_id:
+        project_overview = _get_project_implementation_overview(db, project_id, task_id)
+
+    return {
+        "predecessor_tasks": predecessor_tasks,
+        "successor_tasks": successor_tasks,
+        "has_incomplete_predecessors": has_incomplete_predecessors,
+        "project_implementation_overview": project_overview,
+    }
+
+
 async def _sse_generator(agent: InteractiveHandsOnAgent, session: SessionState):
     """SSEイベントジェネレーター"""
     try:
@@ -201,8 +387,12 @@ async def start_interactive_session(
         # プロジェクトコンテキスト構築
         project_context = _build_project_context(db, task.project_id)
 
+        # 依存タスク情報を取得（プロジェクト全体の実装概要も含む）
+        dependency_context = _get_dependency_context(db, task_uuid, task.project_id)
+
         # セッション作成（同じtask_idの古いメモリセッションも削除される）
-        session = create_session(task_id)
+        # 初期フェーズはDEPENDENCY_CHECKに設定
+        session = create_session(task_id, initial_phase=GenerationPhase.DEPENDENCY_CHECK)
 
         # エージェント作成
         config = request.config if request else {}
@@ -210,7 +400,8 @@ async def start_interactive_session(
             db=db,
             task=task,
             project_context=project_context,
-            config=config
+            config=config,
+            dependency_context=dependency_context
         )
 
         # SSEストリーミングレスポンス

@@ -18,7 +18,6 @@ import {
   type StreamCallbacks,
   type HandsOnExistsCheck,
   type RestoredDecision,
-  type HandsOnContent,
 } from '@/libs/service/interactiveHandsOn';
 
 interface InteractiveHandsOnViewProps {

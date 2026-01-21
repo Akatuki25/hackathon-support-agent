@@ -536,6 +536,49 @@ class TaskHandsOn(Base):
     verification_result = Column(JSON, nullable=True, comment="情報齟齬検証の詳細結果")
 
     # ========================================
+    # インタラクティブ生成用フィールド
+    # ========================================
+
+    # 生成モード: "batch"（一括生成）or "interactive"（対話型）
+    generation_mode = Column(
+        Enum("batch", "interactive", name="generation_mode_enum"),
+        default="batch",
+        nullable=False,
+        comment="生成モード"
+    )
+
+    # 生成状態: "pending", "generating", "waiting_input", "completed"
+    generation_state = Column(
+        Enum("pending", "generating", "waiting_input", "completed", name="generation_state_enum"),
+        default="pending",
+        nullable=False,
+        comment="生成状態"
+    )
+
+    # ユーザーの選択・入力履歴
+    user_interactions = Column(
+        JSON,
+        nullable=True,
+        comment="ユーザーの選択・入力履歴 [{type, choice_id, selected, user_note}]"
+    )
+
+    # セッションID（インタラクティブ生成時）
+    session_id = Column(
+        String(50),
+        nullable=True,
+        index=True,
+        comment="インタラクティブ生成セッションID"
+    )
+
+    # 実装済みリソースサマリー（タスク完了時に生成）
+    # 他のタスクが重複実装を避けるための参照用
+    implementation_resources = Column(
+        JSON,
+        nullable=True,
+        comment="実装済みリソース {apis: [], components: [], services: [], summary: str}"
+    )
+
+    # ========================================
     # リレーション
     # ========================================
 
