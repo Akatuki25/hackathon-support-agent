@@ -5,7 +5,7 @@
  * ページごとに適切なコンテキストとアクションが設定される。
  */
 
-import axios from 'axios';
+import axios from "axios";
 import {
   PageContext,
   PageChatRequest,
@@ -14,9 +14,9 @@ import {
   ChatAction,
   ChatContextsResponse,
   PageActionsResponse,
-} from '@/types/modelTypes';
+} from "@/types/modelTypes";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /**
  * ページコンテキスト対応チャットAPIを呼び出す
@@ -33,7 +33,7 @@ export const sendPageChatMessage = async (
   pageContext: PageContext,
   message: string,
   history: ChatMessageType[] = [],
-  pageSpecificContext?: Record<string, unknown>
+  pageSpecificContext?: Record<string, unknown>,
 ): Promise<PageChatResponse> => {
   const requestData: PageChatRequest = {
     project_id: projectId,
@@ -45,7 +45,7 @@ export const sendPageChatMessage = async (
 
   const response = await axios.post<PageChatResponse>(
     `${API_BASE_URL}/api/chat/message`,
-    requestData
+    requestData,
   );
 
   return response.data;
@@ -58,7 +58,7 @@ export const sendPageChatMessage = async (
  */
 export const getChatContexts = async (): Promise<ChatContextsResponse> => {
   const response = await axios.get<ChatContextsResponse>(
-    `${API_BASE_URL}/api/chat/contexts`
+    `${API_BASE_URL}/api/chat/contexts`,
   );
 
   return response.data;
@@ -71,10 +71,10 @@ export const getChatContexts = async (): Promise<ChatContextsResponse> => {
  * @returns アクション一覧
  */
 export const getPageActions = async (
-  pageContext: PageContext
+  pageContext: PageContext,
 ): Promise<PageActionsResponse> => {
   const response = await axios.get<PageActionsResponse>(
-    `${API_BASE_URL}/api/chat/actions/${pageContext}`
+    `${API_BASE_URL}/api/chat/actions/${pageContext}`,
   );
 
   return response.data;
@@ -90,8 +90,8 @@ export const getPageActions = async (
  */
 export const appendMessage = (
   messages: ChatMessageType[],
-  role: 'user' | 'assistant',
-  content: string
+  role: "user" | "assistant",
+  content: string,
 ): ChatMessageType[] => {
   return [...messages, { role, content }];
 };
@@ -105,9 +105,9 @@ export type ActionHandler = (action: ChatAction) => void | Promise<void>;
  * ストリーミングイベントの型
  */
 export type StreamEvent =
-  | { type: 'chunk'; content: string }
-  | { type: 'done'; actions: ChatAction[]; context_used: string[] }
-  | { type: 'error'; message: string };
+  | { type: "chunk"; content: string }
+  | { type: "done"; actions: ChatAction[]; context_used: string[] }
+  | { type: "error"; message: string };
 
 /**
  * ストリーミング対応チャットAPIを呼び出す
@@ -129,7 +129,7 @@ export const sendPageChatMessageStream = async (
   pageSpecificContext?: Record<string, unknown>,
   onChunk?: (content: string) => void,
   onDone?: (actions: ChatAction[]) => void,
-  onError?: (error: string) => void
+  onError?: (error: string) => void,
 ): Promise<void> => {
   const requestData: PageChatRequest = {
     project_id: projectId,
@@ -141,9 +141,9 @@ export const sendPageChatMessageStream = async (
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat/message/stream`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(requestData),
     });
@@ -154,11 +154,11 @@ export const sendPageChatMessageStream = async (
 
     const reader = response.body?.getReader();
     if (!reader) {
-      throw new Error('Response body is not readable');
+      throw new Error("Response body is not readable");
     }
 
     const decoder = new TextDecoder();
-    let buffer = '';
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -167,26 +167,26 @@ export const sendPageChatMessageStream = async (
       buffer += decoder.decode(value, { stream: true });
 
       // SSEイベントをパース
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // 未完了の行を保持
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || ""; // 未完了の行を保持
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
+        if (line.startsWith("data: ")) {
           try {
             const data = JSON.parse(line.slice(6)) as StreamEvent;
 
             switch (data.type) {
-              case 'chunk':
+              case "chunk":
                 // contentがstring型であることを保証
-                if (typeof data.content === 'string') {
+                if (typeof data.content === "string") {
                   onChunk?.(data.content);
                 }
                 break;
-              case 'done':
+              case "done":
                 onDone?.(data.actions ?? []);
                 break;
-              case 'error':
-                onError?.(data.message ?? 'Unknown error');
+              case "error":
+                onError?.(data.message ?? "Unknown error");
                 break;
             }
           } catch {
@@ -196,7 +196,7 @@ export const sendPageChatMessageStream = async (
       }
     }
   } catch (error) {
-    onError?.(error instanceof Error ? error.message : 'Unknown error');
+    onError?.(error instanceof Error ? error.message : "Unknown error");
   }
 };
 
@@ -204,13 +204,13 @@ export const sendPageChatMessageStream = async (
  * ページごとのデフォルトプレースホルダーテキスト
  */
 export const PAGE_PLACEHOLDERS: Record<PageContext, string> = {
-  hackQA: '質問への回答についてアドバイスを求める...',
-  summaryQA: '仕様書の改善について質問する...',
-  functionSummary: '機能要件について質問する...',
-  functionStructuring: '機能について質問する...',
-  selectFramework: '技術選定について相談する...',
-  kanban: 'タスク分担について相談する...',
-  taskDetail: '実装について質問する...',
+  hackQA: "質問への回答についてアドバイスを求める...",
+  summaryQA: "仕様書の改善について質問する...",
+  functionSummary: "機能要件について質問する...",
+  functionStructuring: "機能について質問する...",
+  selectFramework: "技術選定について相談する...",
+  kanban: "タスク分担について相談する...",
+  taskDetail: "実装について質問する...",
 };
 
 /**
@@ -218,17 +218,17 @@ export const PAGE_PLACEHOLDERS: Record<PageContext, string> = {
  */
 export const PAGE_INITIAL_MESSAGES: Record<PageContext, string> = {
   hackQA:
-    'Q&A回答をサポートします。質問への回答に困ったら、お気軽にご相談ください。',
+    "Q&A回答をサポートします。質問への回答に困ったら、お気軽にご相談ください。",
   summaryQA:
-    '仕様書のレビューをサポートします。改善点や不明確な部分を指摘します。',
+    "仕様書のレビューをサポートします。改善点や不明確な部分を指摘します。",
   functionSummary:
-    '機能要件の編集をサポートします。優先度の決め方や実装観点でのアドバイスをします。',
+    "機能要件の編集をサポートします。優先度の決め方や実装観点でのアドバイスをします。",
   functionStructuring:
-    '機能設計をサポートします。機能の意図や優先度についてアドバイスします。',
+    "機能設計をサポートします。機能の意図や優先度についてアドバイスします。",
   selectFramework:
-    '技術選定をサポートします。各技術のメリット・デメリットを説明します。',
+    "技術選定をサポートします。各技術のメリット・デメリットを説明します。",
   kanban:
-    'タスク分担をサポートします。負荷バランスや依存関係についてアドバイスします。',
+    "タスク分担をサポートします。負荷バランスや依存関係についてアドバイスします。",
   taskDetail:
-    '実装をサポートします。コードの解説やエラー対応をお手伝いします。',
+    "実装をサポートします。コードの解説やエラー対応をお手伝いします。",
 };

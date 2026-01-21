@@ -1,16 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // フレームワーク推薦で使用する型定義
 export interface TechnologyOption {
   name: string;
-  category: 'frontend' | 'backend' | 'database' | 'deployment';
+  category: "frontend" | "backend" | "database" | "deployment";
   description: string;
   pros: string[];
   cons: string[];
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   recommended?: boolean;
   priority?: number;
   reason?: string;
@@ -29,7 +29,7 @@ export interface FrameworkRecommendationResponse {
 export interface FrameworkSelectionRequest {
   project_id: string;
   specification: string;
-  platforms: ('web' | 'ios' | 'android')[];
+  platforms: ("web" | "ios" | "android")[];
   team_experience?: {
     frontend?: string[];
     backend?: string[];
@@ -44,7 +44,7 @@ export interface FrameworkSelectionRequest {
 
 export interface FrameworkSelectionSaveRequest {
   project_id: string;
-  selected_platform: 'web' | 'ios' | 'android';
+  selected_platform: "web" | "ios" | "android";
   selected_technologies: string[];
   reasoning?: string;
 }
@@ -60,34 +60,32 @@ export interface FrameworkSelectionResponse {
  */
 export const getFrameworkRecommendations = async (
   specification: string,
-  functionDoc: string = ""
+  functionDoc: string = "",
 ): Promise<FrameworkRecommendationResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/framework/recommendations`,
     {
       specification,
-      function_doc: functionDoc
+      function_doc: functionDoc,
     },
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
-
-
 
 /**
  * プラットフォーム別の技術オプションを取得
  */
 export const getTechnologyOptions = async (
-  platform: 'web' | 'ios' | 'android'
+  platform: "web" | "ios" | "android",
 ): Promise<TechnologyOption[]> => {
   const response = await axios.get(
     `${API_BASE_URL}/api/framework/technology-options/${platform}`,
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
@@ -96,7 +94,7 @@ export const getTechnologyOptions = async (
  * 保存されたフレームワーク選択情報を取得
  */
 export const getFrameworkSelection = async (
-  projectId: string
+  projectId: string,
 ): Promise<{
   selected_platform: string;
   selected_technologies: string[];
@@ -106,8 +104,8 @@ export const getFrameworkSelection = async (
   const response = await axios.get(
     `${API_BASE_URL}/api/framework/selection/${projectId}`,
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
@@ -118,18 +116,18 @@ export const getFrameworkSelection = async (
 export const generateFrameworkDocument = async (
   projectId: string,
   specification: string,
-  selectedTechnologies: string[]
+  selectedTechnologies: string[],
 ): Promise<FrameworkSelectionResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/framework/generate-document`,
     {
       project_id: projectId,
       specification,
-      selected_technologies: selectedTechnologies
+      selected_technologies: selectedTechnologies,
     },
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };
@@ -140,7 +138,7 @@ export const generateFrameworkDocument = async (
 export const evaluateFrameworkChoice = async (
   specification: string,
   selectedTechnologies: string[],
-  platform: 'web' | 'ios' | 'android'
+  platform: "web" | "ios" | "android",
 ): Promise<{
   score: number;
   feedback: string[];
@@ -152,11 +150,11 @@ export const evaluateFrameworkChoice = async (
     {
       specification,
       selected_technologies: selectedTechnologies,
-      platform
+      platform,
     },
     {
-      headers: { 'Content-Type': 'application/json' },
-    }
+      headers: { "Content-Type": "application/json" },
+    },
   );
   return response.data;
 };

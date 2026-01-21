@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -63,11 +63,11 @@ export interface ClearTasksResponse {
  * @returns Complete task generation result
  */
 export const generateCompleteTaskSet = async (
-  projectId: string
+  projectId: string,
 ): Promise<CompleteTaskGenerationResponse> => {
   const response = await axios.post<CompleteTaskGenerationResponse>(
     `${API_URL}/api/complete_task_generation/generate_complete`,
-    { project_id: projectId }
+    { project_id: projectId },
   );
   return response.data;
 };
@@ -81,10 +81,10 @@ export const generateCompleteTaskSet = async (
  * @returns Preview information
  */
 export const previewTaskGeneration = async (
-  projectId: string
+  projectId: string,
 ): Promise<TaskGenerationPreviewResponse> => {
   const response = await axios.get<TaskGenerationPreviewResponse>(
-    `${API_URL}/api/complete_task_generation/preview/${projectId}`
+    `${API_URL}/api/complete_task_generation/preview/${projectId}`,
   );
   return response.data;
 };
@@ -98,10 +98,10 @@ export const previewTaskGeneration = async (
  * @returns Deletion result
  */
 export const clearGeneratedTasks = async (
-  projectId: string
+  projectId: string,
 ): Promise<ClearTasksResponse> => {
   const response = await axios.delete<ClearTasksResponse>(
-    `${API_URL}/api/complete_task_generation/clear/${projectId}`
+    `${API_URL}/api/complete_task_generation/clear/${projectId}`,
   );
   return response.data;
 };

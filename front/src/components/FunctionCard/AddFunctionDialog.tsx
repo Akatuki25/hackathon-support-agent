@@ -14,19 +14,19 @@ interface AddFunctionDialogProps {
 }
 
 const CATEGORY_OPTIONS = [
-  { value: 'auth', label: '認証・権限' },
-  { value: 'data', label: 'データ管理' },
-  { value: 'logic', label: 'ビジネスロジック' },
-  { value: 'ui', label: 'UI・画面' },
-  { value: 'api', label: 'API・通信' },
-  { value: 'deployment', label: 'デプロイ・インフラ' },
+  { value: "auth", label: "認証・権限" },
+  { value: "data", label: "データ管理" },
+  { value: "logic", label: "ビジネスロジック" },
+  { value: "ui", label: "UI・画面" },
+  { value: "api", label: "API・通信" },
+  { value: "deployment", label: "デプロイ・インフラ" },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: 'Must', label: 'Must (必須)' },
-  { value: 'Should', label: 'Should (重要)' },
-  { value: 'Could', label: 'Could (できれば)' },
-  { value: 'Wont', label: 'Wont (不要)' },
+  { value: "Must", label: "Must (必須)" },
+  { value: "Should", label: "Should (重要)" },
+  { value: "Could", label: "Could (できれば)" },
+  { value: "Wont", label: "Wont (不要)" },
 ];
 
 export default function AddFunctionDialog({
@@ -59,8 +59,8 @@ export default function AddFunctionDialog({
       });
       onClose();
     } catch (error) {
-      console.error('Failed to add function:', error);
-      alert('追加に失敗しました');
+      console.error("Failed to add function:", error);
+      alert("追加に失敗しました");
     } finally {
       setIsSaving(false);
     }
@@ -127,8 +127,10 @@ export default function AddFunctionDialog({
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-3 py-2 rounded border bg-white border-gray-300 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               >
-                {CATEGORY_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -142,8 +144,10 @@ export default function AddFunctionDialog({
                 onChange={(e) => setPriority(e.target.value)}
                 className="w-full px-3 py-2 rounded border bg-white border-gray-300 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               >
-                {PRIORITY_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                {PRIORITY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -162,9 +166,9 @@ export default function AddFunctionDialog({
             <button
               type="submit"
               disabled={isSaving}
-              className={`px-4 py-2 rounded transition-colors bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`px-4 py-2 rounded transition-colors bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {isSaving ? '追加中...' : '追加'}
+              {isSaving ? "追加中..." : "追加"}
             </button>
           </div>
         </form>

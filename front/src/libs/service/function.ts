@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { SpecificationFeedback } from '@/types/modelTypes';
+import axios from "axios";
+import { SpecificationFeedback } from "@/types/modelTypes";
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // 機能要件の型定義
 export interface FunctionalRequirement {
@@ -10,7 +10,7 @@ export interface FunctionalRequirement {
   category: string;
   title: string;
   description: string;
-  priority: 'Must' | 'Should' | 'Could';
+  priority: "Must" | "Should" | "Could";
   confidence_level: number;
   acceptance_criteria: string[];
   dependencies: string[];
@@ -29,7 +29,7 @@ export interface QAForRequirement {
   project_id: string;
   question: string;
   answer: string | null;
-  answer_example?: string;  // 回答例（AI生成時に提供される）
+  answer_example?: string; // 回答例（AI生成時に提供される）
   is_ai: boolean;
   importance: number;
   requirement_id?: string;
@@ -47,14 +47,14 @@ export interface ProjectDocument {
  */
 export const generateFunctionalRequirements = async (
   projectId: string,
-  confidenceThreshold: number = 0.7
+  confidenceThreshold: number = 0.7,
 ): Promise<FunctionRequirementsResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/function_requirements/generate`,
     {
       project_id: projectId,
-      confidence_threshold: confidenceThreshold
-    }
+      confidence_threshold: confidenceThreshold,
+    },
   );
   return response.data;
 };
@@ -64,14 +64,14 @@ export const generateFunctionalRequirements = async (
  */
 export const saveFunctionalRequirements = async (
   projectId: string,
-  requirements: FunctionalRequirement[]
+  requirements: FunctionalRequirement[],
 ): Promise<{ message: string; doc_id: string; requirements_count: number }> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/function_requirements/save-requirements`,
     {
       project_id: projectId,
-      requirements: requirements
-    }
+      requirements: requirements,
+    },
   );
   return response.data;
 };
@@ -80,11 +80,11 @@ export const saveFunctionalRequirements = async (
  * 明確化質問をDBに保存する
  */
 export const saveClarificationQuestions = async (
-  questions: QAForRequirement[]
+  questions: QAForRequirement[],
 ): Promise<{ message: string; questions_count: number }> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/function_requirements/save-questions`,
-    { questions: questions }
+    { questions: questions },
   );
   return response.data;
 };
@@ -94,7 +94,7 @@ export const saveClarificationQuestions = async (
  */
 export const generateAndSaveAll = async (
   projectId: string,
-  confidenceThreshold: number = 0.7
+  confidenceThreshold: number = 0.7,
 ): Promise<{
   message: string;
   doc_id: string;
@@ -109,8 +109,8 @@ export const generateAndSaveAll = async (
     `${API_BASE_URL}/api/function_requirements/generate-and-save`,
     {
       project_id: projectId,
-      confidence_threshold: confidenceThreshold
-    }
+      confidence_threshold: confidenceThreshold,
+    },
   );
   return response.data;
 };
@@ -119,10 +119,10 @@ export const generateAndSaveAll = async (
  * 保存済みの機能要件を取得する
  */
 export const getFunctionalRequirements = async (
-  projectId: string
+  projectId: string,
 ): Promise<ProjectDocument> => {
   const response = await axios.get(
-    `${API_BASE_URL}/api/function_requirements/requirements/${projectId}`
+    `${API_BASE_URL}/api/function_requirements/requirements/${projectId}`,
   );
   return response.data;
 };
@@ -132,12 +132,12 @@ export const getFunctionalRequirements = async (
  */
 export const updateFunctionDocument = async (
   projectId: string,
-  functionDoc: string
+  functionDoc: string,
 ): Promise<{ message: string; doc_id: string }> => {
   // document APIを使用してfunction_docを更新
   const response = await axios.patch(
     `${API_BASE_URL}/project_document/${projectId}`,
-    { function_doc: functionDoc }
+    { function_doc: functionDoc },
   );
   return response.data;
 };
@@ -147,14 +147,14 @@ export const updateFunctionDocument = async (
  */
 export const regenerateFunctionalRequirements = async (
   projectId: string,
-  confidenceThreshold: number = 0.7
+  confidenceThreshold: number = 0.7,
 ): Promise<FunctionRequirementsResponse> => {
   const response = await axios.post(
     `${API_BASE_URL}/api/function_requirements/regenerate`,
     {
       project_id: projectId,
-      confidence_threshold: confidenceThreshold
-    }
+      confidence_threshold: confidenceThreshold,
+    },
   );
   return response.data;
 };
@@ -163,11 +163,11 @@ export const regenerateFunctionalRequirements = async (
  * 機能要件書の仕様書フィードバックを取得する
  */
 export const getFunctionSpecificationFeedback = async (
-  projectId: string
+  projectId: string,
 ): Promise<SpecificationFeedback> => {
   const response = await axios.post<SpecificationFeedback>(
     `${API_BASE_URL}/api/function_requirements/confidence-feedback`,
-    { project_id: projectId }
+    { project_id: projectId },
   );
   return response.data;
 };
@@ -221,17 +221,17 @@ export interface FunctionStreamingResult {
  */
 export const streamGenerateFunctionalRequirements = async (
   projectId: string,
-  callbacks: FunctionStreamingCallbacks = {}
+  callbacks: FunctionStreamingCallbacks = {},
 ): Promise<FunctionStreamingResult> => {
-  let accumulatedText = '';
-  let docId = '';
+  let accumulatedText = "";
+  let docId = "";
   let questions: StreamingQA[] = [];
 
   return new Promise((resolve, reject) => {
     fetch(`${API_BASE_URL}/api/function_requirements/stream/${projectId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     })
       .then(async (response) => {
@@ -241,12 +241,12 @@ export const streamGenerateFunctionalRequirements = async (
 
         const reader = response.body?.getReader();
         if (!reader) {
-          throw new Error('Response body is not readable');
+          throw new Error("Response body is not readable");
         }
 
         const decoder = new TextDecoder();
-        let buffer = '';
-        let currentEvent = '';  // whileループの外で定義
+        let buffer = "";
+        let currentEvent = ""; // whileループの外で定義
 
         while (true) {
           const { done, value } = await reader.read();
@@ -258,33 +258,33 @@ export const streamGenerateFunctionalRequirements = async (
           buffer += decoder.decode(value, { stream: true });
 
           // SSEイベントをパース
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // 最後の不完全な行を保持
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 最後の不完全な行を保持
           for (const line of lines) {
-            if (line.startsWith('event: ')) {
+            if (line.startsWith("event: ")) {
               currentEvent = line.substring(7).trim();
-            } else if (line.startsWith('data: ') && currentEvent) {
+            } else if (line.startsWith("data: ") && currentEvent) {
               const data = line.substring(6);
               try {
                 const parsed = JSON.parse(data);
 
                 switch (currentEvent) {
-                  case 'start':
+                  case "start":
                     callbacks.onStart?.(parsed);
                     break;
-                  case 'chunk':
+                  case "chunk":
                     accumulatedText += parsed.text;
                     callbacks.onChunk?.(parsed.text, accumulatedText);
                     break;
-                  case 'doc_done':
+                  case "doc_done":
                     docId = parsed.doc_id;
                     callbacks.onDocDone?.(parsed);
                     break;
-                  case 'questions':
+                  case "questions":
                     questions = parsed.questions || [];
                     callbacks.onQuestions?.(questions);
                     break;
-                  case 'done':
+                  case "done":
                     callbacks.onDone?.();
                     resolve({
                       function_doc: accumulatedText,
@@ -292,15 +292,15 @@ export const streamGenerateFunctionalRequirements = async (
                       questions: questions,
                     });
                     return;
-                  case 'error':
+                  case "error":
                     callbacks.onError?.(parsed);
-                    reject(new Error(parsed.message || 'Unknown error'));
+                    reject(new Error(parsed.message || "Unknown error"));
                     return;
                 }
               } catch (e) {
-                console.error('Failed to parse SSE data:', data, e);
+                console.error("Failed to parse SSE data:", data, e);
               }
-              currentEvent = '';
+              currentEvent = "";
             }
           }
         }

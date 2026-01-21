@@ -1,12 +1,12 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError } from "axios";
 import {
   QAType,
   IdeaPromptType,
   QuestionResponseType,
-} from '@/types/modelTypes';
+} from "@/types/modelTypes";
 
 // 環境変数からAPIのベースURLを取得。なければデフォルト値を設定。
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // --- SSE Streaming Types ---
 
@@ -37,7 +37,7 @@ export interface StreamingCallbacks {
 // --- 型定義 (ローカル) ---
 
 // QA作成時にIDと作成日を除外するための型
-export type QACreateType = Omit<QAType, 'qa_id' | 'created_at'>;
+export type QACreateType = Omit<QAType, "qa_id" | "created_at">;
 
 type SaveQuestionsPayload = { QA: QACreateType[] };
 type SaveQuestionsResponse = { message: string };
@@ -52,12 +52,12 @@ type SaveQuestionsResponse = { message: string };
  */
 export const generateQuestions = async (
   projectId: string,
-  prompt: string
+  prompt: string,
 ): Promise<QuestionResponseType> => {
   const requestBody: IdeaPromptType = { Prompt: prompt };
   const response = await axios.post<QuestionResponseType>(
     `${API_BASE_URL}/api/question/${projectId}`,
-    requestBody
+    requestBody,
   );
   return response.data;
 };
@@ -67,7 +67,6 @@ export const generateQuestions = async (
  * @param questions - 保存するQ&Aデータ
  * @returns 保存結果のメッセージ
  */
-
 
 export const saveQuestions = async (
   questions: SaveQuestionsPayload,
@@ -116,7 +115,7 @@ export const saveQuestions = async (
 export const streamGenerateQuestions = async (
   projectId: string,
   prompt: string,
-  callbacks: StreamingCallbacks = {}
+  callbacks: StreamingCallbacks = {},
 ): Promise<StreamingQAItem[]> => {
   const items: StreamingQAItem[] = [];
   let itemIndex = 0;
@@ -124,9 +123,9 @@ export const streamGenerateQuestions = async (
   return new Promise((resolve, reject) => {
     // fetchを使用してSSEストリームを処理
     fetch(`${API_BASE_URL}/api/question/stream/${projectId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ Prompt: prompt }),
     })
@@ -137,11 +136,11 @@ export const streamGenerateQuestions = async (
 
         const reader = response.body?.getReader();
         if (!reader) {
-          throw new Error('Response body is not readable');
+          throw new Error("Response body is not readable");
         }
 
         const decoder = new TextDecoder();
-        let buffer = '';
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -153,39 +152,39 @@ export const streamGenerateQuestions = async (
           buffer += decoder.decode(value, { stream: true });
 
           // SSEイベントをパース
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // 最後の不完全な行を保持
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 最後の不完全な行を保持
 
-          let currentEvent = '';
+          let currentEvent = "";
           for (const line of lines) {
-            if (line.startsWith('event: ')) {
+            if (line.startsWith("event: ")) {
               currentEvent = line.substring(7).trim();
-            } else if (line.startsWith('data: ') && currentEvent) {
+            } else if (line.startsWith("data: ") && currentEvent) {
               const data = line.substring(6);
               try {
                 const parsed = JSON.parse(data);
 
                 switch (currentEvent) {
-                  case 'start':
+                  case "start":
                     callbacks.onStart?.(parsed);
                     break;
-                  case 'qa':
+                  case "qa":
                     items.push(parsed as StreamingQAItem);
                     callbacks.onQA?.(parsed as StreamingQAItem, itemIndex++);
                     break;
-                  case 'done':
+                  case "done":
                     callbacks.onDone?.(parsed);
                     resolve(items);
                     return;
-                  case 'error':
+                  case "error":
                     callbacks.onError?.(parsed);
-                    reject(new Error(parsed.message || 'Unknown error'));
+                    reject(new Error(parsed.message || "Unknown error"));
                     return;
                 }
               } catch (e) {
-                console.error('Failed to parse SSE data:', data, e);
+                console.error("Failed to parse SSE data:", data, e);
               }
-              currentEvent = '';
+              currentEvent = "";
             }
           }
         }
@@ -206,7 +205,7 @@ export const streamGenerateQuestions = async (
  * @returns saveQuestions用のペイロード
  */
 export const convertStreamingItemsToPayload = (
-  items: StreamingQAItem[]
+  items: StreamingQAItem[],
 ): SaveQuestionsPayload => {
   return {
     QA: items.map((item) => ({

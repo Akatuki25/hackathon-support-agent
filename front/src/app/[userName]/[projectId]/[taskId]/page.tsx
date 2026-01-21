@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -15,6 +16,7 @@ export default function TaskHandsOnPage() {
   const taskId = params?.taskId as string | undefined;
   const userName = params?.userName as string | undefined;
 
+
   const { task, isLoading: isTaskLoading, isError: isTaskError } = useTask(taskId);
 
   // AIアクションハンドラー
@@ -24,12 +26,12 @@ export default function TaskHandsOnPage() {
         const payload = action.payload as { field: string; content: string };
         if (payload.field && payload.content) {
           await updateTaskHandsOn(taskId, {
-            field: payload.field as UpdateHandsOnRequest['field'],
+            field: payload.field as UpdateHandsOnRequest["field"],
             content: payload.content,
           });
         }
       } catch (error) {
-        console.error('Failed to update hands-on:', error);
+        console.error("Failed to update hands-on:", error);
       }
     }
   }, [taskId]);
@@ -54,7 +56,9 @@ export default function TaskHandsOnPage() {
       return <p className={sectionBodyClass}>タスク情報を読み込み中...</p>;
     }
     if (isTaskError) {
-      return <p className={sectionBodyClass}>タスク情報の取得に失敗しました。</p>;
+      return (
+        <p className={sectionBodyClass}>タスク情報の取得に失敗しました。</p>
+      );
     }
     if (!task) {
       return <p className={sectionBodyClass}>タスク情報が見つかりません。</p>;
@@ -64,13 +68,16 @@ export default function TaskHandsOnPage() {
       <div className="space-y-2">
         <p className={sectionBodyClass}>
           <span className={badgeClass}>ID</span> <span className="font-mono text-xs">{task.task_id}</span>
+
         </p>
-        <p className={`${sectionBodyClass} text-base font-semibold`}>{task.title}</p>
-        {task.description && <p className={sectionBodyClass}>{task.description}</p>}
+        {task.description && (
+          <p className={sectionBodyClass}>{task.description}</p>
+        )}
         <div className="flex flex-wrap gap-2 text-xs">
           {task.priority && (
             <span className={badgeClass}>優先度: {task.priority}</span>
           )}
+
           {task.status && <span className={badgeClass}>ステータス: {task.status}</span>}
           {task.category && <span className={badgeClass}>カテゴリ: {task.category}</span>}
           {task.assignee && <span className={badgeClass}>担当: {task.assignee}</span>}
@@ -82,6 +89,7 @@ export default function TaskHandsOnPage() {
 
   return (
     <div className={pageBackgroundClass}>
+
       <div className={containerClass}>
         <div className={panelClass}>
           <header className="flex flex-col gap-2">
@@ -115,6 +123,7 @@ export default function TaskHandsOnPage() {
             )}
           </section>
         </div>
+
       </div>
 
       {/* AI Chat Widget */}

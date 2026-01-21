@@ -9,7 +9,7 @@ import {
   QAForRequirement,
   regenerateFunctionalRequirements,
   updateFunctionDocument,
-  getFunctionSpecificationFeedback
+  getFunctionSpecificationFeedback,
 } from "@/libs/service/function";
 import { BaseEditor } from "@/components/BaseEditor";
 
@@ -44,12 +44,13 @@ export default function FunctionEditor({
   onRequirementsUpdate,
   onQuestionsUpdate,
   onConfidenceUpdate,
-  isStreaming = false
+  isStreaming = false,
 }: FunctionEditorProps) {
   const [regenerating, setRegenerating] = useState(false);
   const [isContentInitialized, setIsContentInitialized] = useState(false);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
-  const [specificationFeedback, setSpecificationFeedback] = useState<SpecificationFeedback | null>(null);
+  const [specificationFeedback, setSpecificationFeedback] =
+    useState<SpecificationFeedback | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // 再生成
@@ -62,7 +63,9 @@ export default function FunctionEditor({
       // ドキュメントを更新
       if (result.requirements && result.requirements.length > 0) {
         // 要件をMarkdown形式に変換
-        const markdownContent = formatRequirementsAsMarkdown(result.requirements);
+        const markdownContent = formatRequirementsAsMarkdown(
+          result.requirements,
+        );
         onDocumentUpdate(markdownContent);
         setIsContentInitialized(false); // エディターを再初期化
       }
@@ -71,7 +74,6 @@ export default function FunctionEditor({
       onRequirementsUpdate(result.requirements);
       onConfidenceUpdate(result.overall_confidence);
       onQuestionsUpdate(result.clarification_questions);
-
     } catch (error) {
       console.error("機能要件の再生成に失敗:", error);
       alert("機能要件の再生成に失敗しました");
@@ -96,12 +98,14 @@ export default function FunctionEditor({
   };
 
   // 要件をMarkdown形式に変換
-  const formatRequirementsAsMarkdown = (reqs: FunctionalRequirement[]): string => {
+  const formatRequirementsAsMarkdown = (
+    reqs: FunctionalRequirement[],
+  ): string => {
     let md = "# 機能要件書\n\n";
 
     // カテゴリ別にグループ化
     const categories: { [key: string]: FunctionalRequirement[] } = {};
-    reqs.forEach(req => {
+    reqs.forEach((req) => {
       const category = req.category || "その他";
       if (!categories[category]) {
         categories[category] = [];
@@ -112,7 +116,7 @@ export default function FunctionEditor({
     Object.entries(categories).forEach(([category, categoryReqs]) => {
       md += `## ${category}\n\n`;
 
-      categoryReqs.forEach(req => {
+      categoryReqs.forEach((req) => {
         md += `### ${req.title}\n\n`;
         md += `**要件ID:** ${req.requirement_id}\n\n`;
         md += `**優先度:** ${req.priority}\n\n`;
@@ -121,7 +125,7 @@ export default function FunctionEditor({
 
         if (req.acceptance_criteria && req.acceptance_criteria.length > 0) {
           md += "**受入基準:**\n";
-          req.acceptance_criteria.forEach(criteria => {
+          req.acceptance_criteria.forEach((criteria) => {
             md += `- ${criteria}\n`;
           });
           md += "\n";
@@ -139,16 +143,19 @@ export default function FunctionEditor({
   };
 
   // コンテンツ変更処理
-  const handleContentChange = useCallback(async (markdown: string) => {
-    if (!functionDocument) return;
+  const handleContentChange = useCallback(
+    async (markdown: string) => {
+      if (!functionDocument) return;
 
-    try {
-      await updateFunctionDocument(projectId, markdown);
-      onDocumentUpdate(markdown);
-    } catch (error) {
-      console.error("機能要件ドキュメントの更新に失敗:", error);
-    }
-  }, [functionDocument, projectId, onDocumentUpdate]);
+      try {
+        await updateFunctionDocument(projectId, markdown);
+        onDocumentUpdate(markdown);
+      } catch (error) {
+        console.error("機能要件ドキュメントの更新に失敗:", error);
+      }
+    },
+    [functionDocument, projectId, onDocumentUpdate],
+  );
 
   // Helper function to get confidence badge classes
   const getConfidenceBadgeClass = () => {
@@ -164,8 +171,14 @@ export default function FunctionEditor({
   // ヘッダーアクション
   const headerActions = (
     <div className="flex items-center space-x-2">
-      <div className={`px-3 py-1 rounded-full text-sm ${getConfidenceBadgeClass()}`}>
-        {overallConfidence >= 0.8 ? "高確信" : overallConfidence >= 0.6 ? "中確信" : "要改善"}
+      <div
+        className={`px-3 py-1 rounded-full text-sm ${getConfidenceBadgeClass()}`}
+      >
+        {overallConfidence >= 0.8
+          ? "高確信"
+          : overallConfidence >= 0.6
+            ? "中確信"
+            : "要改善"}
       </div>
       <div className="px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-700 dark:bg-cyan-900/50 dark:text-cyan-400">
         確信度: {(overallConfidence * 100).toFixed(0)}%
@@ -187,13 +200,15 @@ export default function FunctionEditor({
             ? "cursor-not-allowed opacity-70"
             : "hover:-translate-y-0.5"
         } bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 ${
-          regenerating || isStreaming ? "from-purple-600 to-blue-700 dark:bg-cyan-600" : ""
+          regenerating || isStreaming
+            ? "from-purple-600 to-blue-700 dark:bg-cyan-600"
+            : ""
         }`}
       >
         {regenerating || isStreaming ? (
           <>
             <Loader2 size={16} className="mr-2 animate-spin" />
-            {isStreaming ? '生成中...' : '再生成中...'}
+            {isStreaming ? "生成中..." : "再生成中..."}
           </>
         ) : (
           <>
@@ -230,9 +245,7 @@ export default function FunctionEditor({
   );
 
   return (
-    <div
-      className="flex-1 backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20"
-    >
+    <div className="flex-1 backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20">
       <BaseEditor
         content={functionDocument}
         placeholder="機能要件を記述してください..."

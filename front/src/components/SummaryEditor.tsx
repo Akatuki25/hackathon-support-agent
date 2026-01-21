@@ -80,7 +80,8 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
               placeholder="// 仕様書を編集できます（マークダウン形式対応）"
               style={{
                 lineHeight: "1.6",
-                backgroundImage: "linear-gradient(to bottom, rgba(147, 51, 234, 0.05) 1px, transparent 1px)",
+                backgroundImage:
+                  "linear-gradient(to bottom, rgba(147, 51, 234, 0.05) 1px, transparent 1px)",
                 backgroundSize: "1px 1.6em",
                 backgroundPosition: "0 1.6em",
                 overflow: "hidden",
@@ -96,7 +97,8 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
               placeholder="// 仕様書を編集できます（マークダウン形式対応）"
               style={{
                 lineHeight: "1.6",
-                backgroundImage: "linear-gradient(to bottom, rgba(236, 72, 153, 0.05) 1px, transparent 1px)",
+                backgroundImage:
+                  "linear-gradient(to bottom, rgba(236, 72, 153, 0.05) 1px, transparent 1px)",
                 backgroundSize: "1px 1.6em",
                 backgroundPosition: "0 1.6em",
                 overflow: "hidden",

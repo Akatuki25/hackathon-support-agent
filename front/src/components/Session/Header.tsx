@@ -16,15 +16,25 @@ import {
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { Session } from "next-auth";
 import { useRouter, usePathname } from "next/navigation";
-import { listMembers, getMemberByGithubName, patchMemberById } from "@/libs/modelAPI/member";
-import { getProjectMembersByProjectId, postProjectMember, deleteProjectMember } from "@/libs/modelAPI/project_member";
+import {
+  listMembers,
+  getMemberByGithubName,
+  patchMemberById,
+} from "@/libs/modelAPI/member";
+import {
+  getProjectMembersByProjectId,
+  postProjectMember,
+  deleteProjectMember,
+} from "@/libs/modelAPI/project_member";
 import axios from "axios";
 
 export default function CyberHeader() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsMode, setSettingsMode] = useState<"profile" | "member">("profile");
+  const [settingsMode, setSettingsMode] = useState<"profile" | "member">(
+    "profile",
+  );
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -35,7 +45,8 @@ export default function CyberHeader() {
 
     // UUIDまたは数字のみのIDかチェック
     // UUIDパターン: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const numberPattern = /^\d+$/;
 
     // パターン1: /hackSetUp/[ProjectId]/*, /projects/[ProjectId]/* など
@@ -103,17 +114,18 @@ export default function CyberHeader() {
 
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div
-          className="relative w-full max-w-2xl mx-4 rounded-lg border shadow-2xl bg-white/95 border-purple-300/30 dark:bg-gray-900/95 dark:border-cyan-500/30"
-        >
+        <div className="relative w-full max-w-2xl mx-4 rounded-lg border shadow-2xl bg-white/95 border-purple-300/30 dark:bg-gray-900/95 dark:border-cyan-500/30">
           {/* Header */}
-          <div
-            className="px-6 py-4 border-b flex items-center justify-between border-purple-300/20 dark:border-cyan-500/20"
-          >
+          <div className="px-6 py-4 border-b flex items-center justify-between border-purple-300/20 dark:border-cyan-500/20">
             <div className="flex items-center space-x-3">
-              <Settings className="text-purple-600 dark:text-cyan-400" size={24} />
+              <Settings
+                className="text-purple-600 dark:text-cyan-400"
+                size={24}
+              />
               <h2 className="text-xl font-bold text-purple-600 dark:text-cyan-400">
-                {settingsMode === "member" ? "プロジェクトメンバー追加" : "プロフィール編集"}
+                {settingsMode === "member"
+                  ? "プロジェクトメンバー追加"
+                  : "プロフィール編集"}
               </h2>
             </div>
             <button
@@ -153,9 +165,15 @@ export default function CyberHeader() {
           {/* Body */}
           <div className="px-6 py-6">
             {settingsMode === "member" && projectId ? (
-              <ProjectMemberForm projectId={projectId} onClose={() => setIsSettingsOpen(false)} />
+              <ProjectMemberForm
+                projectId={projectId}
+                onClose={() => setIsSettingsOpen(false)}
+              />
             ) : (
-              <MemberEditForm onClose={() => setIsSettingsOpen(false)} session={session} />
+              <MemberEditForm
+                onClose={() => setIsSettingsOpen(false)}
+                session={session}
+              />
             )}
           </div>
         </div>
@@ -176,46 +194,28 @@ export default function CyberHeader() {
               onClick={() => router.push("/")}
               className="flex items-center space-x-4 group cursor-pointer"
             >
-              <div
-                className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-              >
+              <div className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                 {/* Inner glow effect */}
-                <div
-                  className="absolute inset-1 rounded bg-gradient-to-br from-purple-400/20 to-blue-400/20 dark:from-cyan-400/20 dark:to-pink-400/20 blur-sm"
-                ></div>
+                <div className="absolute inset-1 rounded bg-gradient-to-br from-purple-400/20 to-blue-400/20 dark:from-cyan-400/20 dark:to-pink-400/20 blur-sm"></div>
                 <Terminal
                   className="text-white font-bold text-lg relative z-10"
                   size={24}
                 />
                 {/* Corner brackets */}
-                <div
-                  className="absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 border-purple-300 dark:border-cyan-400"
-                ></div>
-                <div
-                  className="absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 border-blue-300 dark:border-pink-400"
-                ></div>
-                <div
-                  className="absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 border-blue-300 dark:border-pink-400"
-                ></div>
-                <div
-                  className="absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 border-purple-300 dark:border-cyan-400"
-                ></div>
+                <div className="absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 border-purple-300 dark:border-cyan-400"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 border-blue-300 dark:border-pink-400"></div>
+                <div className="absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 border-blue-300 dark:border-pink-400"></div>
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 border-purple-300 dark:border-cyan-400"></div>
               </div>
 
               <div className="flex flex-col">
-                <span
-                  className="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-cyan-400 dark:to-pink-400 filter drop-shadow-lg"
-                >
+                <span className="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-cyan-400 dark:to-pink-400 filter drop-shadow-lg">
                   Hackathon
                 </span>
-                <span
-                  className="text-1xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-cyan-400 dark:to-pink-400 filter drop-shadow-lg"
-                >
+                <span className="text-1xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-cyan-400 dark:to-pink-400 filter drop-shadow-lg">
                   SupportAgent
                 </span>
-                <span
-                  className="text-xs font-mono tracking-wider text-purple-500/70 dark:text-cyan-300/70"
-                >
+                <span className="text-xs font-mono tracking-wider text-purple-500/70 dark:text-cyan-300/70">
                   {"// SYSTEM_ONLINE"}
                 </span>
               </div>
@@ -224,17 +224,11 @@ export default function CyberHeader() {
             {/* Cyber Authentication Section */}
             <div className="flex items-center space-x-4">
               {status === "loading" && (
-                <div
-                  className="relative px-6 py-3 rounded-lg backdrop-blur-sm border bg-white/50 border-purple-300/30 text-purple-600 dark:bg-gray-900/50 dark:border-cyan-500/30 dark:text-cyan-400 shadow-lg overflow-hidden"
-                >
+                <div className="relative px-6 py-3 rounded-lg backdrop-blur-sm border bg-white/50 border-purple-300/30 text-purple-600 dark:bg-gray-900/50 dark:border-cyan-500/30 dark:text-cyan-400 shadow-lg overflow-hidden">
                   {/* Scanning line effect */}
-                  <div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/10 to-transparent dark:via-cyan-400/10 translate-x-[-100%] animate-pulse"
-                  ></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/10 to-transparent dark:via-cyan-400/10 translate-x-[-100%] animate-pulse"></div>
                   <div className="flex items-center space-x-3 relative">
-                    <div
-                      className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent dark:border-cyan-400 dark:border-t-transparent"
-                    ></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent dark:border-cyan-400 dark:border-t-transparent"></div>
                     <span className="text-sm font-mono font-bold tracking-wider">
                       LOADING...
                     </span>
@@ -249,20 +243,14 @@ export default function CyberHeader() {
                     className="group relative px-6 py-3 rounded-lg font-mono font-bold text-sm tracking-wider transition-all duration-300 overflow-hidden bg-white/50 hover:bg-gray-50/70 text-gray-600 hover:text-purple-600 border border-gray-300/50 hover:border-purple-400/70 dark:bg-gray-900/50 dark:hover:bg-gray-800/70 dark:text-gray-300 dark:hover:text-cyan-400 dark:border-gray-600/50 dark:hover:border-cyan-500/70 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     {/* Cyber scan line */}
-                    <div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent dark:via-cyan-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"
-                    ></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent dark:via-cyan-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div className="flex items-center space-x-2 relative">
                       <Shield className="w-4 h-4" />
                       <span>ACCESS</span>
                     </div>
                     {/* Corner brackets */}
-                    <div
-                      className="absolute top-1 left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                    ></div>
-                    <div
-                      className="absolute top-1 right-1 w-2 h-2 border-r border-t border-purple-400/50 dark:border-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                    ></div>
+                    <div className="absolute top-1 left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute top-1 right-1 w-2 h-2 border-r border-t border-purple-400/50 dark:border-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </button>
                 </div>
               )}
@@ -277,9 +265,7 @@ export default function CyberHeader() {
                     className="relative px-6 py-3 rounded-lg backdrop-blur-sm border transition-all duration-300 bg-white/50 border-purple-300/30 hover:border-purple-400/50 dark:bg-gray-900/50 dark:border-cyan-500/30 dark:hover:border-cyan-400/50 shadow-lg overflow-hidden hover:shadow-xl group"
                   >
                     {/* Status indicator */}
-                    <div
-                      className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse"
-                    ></div>
+                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse"></div>
                     <div className="flex items-center space-x-3">
                       <div className="relative">
                         <Image
@@ -290,23 +276,17 @@ export default function CyberHeader() {
                           className="w-10 h-10 rounded-lg border-2 transition-all duration-300 border-purple-500/50 group-hover:border-purple-400 dark:border-cyan-500/50 dark:group-hover:border-cyan-400"
                         />
                         {/* Cyber frame */}
-                        <div
-                          className="absolute -inset-1 border transition-all duration-300 border-purple-400/30 group-hover:border-purple-400/50 dark:border-cyan-400/30 dark:group-hover:border-cyan-400/50 rounded-lg"
-                        ></div>
+                        <div className="absolute -inset-1 border transition-all duration-300 border-purple-400/30 group-hover:border-purple-400/50 dark:border-cyan-400/30 dark:group-hover:border-cyan-400/50 rounded-lg"></div>
                       </div>
                       <div className="hidden sm:block">
-                        <p
-                          className="text-sm font-mono font-bold tracking-wider text-purple-600 dark:text-cyan-400"
-                        >
+                        <p className="text-sm font-mono font-bold tracking-wider text-purple-600 dark:text-cyan-400">
                           USER_
                           {session.user?.name
                             ?.toUpperCase()
                             .replace(/\s+/g, "_")}
                         </p>
                         <div className="flex items-center space-x-1">
-                          <span
-                            className="text-xs font-mono text-gray-500 dark:text-gray-400"
-                          >
+                          <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
                             {"// ONLINE"}
                           </span>
                           <ChevronDown
@@ -328,13 +308,9 @@ export default function CyberHeader() {
 
                   {/* Dropdown Menu */}
                   {isMenuOpen && (
-                    <div
-                      className="absolute top-full right-0 mt-2 w-64 rounded-lg backdrop-blur-md border shadow-xl z-50 overflow-hidden bg-white/90 border-purple-300/30 dark:bg-gray-900/90 dark:border-cyan-500/30"
-                    >
+                    <div className="absolute top-full right-0 mt-2 w-64 rounded-lg backdrop-blur-md border shadow-xl z-50 overflow-hidden bg-white/90 border-purple-300/30 dark:bg-gray-900/90 dark:border-cyan-500/30">
                       {/* Menu Header */}
-                      <div
-                        className="px-4 py-3 border-b border-purple-300/20 dark:border-cyan-500/20"
-                      >
+                      <div className="px-4 py-3 border-b border-purple-300/20 dark:border-cyan-500/20">
                         <div className="flex items-center space-x-3">
                           <Image
                             src={session.user?.image ?? "/window.svg"}
@@ -344,14 +320,10 @@ export default function CyberHeader() {
                             className="w-8 h-8 rounded border border-purple-500/50 dark:border-cyan-500/50"
                           />
                           <div>
-                            <p
-                              className="text-sm font-mono font-bold text-purple-600 dark:text-cyan-400"
-                            >
+                            <p className="text-sm font-mono font-bold text-purple-600 dark:text-cyan-400">
                               {session.user?.name}
                             </p>
-                            <p
-                              className="text-xs font-mono text-gray-500 dark:text-gray-400"
-                            >
+                            <p className="text-xs font-mono text-gray-500 dark:text-gray-400">
                               {session.user?.email}
                             </p>
                           </div>
@@ -370,20 +342,14 @@ export default function CyberHeader() {
                           <div className="relative">
                             <FolderOpen className="w-5 h-5" />
                             {/* Cyber brackets */}
-                            <div
-                              className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"
-                            ></div>
-                            <div
-                              className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"
-                            ></div>
+                            <div className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"></div>
+                            <div className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"></div>
                           </div>
                           <div>
                             <span className="font-mono font-bold text-sm tracking-wider">
                               ALL_PROJECTS
                             </span>
-                            <p
-                              className="text-xs font-mono text-gray-400 dark:text-gray-500"
-                            >
+                            <p className="text-xs font-mono text-gray-400 dark:text-gray-500">
                               {"// View all projects"}
                             </p>
                           </div>
@@ -396,20 +362,14 @@ export default function CyberHeader() {
                           <div className="relative">
                             <Edit className="w-5 h-5" />
                             {/* Cyber brackets */}
-                            <div
-                              className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"
-                            ></div>
-                            <div
-                              className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"
-                            ></div>
+                            <div className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"></div>
+                            <div className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"></div>
                           </div>
                           <div>
                             <span className="font-mono font-bold text-sm tracking-wider">
                               PROFILE
                             </span>
-                            <p
-                              className="text-xs font-mono text-gray-400 dark:text-gray-500"
-                            >
+                            <p className="text-xs font-mono text-gray-400 dark:text-gray-500">
                               {"// Edit profile"}
                             </p>
                           </div>
@@ -423,29 +383,21 @@ export default function CyberHeader() {
                             <div className="relative">
                               <UserPlus className="w-5 h-5" />
                               {/* Cyber brackets */}
-                              <div
-                                className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"
-                              ></div>
-                              <div
-                                className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"
-                              ></div>
+                              <div className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-purple-400/50 dark:border-cyan-400/50"></div>
+                              <div className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-purple-400/50 dark:border-cyan-400/50"></div>
                             </div>
                             <div>
                               <span className="font-mono font-bold text-sm tracking-wider">
                                 ADD_MEMBER
                               </span>
-                              <p
-                                className="text-xs font-mono text-gray-400 dark:text-gray-500"
-                              >
+                              <p className="text-xs font-mono text-gray-400 dark:text-gray-500">
                                 {"// Add project member"}
                               </p>
                             </div>
                           </button>
                         )}
 
-                        <div
-                          className="mx-4 my-2 h-px bg-purple-300/20 dark:bg-cyan-500/20"
-                        ></div>
+                        <div className="mx-4 my-2 h-px bg-purple-300/20 dark:bg-cyan-500/20"></div>
 
                         <button
                           onClick={handleLogout}
@@ -454,20 +406,14 @@ export default function CyberHeader() {
                           <div className="relative">
                             <LogOut className="w-5 h-5" />
                             {/* Warning brackets */}
-                            <div
-                              className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-red-500/50 dark:border-red-400/50"
-                            ></div>
-                            <div
-                              className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-red-500/50 dark:border-red-400/50"
-                            ></div>
+                            <div className="absolute -top-1 -left-1 w-2 h-2 border-l border-t border-red-500/50 dark:border-red-400/50"></div>
+                            <div className="absolute -bottom-1 -right-1 w-2 h-2 border-r border-b border-red-500/50 dark:border-red-400/50"></div>
                           </div>
                           <div>
                             <span className="font-mono font-bold text-sm tracking-wider">
                               LOGOUT
                             </span>
-                            <p
-                              className="text-xs font-mono text-gray-400 dark:text-gray-500"
-                            >
+                            <p className="text-xs font-mono text-gray-400 dark:text-gray-500">
                               {"// End session"}
                             </p>
                           </div>
@@ -475,12 +421,8 @@ export default function CyberHeader() {
                       </div>
 
                       {/* Menu Footer */}
-                      <div
-                        className="px-4 py-2 border-t border-purple-300/20 bg-gray-50/50 dark:border-cyan-500/20 dark:bg-gray-800/50"
-                      >
-                        <p
-                          className="text-xs font-mono text-center text-gray-400 dark:text-gray-500"
-                        >
+                      <div className="px-4 py-2 border-t border-purple-300/20 bg-gray-50/50 dark:border-cyan-500/20 dark:bg-gray-800/50">
+                        <p className="text-xs font-mono text-center text-gray-400 dark:text-gray-500">
                           {"// SYSTEM_ACCESS_GRANTED"}
                         </p>
                       </div>
@@ -513,7 +455,13 @@ const ProjectMemberForm = ({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [allMembers, setAllMembers] = useState<string[]>([]);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [existingMembers, setExistingMembers] = useState<Array<{ project_member_id: string; member_name: string; github_name: string }>>([]);
+  const [existingMembers, setExistingMembers] = useState<
+    Array<{
+      project_member_id: string;
+      member_name: string;
+      github_name: string;
+    }>
+  >([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
 
   // 全メンバーとプロジェクトメンバーを取得
@@ -521,7 +469,7 @@ const ProjectMemberForm = ({
     const fetchMembers = async () => {
       try {
         const members = await listMembers();
-        setAllMembers(members.map(m => m.github_name));
+        setAllMembers(members.map((m) => m.github_name));
 
         // プロジェクトメンバーを取得
         try {
@@ -529,13 +477,13 @@ const ProjectMemberForm = ({
           // member_idからgithub_nameを取得
           const membersWithGithub = await Promise.all(
             projectMembers.map(async (pm) => {
-              const member = members.find(m => m.member_id === pm.member_id);
+              const member = members.find((m) => m.member_id === pm.member_id);
               return {
                 project_member_id: pm.project_member_id || "",
                 member_name: pm.member_name,
                 github_name: member?.github_name || pm.member_name,
               };
-            })
+            }),
           );
           setExistingMembers(membersWithGithub);
         } catch (error) {
@@ -560,7 +508,9 @@ const ProjectMemberForm = ({
   const removeExistingMember = async (projectMemberId: string) => {
     try {
       await deleteProjectMember(projectMemberId);
-      setExistingMembers(existingMembers.filter(m => m.project_member_id !== projectMemberId));
+      setExistingMembers(
+        existingMembers.filter((m) => m.project_member_id !== projectMemberId),
+      );
     } catch (error) {
       console.error("メンバー削除エラー:", error);
       alert("メンバーの削除に失敗しました");
@@ -573,12 +523,12 @@ const ProjectMemberForm = ({
     setInputValue(value);
 
     if (value.trim()) {
-      const existingGithubNames = existingMembers.map(m => m.github_name);
+      const existingGithubNames = existingMembers.map((m) => m.github_name);
       const filtered = allMembers.filter(
-        name =>
+        (name) =>
           name.toLowerCase().includes(value.toLowerCase()) &&
           !githubNames.includes(name) &&
-          !existingGithubNames.includes(name)
+          !existingGithubNames.includes(name),
       );
       setSuggestions(filtered.slice(0, 5)); // 最大5件
     } else {
@@ -605,7 +555,7 @@ const ProjectMemberForm = ({
 
   // チップを削除
   const removeGithubName = (nameToRemove: string) => {
-    setGithubNames(githubNames.filter(name => name !== nameToRemove));
+    setGithubNames(githubNames.filter((name) => name !== nameToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -618,7 +568,9 @@ const ProjectMemberForm = ({
       const failedMembers: string[] = [];
       const successMembers: string[] = [];
 
-      console.log(`[メンバー追加] プロジェクトID: ${projectId}, 追加予定: ${githubNames.join(', ')}`);
+      console.log(
+        `[メンバー追加] プロジェクトID: ${projectId}, 追加予定: ${githubNames.join(", ")}`,
+      );
 
       // 各GitHubネームごとにメンバーを追加
       for (const githubName of githubNames) {
@@ -628,12 +580,18 @@ const ProjectMemberForm = ({
           // 既存メンバーを検索
           try {
             member = await getMemberByGithubName(githubName);
-            console.log(`[メンバー検索成功] ${githubName} -> member_id: ${member.member_id}`);
+            console.log(
+              `[メンバー検索成功] ${githubName} -> member_id: ${member.member_id}`,
+            );
           } catch (error) {
             // 404エラーの場合は、そのユーザーにGitHubログインを促す必要がある
             if (axios.isAxiosError(error) && error.response?.status === 404) {
-              console.warn(`[メンバー未登録] ${githubName} はシステムに未登録です`);
-              failedMembers.push(`${githubName} (未登録ユーザー - GitHubログインが必要)`);
+              console.warn(
+                `[メンバー未登録] ${githubName} はシステムに未登録です`,
+              );
+              failedMembers.push(
+                `${githubName} (未登録ユーザー - GitHubログインが必要)`,
+              );
               continue;
             } else {
               throw error;
@@ -642,17 +600,23 @@ const ProjectMemberForm = ({
 
           // 重複チェック（既にプロジェクトメンバーに含まれているか）
           const isDuplicate = existingMembers.some(
-            existing => existing.github_name === githubName || existing.member_name === member.member_name
+            (existing) =>
+              existing.github_name === githubName ||
+              existing.member_name === member.member_name,
           );
 
           if (isDuplicate) {
-            console.warn(`[重複検出] ${githubName} は既にプロジェクトメンバーです`);
+            console.warn(
+              `[重複検出] ${githubName} は既にプロジェクトメンバーです`,
+            );
             failedMembers.push(`${githubName} (既にメンバーです)`);
             continue;
           }
 
           // プロジェクトメンバーに追加
-          console.log(`[DB登録開始] project_id: ${projectId}, member_id: ${member.member_id}, member_name: ${member.member_name}`);
+          console.log(
+            `[DB登録開始] project_id: ${projectId}, member_id: ${member.member_id}, member_name: ${member.member_name}`,
+          );
 
           const projectMemberData = {
             project_id: projectId,
@@ -661,7 +625,9 @@ const ProjectMemberForm = ({
           };
 
           const projectMemberId = await postProjectMember(projectMemberData);
-          console.log(`[DB登録成功] project_member_id: ${projectMemberId}, GitHubユーザー: ${githubName}`);
+          console.log(
+            `[DB登録成功] project_member_id: ${projectMemberId}, GitHubユーザー: ${githubName}`,
+          );
 
           successMembers.push(githubName);
         } catch (error) {
@@ -681,34 +647,40 @@ const ProjectMemberForm = ({
         }
       }
 
-      console.log(`[追加処理完了] 成功: ${successMembers.length}件, 失敗: ${failedMembers.length}件`);
+      console.log(
+        `[追加処理完了] 成功: ${successMembers.length}件, 失敗: ${failedMembers.length}件`,
+      );
 
       // 結果を表示
       if (failedMembers.length > 0) {
         alert(
-          `以下のメンバーの追加に失敗しました:\n${failedMembers.join("\n")}\n\n成功: ${successMembers.length}件`
+          `以下のメンバーの追加に失敗しました:\n${failedMembers.join("\n")}\n\n成功: ${successMembers.length}件`,
         );
       }
 
       if (successMembers.length > 0) {
         // 既存メンバーリストを更新
         try {
-          console.log(`[メンバーリスト再取得開始] プロジェクトID: ${projectId}`);
+          console.log(
+            `[メンバーリスト再取得開始] プロジェクトID: ${projectId}`,
+          );
           const projectMembers = await getProjectMembersByProjectId(projectId);
           const members = await listMembers();
 
           const membersWithGithub = await Promise.all(
             projectMembers.map(async (pm) => {
-              const member = members.find(m => m.member_id === pm.member_id);
+              const member = members.find((m) => m.member_id === pm.member_id);
               return {
                 project_member_id: pm.project_member_id || "",
                 member_name: pm.member_name,
                 github_name: member?.github_name || pm.member_name,
               };
-            })
+            }),
           );
 
-          console.log(`[メンバーリスト更新] 現在のメンバー数: ${membersWithGithub.length}`);
+          console.log(
+            `[メンバーリスト更新] 現在のメンバー数: ${membersWithGithub.length}`,
+          );
           setExistingMembers(membersWithGithub);
         } catch (error) {
           console.error("[メンバーリスト再取得エラー]", error);
@@ -741,9 +713,7 @@ const ProjectMemberForm = ({
           </div>
         ) : existingMembers.length > 0 ? (
           <div>
-            <label
-              className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
-            >
+            <label className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400">
               現在のメンバー
             </label>
             <div className="min-h-[50px] p-2 rounded-lg border mb-4 flex flex-wrap gap-2 bg-white/50 border-purple-300/20 dark:bg-gray-800/50 dark:border-cyan-500/20">
@@ -755,7 +725,9 @@ const ProjectMemberForm = ({
                   <span>{member.github_name}</span>
                   <button
                     type="button"
-                    onClick={() => removeExistingMember(member.project_member_id)}
+                    onClick={() =>
+                      removeExistingMember(member.project_member_id)
+                    }
                     className="ml-2 hover:opacity-70 text-green-600 dark:text-green-400"
                   >
                     <X size={14} />
@@ -767,9 +739,7 @@ const ProjectMemberForm = ({
         ) : null}
 
         <div className="relative">
-          <label
-            className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
-          >
+          <label className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400">
             メンバーを追加
           </label>
 
@@ -839,20 +809,18 @@ const ProjectMemberForm = ({
             } bg-purple-600 hover:bg-purple-700 text-white dark:bg-cyan-600 dark:hover:bg-cyan-700`}
           >
             <UserPlus size={16} />
-            <span>{loading ? "追加中..." : `追加 (${githubNames.length})`}</span>
+            <span>
+              {loading ? "追加中..." : `追加 (${githubNames.length})`}
+            </span>
           </button>
         </div>
       </form>
 
       {/* Success Message */}
       {showSuccessMessage && (
-        <div
-          className="fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] bg-green-100/90 border-green-400/50 text-green-800 dark:bg-green-900/90 dark:border-green-500/50 dark:text-green-300"
-        >
+        <div className="fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] bg-green-100/90 border-green-400/50 text-green-800 dark:bg-green-900/90 dark:border-green-500/50 dark:text-green-300">
           <div className="flex items-center space-x-3">
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center bg-green-500/20"
-            >
+            <div className="w-6 h-6 rounded-full flex items-center justify-center bg-green-500/20">
               <span className="text-xl">✓</span>
             </div>
             <span className="font-mono font-bold">メンバーを追加しました</span>
@@ -931,16 +899,16 @@ const MemberEditForm = ({
   };
 
   if (isLoading) {
-    return <div className="text-purple-600 dark:text-cyan-400">読み込み中...</div>;
+    return (
+      <div className="text-purple-600 dark:text-cyan-400">読み込み中...</div>
+    );
   }
 
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label
-            className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
-          >
+          <label className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400">
             名前
           </label>
           <input
@@ -953,9 +921,7 @@ const MemberEditForm = ({
         </div>
 
         <div>
-          <label
-            className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400"
-          >
+          <label className="block text-sm font-mono font-bold mb-2 text-purple-600 dark:text-cyan-400">
             スキル
           </label>
           <textarea
@@ -979,9 +945,7 @@ const MemberEditForm = ({
             type="submit"
             disabled={loading}
             className={`px-6 py-2 rounded-lg font-mono font-bold flex items-center space-x-2 transition ${
-              loading
-                ? "opacity-50 cursor-not-allowed"
-                : ""
+              loading ? "opacity-50 cursor-not-allowed" : ""
             } bg-purple-600 hover:bg-purple-700 text-white dark:bg-cyan-600 dark:hover:bg-cyan-700`}
           >
             <Edit size={16} />
@@ -992,16 +956,14 @@ const MemberEditForm = ({
 
       {/* Success Message */}
       {showSuccessMessage && (
-        <div
-          className="fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] bg-green-100/90 border-green-400/50 text-green-800 dark:bg-green-900/90 dark:border-green-500/50 dark:text-green-300"
-        >
+        <div className="fixed top-20 right-4 px-6 py-4 rounded-lg border shadow-lg backdrop-blur-sm animate-slide-in-right z-[300] bg-green-100/90 border-green-400/50 text-green-800 dark:bg-green-900/90 dark:border-green-500/50 dark:text-green-300">
           <div className="flex items-center space-x-3">
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center bg-green-500/20"
-            >
+            <div className="w-6 h-6 rounded-full flex items-center justify-center bg-green-500/20">
               <span className="text-xl">✓</span>
             </div>
-            <span className="font-mono font-bold">プロフィールを更新しました</span>
+            <span className="font-mono font-bold">
+              プロフィールを更新しました
+            </span>
           </div>
         </div>
       )}

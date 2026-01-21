@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -11,6 +12,7 @@ import {
   useState,
   type DragEvent,
   type KeyboardEventHandler,
+
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
@@ -42,7 +44,7 @@ type MoveResult = {
 };
 
 // 未割り当てタスク用の定数
-const UNASSIGNED_KEY = 'unassigned' as const;
+const UNASSIGNED_KEY = "unassigned" as const;
 
 // メンバーカラムのスタイル（ユーザーごとに異なる色）
 type ColumnStyle = {
@@ -60,52 +62,65 @@ type ColumnStyle = {
 // カラムのカラーバリエーション (combined light dark: dark classes)
 const COLUMN_COLORS = [
   {
-    column: 'border-purple-200 bg-purple-50 shadow-sm dark:border-purple-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(168,85,247,0.2)]',
-    label: 'text-purple-700 dark:text-purple-200',
-    count: 'bg-white text-purple-600 dark:border dark:border-purple-500/40 dark:bg-slate-900/80 dark:text-purple-200',
-    card: 'border-purple-200 bg-white hover:border-purple-300 hover:shadow-md dark:border-purple-500/30 dark:bg-slate-900/80 dark:hover:border-purple-400/60 dark:shadow-[0_0_16px_rgba(168,85,247,0.25)]',
+    column:
+      "border-purple-200 bg-purple-50 shadow-sm dark:border-purple-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(168,85,247,0.2)]",
+    label: "text-purple-700 dark:text-purple-200",
+    count:
+      "bg-white text-purple-600 dark:border dark:border-purple-500/40 dark:bg-slate-900/80 dark:text-purple-200",
+    card: "border-purple-200 bg-white hover:border-purple-300 hover:shadow-md dark:border-purple-500/30 dark:bg-slate-900/80 dark:hover:border-purple-400/60 dark:shadow-[0_0_16px_rgba(168,85,247,0.25)]",
   },
   {
-    column: 'border-blue-200 bg-blue-50 shadow-sm dark:border-cyan-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(6,182,212,0.2)]',
-    label: 'text-blue-700 dark:text-cyan-200',
-    count: 'bg-white text-blue-600 dark:border dark:border-cyan-500/40 dark:bg-slate-900/80 dark:text-cyan-200',
-    card: 'border-blue-200 bg-white hover:border-blue-300 hover:shadow-md dark:border-cyan-500/30 dark:bg-slate-900/80 dark:hover:border-cyan-400/60 dark:shadow-[0_0_16px_rgba(6,182,212,0.25)]',
+    column:
+      "border-blue-200 bg-blue-50 shadow-sm dark:border-cyan-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(6,182,212,0.2)]",
+    label: "text-blue-700 dark:text-cyan-200",
+    count:
+      "bg-white text-blue-600 dark:border dark:border-cyan-500/40 dark:bg-slate-900/80 dark:text-cyan-200",
+    card: "border-blue-200 bg-white hover:border-blue-300 hover:shadow-md dark:border-cyan-500/30 dark:bg-slate-900/80 dark:hover:border-cyan-400/60 dark:shadow-[0_0_16px_rgba(6,182,212,0.25)]",
   },
   {
-    column: 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(16,185,129,0.2)]',
-    label: 'text-emerald-700 dark:text-emerald-200',
-    count: 'bg-white text-emerald-600 dark:border dark:border-emerald-500/40 dark:bg-slate-900/80 dark:text-emerald-200',
-    card: 'border-emerald-200 bg-white hover:border-emerald-300 hover:shadow-md dark:border-emerald-500/30 dark:bg-slate-900/80 dark:hover:border-emerald-400/60 dark:shadow-[0_0_16px_rgba(16,185,129,0.25)]',
+    column:
+      "border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(16,185,129,0.2)]",
+    label: "text-emerald-700 dark:text-emerald-200",
+    count:
+      "bg-white text-emerald-600 dark:border dark:border-emerald-500/40 dark:bg-slate-900/80 dark:text-emerald-200",
+    card: "border-emerald-200 bg-white hover:border-emerald-300 hover:shadow-md dark:border-emerald-500/30 dark:bg-slate-900/80 dark:hover:border-emerald-400/60 dark:shadow-[0_0_16px_rgba(16,185,129,0.25)]",
   },
   {
-    column: 'border-pink-200 bg-pink-50 shadow-sm dark:border-pink-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(236,72,153,0.2)]',
-    label: 'text-pink-700 dark:text-pink-200',
-    count: 'bg-white text-pink-600 dark:border dark:border-pink-500/40 dark:bg-slate-900/80 dark:text-pink-200',
-    card: 'border-pink-200 bg-white hover:border-pink-300 hover:shadow-md dark:border-pink-500/30 dark:bg-slate-900/80 dark:hover:border-pink-400/60 dark:shadow-[0_0_16px_rgba(236,72,153,0.25)]',
+    column:
+      "border-pink-200 bg-pink-50 shadow-sm dark:border-pink-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(236,72,153,0.2)]",
+    label: "text-pink-700 dark:text-pink-200",
+    count:
+      "bg-white text-pink-600 dark:border dark:border-pink-500/40 dark:bg-slate-900/80 dark:text-pink-200",
+    card: "border-pink-200 bg-white hover:border-pink-300 hover:shadow-md dark:border-pink-500/30 dark:bg-slate-900/80 dark:hover:border-pink-400/60 dark:shadow-[0_0_16px_rgba(236,72,153,0.25)]",
   },
   {
-    column: 'border-orange-200 bg-orange-50 shadow-sm dark:border-orange-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(249,115,22,0.2)]',
-    label: 'text-orange-700 dark:text-orange-200',
-    count: 'bg-white text-orange-600 dark:border dark:border-orange-500/40 dark:bg-slate-900/80 dark:text-orange-200',
-    card: 'border-orange-200 bg-white hover:border-orange-300 hover:shadow-md dark:border-orange-500/30 dark:bg-slate-900/80 dark:hover:border-orange-400/60 dark:shadow-[0_0_16px_rgba(249,115,22,0.25)]',
+    column:
+      "border-orange-200 bg-orange-50 shadow-sm dark:border-orange-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(249,115,22,0.2)]",
+    label: "text-orange-700 dark:text-orange-200",
+    count:
+      "bg-white text-orange-600 dark:border dark:border-orange-500/40 dark:bg-slate-900/80 dark:text-orange-200",
+    card: "border-orange-200 bg-white hover:border-orange-300 hover:shadow-md dark:border-orange-500/30 dark:bg-slate-900/80 dark:hover:border-orange-400/60 dark:shadow-[0_0_16px_rgba(249,115,22,0.25)]",
   },
 ];
 
 // 未割り当てカラムのスタイル (combined light dark: dark classes)
 const UNASSIGNED_COLORS = {
-  column: 'border-gray-300 bg-gray-100 shadow-sm dark:border-slate-600/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(100,116,139,0.2)]',
-  label: 'text-gray-600 dark:text-slate-300',
-  count: 'bg-white text-gray-500 dark:border dark:border-slate-600/40 dark:bg-slate-900/80 dark:text-slate-300',
-  card: 'border-gray-300 bg-white hover:border-gray-400 hover:shadow-md dark:border-slate-600/30 dark:bg-slate-900/80 dark:hover:border-slate-500/60 dark:shadow-[0_0_16px_rgba(100,116,139,0.25)]',
+  column:
+    "border-gray-300 bg-gray-100 shadow-sm dark:border-slate-600/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(100,116,139,0.2)]",
+  label: "text-gray-600 dark:text-slate-300",
+  count:
+    "bg-white text-gray-500 dark:border dark:border-slate-600/40 dark:bg-slate-900/80 dark:text-slate-300",
+  card: "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md dark:border-slate-600/30 dark:bg-slate-900/80 dark:hover:border-slate-500/60 dark:shadow-[0_0_16px_rgba(100,116,139,0.25)]",
 };
 
 // 共通スタイル (combined light dark: dark classes)
 const COMMON_STYLES = {
-  title: 'text-gray-800 dark:text-slate-100',
-  description: 'text-gray-500 dark:text-slate-300',
-  meta: 'text-gray-500 dark:text-slate-300',
-  priority: 'bg-gray-100 text-gray-600 dark:border dark:border-slate-400/50 dark:bg-slate-500/10 dark:text-slate-200',
-  empty: 'text-gray-400 dark:text-slate-500',
+  title: "text-gray-800 dark:text-slate-100",
+  description: "text-gray-500 dark:text-slate-300",
+  meta: "text-gray-500 dark:text-slate-300",
+  priority:
+    "bg-gray-100 text-gray-600 dark:border dark:border-slate-400/50 dark:bg-slate-500/10 dark:text-slate-200",
+  empty: "text-gray-400 dark:text-slate-500",
 };
 
 // メンバーIDに基づいて色を取得
@@ -135,6 +150,7 @@ type KanbanNavigationProps = {
   onChangeRequest?: () => void;
 };
 
+
 function KanbanNavigation({ projectId, userName, isUpdating, onChangeRequest }: KanbanNavigationProps) {
   const overviewHref = projectId && userName ? `/${userName}/${projectId}` : '#';
 
@@ -142,7 +158,9 @@ function KanbanNavigation({ projectId, userName, isUpdating, onChangeRequest }: 
     <div className="mb-6 rounded-lg border border-purple-300/20 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-cyan-500/20 dark:bg-slate-950/60 dark:shadow-[0_0_20px_rgba(6,182,212,0.12)]">
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-purple-600 dark:tracking-wide dark:text-cyan-200">Kanban Board</h1>
+          <h1 className="text-2xl font-bold text-purple-600 dark:tracking-wide dark:text-cyan-200">
+            Kanban Board
+          </h1>
           {projectId && (
             <p className="text-xs text-gray-500 dark:text-slate-300">
               Project ID: <span className="font-mono">{projectId}</span>
@@ -173,7 +191,11 @@ function KanbanNavigation({ projectId, userName, isUpdating, onChangeRequest }: 
         </div>
       </header>
 
-      {isUpdating && <p className="mt-2 text-xs text-purple-600 animate-pulse dark:text-cyan-300">更新中...</p>}
+      {isUpdating && (
+        <p className="mt-2 text-xs text-purple-600 animate-pulse dark:text-cyan-300">
+          更新中...
+        </p>
+      )}
     </div>
   );
 }
@@ -197,7 +219,7 @@ const createEmptyBoard = (members: ProjectMemberType[]): BoardState => {
 const buildBoardFromTasks = (
   tasks: TaskWithAssignments[] | undefined,
   members: ProjectMemberType[],
-  taskAssignments: Record<string, TaskAssignmentType[]>
+  taskAssignments: Record<string, TaskAssignmentType[]>,
 ): BoardState => {
   const board = createEmptyBoard(members);
 
@@ -220,7 +242,7 @@ const buildBoardFromTasks = (
         if (board[memberId]) {
           // 重複を避けるため、既に追加されていないかチェック
           const alreadyAdded = board[memberId].some(
-            (t) => t.task_id === task.task_id
+            (t) => t.task_id === task.task_id,
           );
           if (!alreadyAdded) {
             board[memberId].push(taskWithAssignments);
@@ -308,7 +330,7 @@ function TaskCard({
     if (!canDrag) {
       return;
     }
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onSelect(task.task_id);
     }
@@ -316,15 +338,16 @@ function TaskCard({
 
   // ステータスのバッジ色を取得 (combined light dark: dark classes)
   const getStatusBadgeClass = (status?: TaskStatusEnum) => {
-    if (!status) return '';
+    if (!status) return "";
 
     const statusColors = {
-      TODO: 'bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-500/20 dark:text-pink-200 dark:border-pink-500/40',
-      DOING: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-cyan-500/20 dark:text-cyan-200 dark:border-cyan-500/40',
-      DONE: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40',
+      TODO: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-500/20 dark:text-pink-200 dark:border-pink-500/40",
+      DOING:
+        "bg-blue-100 text-blue-700 border-blue-300 dark:bg-cyan-500/20 dark:text-cyan-200 dark:border-cyan-500/40",
+      DONE: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40",
     };
 
-    return statusColors[status] || '';
+    return statusColors[status] || "";
   };
 
   return (
@@ -340,15 +363,22 @@ function TaskCard({
     >
       <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
       {task.description && (
+
         <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
       )}
-      <div className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}>
+      <div
+        className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}
+      >
         <div className="flex items-center gap-2">
           {task.priority && (
-            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>{task.priority}</span>
+            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>
+              {task.priority}
+            </span>
           )}
           {showStatus && task.status && (
-            <span className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}>
+            <span
+              className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}
+            >
               {task.status}
             </span>
           )}
@@ -485,25 +515,33 @@ function MemberColumn({
       onDragOver={handleDragOver}
       onDrop={onDrop}
     >
-      <header className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}>
+      <header
+        className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}
+      >
         <div className="flex items-center gap-2">
           {!isUnassigned && (
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
               {memberName
-                .split(' ')
+                .split(" ")
                 .map((n) => n[0])
-                .join('')
+                .join("")
                 .toUpperCase()
                 .slice(0, 2)}
             </div>
           )}
           <span className="truncate">{memberName}</span>
         </div>
-        <span className={`rounded px-2 py-0.5 text-[10px] shrink-0 ${styles.count}`}>{tasks.length}</span>
+        <span
+          className={`rounded px-2 py-0.5 text-[10px] shrink-0 ${styles.count}`}
+        >
+          {tasks.length}
+        </span>
       </header>
       <div className="flex flex-col gap-4 min-h-[150px] w-full">
         {tasks.length === 0 ? (
-          <p className={`mt-4 text-center text-xs ${styles.empty}`}>タスクなし</p>
+          <p className={`mt-4 text-center text-xs ${styles.empty}`}>
+            タスクなし
+          </p>
         ) : (
           TASK_CATEGORIES.map(({ key, label, icon, color }) => (
             <CategorySection
@@ -616,41 +654,47 @@ export default function KanbanBoardPage() {
   const [board, setBoard] = useState<BoardState>({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [projectMembers, setProjectMembers] = useState<ProjectMemberType[]>([]);
+
   const [taskAssignments, setTaskAssignments] = useState<Record<string, TaskAssignmentType[]>>({});
   const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
   const draggingTaskIdRef = useRef<string | null>(null);
 
   // ログインユーザーをプロジェクトメンバーに自動追加
-  const ensureUserIsProjectMember = useCallback(async (projectId: string, githubName: string) => {
-    try {
-      // プロジェクトメンバーを取得
-      const members = await getProjectMembersByProjectId(projectId);
-      
-      // ログインユーザーのメンバー情報を取得
-      const currentMember = await getMemberByGithubName(githubName);
+  const ensureUserIsProjectMember = useCallback(
+    async (projectId: string, githubName: string) => {
+      try {
+        // プロジェクトメンバーを取得
+        const members = await getProjectMembersByProjectId(projectId);
 
-      // 既にメンバーに含まれているかチェック
-      const isAlreadyMember = members.some(
-        (pm) => pm.member_id === currentMember.member_id
-      );
+        // ログインユーザーのメンバー情報を取得
+        const currentMember = await getMemberByGithubName(githubName);
 
-      if (!isAlreadyMember) {
-        // プロジェクトメンバーに追加
-        await postProjectMember({
-          project_id: projectId,
-          member_id: currentMember.member_id,
-          member_name: currentMember.member_name,
-        });
-        console.log(`ユーザー ${githubName} をプロジェクトメンバーに追加しました`);
-        
-        // メンバーリストを再取得
-        const updatedMembers = await getProjectMembersByProjectId(projectId);
-        setProjectMembers(updatedMembers);
+        // 既にメンバーに含まれているかチェック
+        const isAlreadyMember = members.some(
+          (pm) => pm.member_id === currentMember.member_id,
+        );
+
+        if (!isAlreadyMember) {
+          // プロジェクトメンバーに追加
+          await postProjectMember({
+            project_id: projectId,
+            member_id: currentMember.member_id,
+            member_name: currentMember.member_name,
+          });
+          console.log(
+            `ユーザー ${githubName} をプロジェクトメンバーに追加しました`,
+          );
+
+          // メンバーリストを再取得
+          const updatedMembers = await getProjectMembersByProjectId(projectId);
+          setProjectMembers(updatedMembers);
+        }
+      } catch (error) {
+        console.error("プロジェクトメンバー追加エラー:", error);
       }
-    } catch (error) {
-      console.error("プロジェクトメンバー追加エラー:", error);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // ログインユーザーをプロジェクトメンバーに追加（初回のみ）
   useEffect(() => {
@@ -692,7 +736,7 @@ export default function KanbanBoardPage() {
         const members = await getProjectMembersByProjectId(projectId);
         setProjectMembers(members);
       } catch (error) {
-        console.error('Failed to fetch project members:', error);
+        console.error("Failed to fetch project members:", error);
       }
     };
 
@@ -712,24 +756,25 @@ export default function KanbanBoardPage() {
             if (!task.task_id) return;
             try {
               const response = await axios.get<TaskAssignmentType[]>(
-                `${API_URL}/task_assignment/task/${task.task_id}`
+                `${API_URL}/task_assignment/task/${task.task_id}`,
               );
               assignmentsMap[task.task_id] = response.data || [];
             } catch {
               // 割り当てがない場合は空配列
               assignmentsMap[task.task_id] = [];
             }
-          })
+          }),
         );
 
         setTaskAssignments(assignmentsMap);
       } catch (error) {
-        console.error('Failed to fetch task assignments:', error);
+        console.error("Failed to fetch task assignments:", error);
       }
     };
 
     fetchAssignments();
   }, [tasks]);
+
 
   // NOTE: 旧一括生成トリガーは廃止。インタラクティブハンズオンは各タスクページで個別に生成される
   // useEffect(() => {
@@ -764,7 +809,11 @@ export default function KanbanBoardPage() {
         snapshot[key] = [...board[key]];
       });
 
-      const { board: nextBoard, moved } = moveTaskToMember(board, taskId, targetMemberId);
+      const { board: nextBoard, moved } = moveTaskToMember(
+        board,
+        taskId,
+        targetMemberId,
+      );
       if (!moved) {
         draggingTaskIdRef.current = null;
         return;
@@ -779,8 +828,8 @@ export default function KanbanBoardPage() {
         const currentAssignments = taskAssignments[taskId] || [];
         await Promise.all(
           currentAssignments.map((assignment) =>
-            deleteTaskAssignment(assignment.task_assignment_id!, taskId)
-          )
+            deleteTaskAssignment(assignment.task_assignment_id!, taskId),
+          ),
         );
 
         // 新しい割り当てを追加（未割り当て以外）
@@ -793,7 +842,7 @@ export default function KanbanBoardPage() {
 
           // 割り当て情報を更新
           const response = await axios.get<TaskAssignmentType[]>(
-            `${API_URL}/task_assignment/task/${taskId}`
+            `${API_URL}/task_assignment/task/${taskId}`,
           );
           setTaskAssignments((prev) => ({
             ...prev,
@@ -807,9 +856,9 @@ export default function KanbanBoardPage() {
           }));
         }
       } catch (error) {
-        console.error('Failed to update task assignment:', error);
+        console.error("Failed to update task assignment:", error);
         setBoard(snapshot);
-        alert('タスクの割り当て変更に失敗しました');
+        alert("タスクの割り当て変更に失敗しました");
       } finally {
         setIsUpdating(false);
         draggingTaskIdRef.current = null;
@@ -834,7 +883,9 @@ export default function KanbanBoardPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
-        <p className="text-sm text-gray-600 dark:text-cyan-200">読み込み中...</p>
+        <p className="text-sm text-gray-600 dark:text-cyan-200">
+          読み込み中...
+        </p>
       </div>
     );
   }
@@ -842,7 +893,9 @@ export default function KanbanBoardPage() {
   if (isError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
-        <p className="text-sm text-red-600 dark:text-rose-300">タスクの取得に失敗しました</p>
+        <p className="text-sm text-red-600 dark:text-rose-300">
+          タスクの取得に失敗しました
+        </p>
       </div>
     );
   }
@@ -901,10 +954,7 @@ export default function KanbanBoardPage() {
 
       {/* AI Chat Widget */}
       {projectId && (
-        <AgentChatWidget
-          projectId={projectId}
-          pageContext="kanban"
-        />
+        <AgentChatWidget projectId={projectId} pageContext="kanban" />
       )}
 
       {/* Change Request Chat Widget */}

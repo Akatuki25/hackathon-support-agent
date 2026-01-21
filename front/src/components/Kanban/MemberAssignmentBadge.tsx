@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { ProjectMemberType, TaskAssignmentType } from '@/types/modelTypes';
-import { MemberAvatar } from './MemberAvatar';
-import { MemberDropdown } from './MemberDropdown';
-import { UserPlus } from 'lucide-react';
+import { useState } from "react";
+import { ProjectMemberType, TaskAssignmentType } from "@/types/modelTypes";
+import { MemberAvatar } from "./MemberAvatar";
+import { MemberDropdown } from "./MemberDropdown";
+import { UserPlus } from "lucide-react";
 
 type MemberAssignmentBadgeProps = {
   assignments: TaskAssignmentType[];
@@ -28,7 +28,9 @@ export function MemberAssignmentBadge({
   // アバター表示用のメンバー情報を取得
   const assignedMembers = assignments
     .map((assignment) =>
-      projectMembers.find((m) => m.project_member_id === assignment.project_member_id)
+      projectMembers.find(
+        (m) => m.project_member_id === assignment.project_member_id,
+      ),
     )
     .filter((m): m is ProjectMemberType => m !== undefined);
 

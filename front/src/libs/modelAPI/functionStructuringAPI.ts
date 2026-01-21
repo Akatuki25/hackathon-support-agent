@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,8 +18,8 @@ export interface StructuredFunction {
   function_code: string;
   function_name: string;
   description: string;
-  category: 'auth' | 'data' | 'logic' | 'ui' | 'api' | 'deployment';
-  priority: 'Must' | 'Should' | 'Could' | 'Wont';
+  category: "auth" | "data" | "logic" | "ui" | "api" | "deployment";
+  priority: "Must" | "Should" | "Could" | "Wont";
   extraction_confidence: number;
   order_index: number;
   created_at: string;
@@ -82,25 +82,27 @@ export interface CreateFunctionRequest {
   project_id: string;
   function_name: string;
   description: string;
-  category?: 'auth' | 'data' | 'logic' | 'ui' | 'api' | 'deployment';
-  priority?: 'Must' | 'Should' | 'Could' | 'Wont';
+  category?: "auth" | "data" | "logic" | "ui" | "api" | "deployment";
+  priority?: "Must" | "Should" | "Could" | "Wont";
   function_code?: string;
 }
 
 export interface UpdateFunctionRequest {
   function_name?: string;
   description?: string;
-  category?: 'auth' | 'data' | 'logic' | 'ui' | 'api' | 'deployment';
-  priority?: 'Must' | 'Should' | 'Could' | 'Wont';
+  category?: "auth" | "data" | "logic" | "ui" | "api" | "deployment";
+  priority?: "Must" | "Should" | "Could" | "Wont";
 }
 
 /**
  * 機能構造化を実行
  */
-export const structureFunctions = async (projectId: string): Promise<{ success: boolean; error?: string }> => {
+export const structureFunctions = async (
+  projectId: string,
+): Promise<{ success: boolean; error?: string }> => {
   const response = await axios.post(
     `${API_URL}/api/function_structuring/structure`,
-    { project_id: projectId }
+    { project_id: projectId },
   );
   return response.data;
 };
@@ -108,9 +110,11 @@ export const structureFunctions = async (projectId: string): Promise<{ success: 
 /**
  * 構造化結果を取得
  */
-export const getStructuredFunctions = async (projectId: string): Promise<StructuringResult> => {
+export const getStructuredFunctions = async (
+  projectId: string,
+): Promise<StructuringResult> => {
   const response = await axios.get<StructuringResult>(
-    `${API_URL}/api/function_structuring/functions/${projectId}`
+    `${API_URL}/api/function_structuring/functions/${projectId}`,
   );
   return response.data;
 };
@@ -118,10 +122,12 @@ export const getStructuredFunctions = async (projectId: string): Promise<Structu
 /**
  * 新しい機能を手動で作成
  */
-export const createFunction = async (data: CreateFunctionRequest): Promise<StructuredFunction> => {
+export const createFunction = async (
+  data: CreateFunctionRequest,
+): Promise<StructuredFunction> => {
   const response = await axios.post<StructuredFunction>(
     `${API_URL}/api/function_structuring/functions`,
-    data
+    data,
   );
   return response.data;
 };
@@ -131,11 +137,11 @@ export const createFunction = async (data: CreateFunctionRequest): Promise<Struc
  */
 export const updateFunction = async (
   functionId: string,
-  data: UpdateFunctionRequest
+  data: UpdateFunctionRequest,
 ): Promise<StructuredFunction> => {
   const response = await axios.patch<StructuredFunction>(
     `${API_URL}/api/function_structuring/functions/${functionId}`,
-    data
+    data,
   );
   return response.data;
 };
@@ -144,18 +150,20 @@ export const updateFunction = async (
  * 機能を削除
  */
 export const deleteFunction = async (functionId: string): Promise<void> => {
-  await axios.delete(`${API_URL}/api/function_structuring/functions/${functionId}`);
+  await axios.delete(
+    `${API_URL}/api/function_structuring/functions/${functionId}`,
+  );
 };
 
 /**
  * プロジェクトの全機能を削除
  */
 export const deleteAllProjectFunctions = async (
-  projectId: string
+  projectId: string,
 ): Promise<{ message: string; deleted_count: number }> => {
-  const response = await axios.delete<{ message: string; deleted_count: number }>(
-    `${API_URL}/api/function_structuring/project/${projectId}/functions`
-  );
+  const response = await axios.delete<{
+    message: string;
+    deleted_count: number;
+  }>(`${API_URL}/api/function_structuring/project/${projectId}/functions`);
   return response.data;
 };
-

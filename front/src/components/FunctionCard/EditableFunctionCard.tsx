@@ -9,37 +9,40 @@ interface EditableFunctionCardProps {
   category: string;
   priority: string;
   extractionConfidence: number;
-  onUpdate: (functionId: string, updates: {
-    function_name?: string;
-    description?: string;
-    category?: string;
-    priority?: string;
-  }) => Promise<void>;
+  onUpdate: (
+    functionId: string,
+    updates: {
+      function_name?: string;
+      description?: string;
+      category?: string;
+      priority?: string;
+    },
+  ) => Promise<void>;
   onDelete: (functionId: string) => Promise<void>;
 }
 
 const CATEGORY_OPTIONS = [
-  { value: 'auth', label: '認証・権限' },
-  { value: 'data', label: 'データ管理' },
-  { value: 'logic', label: 'ビジネスロジック' },
-  { value: 'ui', label: 'UI・画面' },
-  { value: 'api', label: 'API・通信' },
-  { value: 'deployment', label: 'デプロイ・インフラ' },
+  { value: "auth", label: "認証・権限" },
+  { value: "data", label: "データ管理" },
+  { value: "logic", label: "ビジネスロジック" },
+  { value: "ui", label: "UI・画面" },
+  { value: "api", label: "API・通信" },
+  { value: "deployment", label: "デプロイ・インフラ" },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: 'Must', label: 'Must (必須)' },
-  { value: 'Should', label: 'Should (重要)' },
-  { value: 'Could', label: 'Could (できれば)' },
-  { value: 'Wont', label: 'Wont (不要)' },
+  { value: "Must", label: "Must (必須)" },
+  { value: "Should", label: "Should (重要)" },
+  { value: "Could", label: "Could (できれば)" },
+  { value: "Wont", label: "Wont (不要)" },
 ];
 
 // Helper function to get priority badge classes
 const getPriorityBadgeClass = (priority: string) => {
   switch (priority) {
-    case 'Must':
+    case "Must":
       return "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300";
-    case 'Should':
+    case "Should":
       return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300";
     default:
       return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300";
@@ -72,14 +75,15 @@ export default function EditableFunctionCard({
     try {
       await onUpdate(functionId, {
         function_name: editedName !== functionName ? editedName : undefined,
-        description: editedDescription !== description ? editedDescription : undefined,
+        description:
+          editedDescription !== description ? editedDescription : undefined,
         category: editedCategory !== category ? editedCategory : undefined,
         priority: editedPriority !== priority ? editedPriority : undefined,
       });
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to update function:', error);
-      alert('更新に失敗しました');
+      console.error("Failed to update function:", error);
+      alert("更新に失敗しました");
     } finally {
       setIsSaving(false);
     }
@@ -102,15 +106,17 @@ export default function EditableFunctionCard({
     try {
       await onDelete(functionId);
     } catch (error) {
-      console.error('Failed to delete function:', error);
-      alert('削除に失敗しました');
+      console.error("Failed to delete function:", error);
+      alert("削除に失敗しました");
     } finally {
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600 ${isDeleting ? 'opacity-50' : ''}`}>
+    <div
+      className={`p-4 rounded-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600 ${isDeleting ? "opacity-50" : ""}`}
+    >
       {/* ヘッダー（機能コードとアクションボタン） */}
       <div className="flex items-start justify-between mb-2">
         <span className="text-xs font-mono px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
@@ -196,9 +202,12 @@ export default function EditableFunctionCard({
         {!isEditing ? (
           <>
             <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
-              {CATEGORY_OPTIONS.find(c => c.value === category)?.label || category}
+              {CATEGORY_OPTIONS.find((c) => c.value === category)?.label ||
+                category}
             </span>
-            <span className={`px-2 py-1 rounded ${getPriorityBadgeClass(priority)}`}>
+            <span
+              className={`px-2 py-1 rounded ${getPriorityBadgeClass(priority)}`}
+            >
               {priority}
             </span>
           </>
@@ -209,8 +218,10 @@ export default function EditableFunctionCard({
               onChange={(e) => setEditedCategory(e.target.value)}
               className="px-2 py-1 rounded border bg-white border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
             >
-              {CATEGORY_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              {CATEGORY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
             <select
@@ -218,8 +229,10 @@ export default function EditableFunctionCard({
               onChange={(e) => setEditedPriority(e.target.value)}
               className="px-2 py-1 rounded border bg-white border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
             >
-              {PRIORITY_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              {PRIORITY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
           </>
