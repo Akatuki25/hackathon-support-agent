@@ -42,12 +42,27 @@ export interface StepConfirmationPrompt {
   options: string[];
 }
 
+// ステップ内技術選定用の選択肢（nameキーを使用）
+export interface StepChoiceOption {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface StepChoiceRequest {
+  choice_id: string;
+  question: string;
+  options: StepChoiceOption[];
+  allow_custom: boolean;
+}
+
 export type HandsOnStreamEvent =
   | { type: 'context'; position: string; dependencies: string[]; dependents: string[] }
   | { type: 'section_start'; section: string }
   | { type: 'chunk'; content: string }
   | { type: 'section_complete'; section: string }
   | { type: 'choice_required'; choice: ChoiceRequest }
+  | { type: 'step_choice_required'; step_number: number; choice: StepChoiceRequest }
   | { type: 'user_input_required'; prompt: InputPrompt }
   | { type: 'step_start'; step_number: number; step_title: string; total_steps: number }
   | { type: 'step_complete'; step_number: number }
@@ -211,6 +226,22 @@ async function processSSEStream(
                 break;
               case 'choice_required':
                 callbacks.onChoiceRequired?.(data.choice);
+                break;
+              case 'step_choice_required':
+                // ステップ内技術選定: name→label に変換して choice_required と同様に処理
+                callbacks.onChoiceRequired?.({
+                  choice_id: data.choice.choice_id,
+                  question: data.choice.question,
+                  options: data.choice.options.map((opt: { id: string; name: string; description: string }) => ({
+                    id: opt.id,
+                    label: opt.name, // name を label に変換
+                    description: opt.description,
+                    pros: [],
+                    cons: [],
+                  })),
+                  allow_custom: data.choice.allow_custom,
+                  skip_allowed: false,
+                });
                 break;
               case 'user_input_required':
                 callbacks.onInputRequired?.(data.prompt);

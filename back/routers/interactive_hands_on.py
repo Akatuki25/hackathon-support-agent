@@ -732,7 +732,17 @@ async def resume_interactive_session(
                     yield f"data: {json.dumps({'type': 'user_input_required', 'prompt': {'prompt_id': session.pending_input.prompt_id, 'question': session.pending_input.question, 'placeholder': session.pending_input.placeholder}}, ensure_ascii=False)}\n\n"
             elif session.pending_choice:
                 # 保留中の選択肢があれば送信
-                yield f"data: {json.dumps({'type': 'choice_required', 'choice': {'choice_id': session.pending_choice.choice_id, 'question': session.pending_choice.question, 'options': [{'id': opt.id, 'label': opt.label, 'description': opt.description, 'pros': opt.pros, 'cons': opt.cons} for opt in session.pending_choice.options], 'allow_custom': session.pending_choice.allow_custom, 'skip_allowed': session.pending_choice.skip_allowed, 'research_hint': session.pending_choice.research_hint}}, ensure_ascii=False)}\n\n"
+                # フェーズに応じて適切なイベントタイプを選択
+                from services.interactive_hands_on_agent import GenerationPhase
+
+                if session.phase == GenerationPhase.WAITING_STEP_CHOICE:
+                    # ステップ内技術選定: step_choice_required イベント
+                    # options形式: {"id", "name", "description"} (labelではなくname)
+                    yield f"data: {json.dumps({'type': 'step_choice_required', 'step_number': session.current_step_index + 1, 'choice': {'choice_id': session.pending_choice.choice_id, 'question': session.pending_choice.question, 'options': [{'id': opt.id, 'name': opt.label, 'description': opt.description} for opt in session.pending_choice.options], 'allow_custom': session.pending_choice.allow_custom}}, ensure_ascii=False)}\n\n"
+                else:
+                    # 概要段階の技術選定: choice_required イベント
+                    # options形式: {"id", "label", "description", "pros", "cons"}
+                    yield f"data: {json.dumps({'type': 'choice_required', 'choice': {'choice_id': session.pending_choice.choice_id, 'question': session.pending_choice.question, 'options': [{'id': opt.id, 'label': opt.label, 'description': opt.description, 'pros': opt.pros, 'cons': opt.cons} for opt in session.pending_choice.options], 'allow_custom': session.pending_choice.allow_custom, 'skip_allowed': session.pending_choice.skip_allowed, 'research_hint': session.pending_choice.research_hint}}, ensure_ascii=False)}\n\n"
             # 保留中のものがなければ何もしない（完了済みか異常状態）
 
         # SSEストリーミングレスポンス
