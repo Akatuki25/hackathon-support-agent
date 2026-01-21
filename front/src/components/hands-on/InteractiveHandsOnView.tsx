@@ -2,10 +2,10 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Loader2, Play, RefreshCw, Bot, User, CheckCircle2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import rehypeHighlight from 'rehype-highlight';
+import { CodeBlock, InlineCode } from '@/components/common/CodeBlock';
 import {
   startInteractiveSession,
   sendUserResponse,
@@ -587,7 +587,31 @@ export function InteractiveHandsOnView({
                     )}
                   </div>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeHighlight]}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
+                      components={{
+                        code: (props) => {
+                          const { className, children, node } = props as {
+                            className?: string;
+                            children?: React.ReactNode;
+                            node?: { position?: { start: { line: number }; end: { line: number } } };
+                          };
+                          const codeString = String(children ?? '').replace(/\n$/, '');
+                          // 親がpreの場合はコードブロック、そうでなければインライン
+                          // nodeのposition情報で複数行かどうかを判定（フォールバック）
+                          const isMultiLine = node?.position
+                            ? node.position.start.line !== node.position.end.line
+                            : codeString.includes('\n');
+                          const hasLanguage = className?.startsWith('language-');
+                          // 複数行または言語指定がある場合はコードブロック
+                          if (isMultiLine || hasLanguage) {
+                            return <CodeBlock className={className}>{codeString}</CodeBlock>;
+                          }
+                          return <InlineCode>{codeString}</InlineCode>;
+                        },
+                        pre: ({ children }) => <>{children}</>,
+                      } as Components}
+                    >
                       {event.content || '...'}
                     </ReactMarkdown>
                   </div>

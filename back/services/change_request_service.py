@@ -153,10 +153,12 @@ class ChangeRequestService(BaseService):
 
     def __init__(self, db: Session):
         super().__init__(db=db)
-        # 影響分析・変更生成にはthinkingを使用
+        # minimal_proposalのみthinking有効（ユーザー意図理解+最小変更範囲の判断）
         self.llm_with_thinking = self._load_llm(
             self.default_model_provider, "gemini-2.5-flash", thinking_budget=None
         )
+        # それ以外はthinking無効（方針に基づいて詳細を生成するだけ）
+        # BaseServiceの self.llm_flash を使用（thinking_budget=0）
 
     # =========================================================================
     # 公開API
@@ -571,7 +573,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "update_specification")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking
+        # thinking不要: アプローチに従って文書を編集するだけ
+        chain = prompt_template | self.llm_flash
 
         result = await chain.ainvoke({
             "user_request": context["user_request"],
@@ -595,7 +598,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "update_function_doc")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking
+        # thinking不要: アプローチに従って文書を編集するだけ
+        chain = prompt_template | self.llm_flash
 
         result = await chain.ainvoke({
             "user_request": context["user_request"],
@@ -620,7 +624,8 @@ class ChangeRequestService(BaseService):
             for f in context["current_state"]["functions"]
         ]) or "なし"
 
-        chain = prompt_template | self.llm_with_thinking.with_structured_output(FunctionsProposal)
+        # thinking不要: 方針が決まっているので詳細を埋めるだけ
+        chain = prompt_template | self.llm_flash.with_structured_output(FunctionsProposal)
 
         result: FunctionsProposal = await chain.ainvoke({
             "user_request": context["user_request"],
@@ -649,7 +654,8 @@ class ChangeRequestService(BaseService):
             for t in all_tasks
         ]) or "なし"
 
-        chain = prompt_template | self.llm_with_thinking.with_structured_output(TasksProposal)
+        # thinking不要: 方針が決まっているので詳細を埋めるだけ
+        chain = prompt_template | self.llm_flash.with_structured_output(TasksProposal)
 
         result: TasksProposal = await chain.ainvoke({
             "user_request": context["user_request"],
@@ -672,7 +678,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "generate_diff")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking.with_structured_output(DiffProposal)
+        # thinking不要: 提案に対する差分を生成するだけ
+        chain = prompt_template | self.llm_flash.with_structured_output(DiffProposal)
 
         result: DiffProposal = await chain.ainvoke({
             "current_proposal": str(current_proposal),
@@ -690,7 +697,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "update_specification")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking
+        # thinking不要: アプローチに従って文書を編集するだけ
+        chain = prompt_template | self.llm_flash
 
         result = await chain.ainvoke({
             "user_request": proposal.get("approach", ""),
@@ -714,7 +722,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "update_function_doc")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking
+        # thinking不要: アプローチに従って文書を編集するだけ
+        chain = prompt_template | self.llm_flash
 
         result = await chain.ainvoke({
             "user_request": proposal.get("approach", ""),
@@ -1092,7 +1101,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "generate_dependency_diff")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking.with_structured_output(DependencyDiff)
+        # thinking不要: タスク変更が決まった後の論理的な推論
+        chain = prompt_template | self.llm_flash.with_structured_output(DependencyDiff)
 
         result: DependencyDiff = await chain.ainvoke({
             "tasks_info": str(tasks_after_change),
@@ -1157,7 +1167,8 @@ class ChangeRequestService(BaseService):
         prompt_text = self.get_prompt("change_request_service", "generate_dependency_diff")
         prompt_template = ChatPromptTemplate.from_template(template=prompt_text)
 
-        chain = prompt_template | self.llm_with_thinking.with_structured_output(DependencyDiff)
+        # thinking不要: タスク変更が決まった後の論理的な推論
+        chain = prompt_template | self.llm_flash.with_structured_output(DependencyDiff)
 
         result: DependencyDiff = await chain.ainvoke({
             "tasks_info": str(tasks_info),

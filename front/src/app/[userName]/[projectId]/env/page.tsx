@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Monitor,
@@ -12,114 +12,19 @@ import {
   RefreshCw,
   CheckCircle,
   AlertCircle,
-  Check,
   ArrowLeft,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import Header from "@/components/Session/Header";
 import { AgentChatWidget } from "../AgentChatWidget";
+import { CodeBlock, InlineCode } from "@/components/common/CodeBlock";
 import {
   getEnvSetupOrNull,
   generateEnvSetup,
   regenerateEnvSetup,
   EnvGetResponse,
 } from "@/libs/service/envSetupService";
-
-// コードブロックのコピー状態を管理するためのカスタムコンポーネント
-interface CodeBlockProps {
-  children: string;
-  className?: string;
-}
-
-const CodeBlock = ({ children, className }: CodeBlockProps) => {
-  const [copied, setCopied] = useState(false);
-
-  // 言語を抽出 (className は "language-xxx" の形式)
-  const language = className?.replace("language-", "") || "";
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(children);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy code:", err);
-    }
-  };
-
-  return (
-    <div
-      className="relative group my-4 not-prose"
-      style={{ width: "100%", maxWidth: "100%" }}
-    >
-      {/* 言語ラベルとコピーボタン */}
-      <div
-        className="flex items-center justify-between px-4 py-2 rounded-t-lg border border-b-0 bg-gray-100 border-gray-300 dark:bg-gray-800 dark:border-cyan-500/30"
-        style={{ width: "100%" }}
-      >
-        <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-600 dark:text-cyan-400">
-          {language || "code"}
-        </span>
-        <button
-          onClick={handleCopy}
-          className={`flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded text-xs font-mono transition-all duration-200 ${
-            copied
-              ? "bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400"
-              : "bg-gray-200 hover:bg-gray-300 text-gray-600 hover:text-purple-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-400 dark:hover:text-cyan-400"
-          }`}
-        >
-          {copied ? (
-            <>
-              <Check size={12} />
-              <span>コピー済み</span>
-            </>
-          ) : (
-            <>
-              <Copy size={12} />
-              <span>コピー</span>
-            </>
-          )}
-        </button>
-      </div>
-      {/* コードコンテンツ */}
-      <div
-        className="rounded-b-lg overflow-hidden border border-t-0 border-gray-300 dark:border-cyan-500/30"
-        style={{ width: "100%" }}
-      >
-        <pre
-          className="p-4 m-0 overflow-x-auto bg-gray-900"
-          style={{
-            fontSize: "14px",
-            lineHeight: "1.5",
-            margin: 0,
-            width: "100%",
-          }}
-        >
-          <code
-            className="font-mono whitespace-pre block text-green-400 dark:text-cyan-300"
-            style={{ fontSize: "14px" }}
-          >
-            {children}
-          </code>
-        </pre>
-      </div>
-    </div>
-  );
-};
-
-// インラインコード用コンポーネント
-interface InlineCodeProps {
-  children: React.ReactNode;
-}
-
-const InlineCode = ({ children }: InlineCodeProps) => {
-  return (
-    <code className="px-1.5 py-0.5 rounded text-sm font-mono bg-purple-100 text-purple-700 border border-purple-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/30">
-      {children}
-    </code>
-  );
-};
 
 // タブタイプ定義
 type TabType = "front" | "backend" | "devcontainer" | "database" | "deploy";
@@ -535,27 +440,25 @@ export default function EnvSetupPage() {
                   <ReactMarkdown
                     components={
                       {
-                        // コードブロック (pre > code)
-                        pre: ({ children }) => {
-                          return <>{children}</>;
-                        },
-                        code: ({ className, children }) => {
-                          const isInline = !className;
-                          const codeString = String(children ?? "").replace(
-                            /\n$/,
-                            "",
-                          );
-
-                          if (isInline) {
-                            return <InlineCode>{codeString}</InlineCode>;
+                        code: (props) => {
+                          const { className, children, node } = props as {
+                            className?: string;
+                            children?: React.ReactNode;
+                            node?: { position?: { start: { line: number }; end: { line: number } } };
+                          };
+                          const codeString = String(children ?? "").replace(/\n$/, "");
+                          // nodeのposition情報で複数行かどうかを判定（フォールバック）
+                          const isMultiLine = node?.position
+                            ? node.position.start.line !== node.position.end.line
+                            : codeString.includes("\n");
+                          const hasLanguage = className?.startsWith("language-");
+                          // 複数行または言語指定がある場合はコードブロック
+                          if (isMultiLine || hasLanguage) {
+                            return <CodeBlock className={className}>{codeString}</CodeBlock>;
                           }
-
-                          return (
-                            <CodeBlock className={className}>
-                              {codeString}
-                            </CodeBlock>
-                          );
+                          return <InlineCode>{codeString}</InlineCode>;
                         },
+                        pre: ({ children }) => <>{children}</>,
                       } as Components
                     }
                   >
