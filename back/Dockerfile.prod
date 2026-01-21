@@ -20,6 +20,10 @@ COPY . .
 # Supervisor設定ファイルのコピー
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# エントリポイントスクリプトのコピー
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # ヘルスチェック用スクリプト
 RUN echo '#!/bin/sh\ncurl -f http://localhost:${PORT:-8000}/ || exit 1' > /healthcheck.sh && \
     chmod +x /healthcheck.sh
@@ -31,5 +35,5 @@ USER appuser
 # ポート公開（Railwayが動的に設定）
 EXPOSE 8000
 
-# デフォルトコマンド（Supervisor経由でFastAPI + Celery起動）
-CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# デフォルトコマンド（マイグレーション実行後にSupervisor起動）
+CMD ["/entrypoint.sh"]
