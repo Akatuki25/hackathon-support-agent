@@ -1,6 +1,5 @@
 "use client";
 
-
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, GitBranch, ChevronDown } from 'lucide-react';
@@ -8,11 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
-  type DragEvent,
-  type KeyboardEventHandler,
-
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
@@ -25,6 +20,27 @@ import CyberHeader from '@/components/Session/Header';
 import axios from 'axios';
 import { AgentChatWidget } from '@/components/chat';
 import { ChangeRequestChatWidget } from '@/components/ChangeRequest';
+
+// dnd-kit imports
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 // NOTE: 旧一括生成用の重複防止Setは廃止
@@ -295,75 +311,120 @@ const moveTaskToMember = (
   return { board: next, moved: true };
 };
 
-type TaskCardProps = {
+// ステータスのバッジ色を取得 (combined light dark: dark classes)
+const getStatusBadgeClass = (status?: TaskStatusEnum) => {
+  if (!status) return "";
+
+  const statusColors = {
+    TODO: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-500/20 dark:text-pink-200 dark:border-pink-500/40",
+    DOING:
+      "bg-blue-100 text-blue-700 border-blue-300 dark:bg-cyan-500/20 dark:text-cyan-200 dark:border-cyan-500/40",
+    DONE: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40",
+  };
+
+  return statusColors[status] || "";
+};
+
+// SortableTaskCard - dnd-kit対応のドラッグ可能なタスクカード
+type SortableTaskCardProps = {
   task: TaskWithAssignments;
   styles: ColumnStyle;
   showStatus?: boolean;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
-function TaskCard({
+function SortableTaskCard({
   task,
   styles,
   showStatus = false,
-  onDragStart,
-  onDragEnd,
   onSelect,
-}: TaskCardProps) {
-  const canDrag = Boolean(task.task_id);
+}: SortableTaskCardProps) {
+  const taskId = task.task_id || `temp-${Math.random()}`;
 
-  const handleDragStart = () => {
-    if (canDrag) {
-      onDragStart(task.task_id);
-    }
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: taskId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)',
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 'auto' as const,
   };
 
-  const handleClick = () => {
-    if (canDrag) {
-      onSelect(task.task_id);
-    }
-  };
-
-  const handleKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
-    if (!canDrag) {
+  const handleClick = (e: React.MouseEvent) => {
+    // ドラッグ中はクリックを無視
+    if (isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
+    if (task.task_id) {
       onSelect(task.task_id);
     }
-  };
-
-  // ステータスのバッジ色を取得 (combined light dark: dark classes)
-  const getStatusBadgeClass = (status?: TaskStatusEnum) => {
-    if (!status) return "";
-
-    const statusColors = {
-      TODO: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-500/20 dark:text-pink-200 dark:border-pink-500/40",
-      DOING:
-        "bg-blue-100 text-blue-700 border-blue-300 dark:bg-cyan-500/20 dark:text-cyan-200 dark:border-cyan-500/40",
-      DONE: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40",
-    };
-
-    return statusColors[status] || "";
   };
 
   return (
     <article
-      className={`rounded border p-3 text-sm shadow-sm transition ${styles.card} cursor-pointer`}
-      draggable={canDrag}
-      onDragStart={handleDragStart}
-      onDragEnd={onDragEnd}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`rounded border p-3 text-sm shadow-sm transition-all cursor-grab active:cursor-grabbing ${styles.card} ${isDragging ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       role="button"
-      tabIndex={canDrag ? 0 : -1}
+      tabIndex={task.task_id ? 0 : -1}
     >
       <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
       {task.description && (
+        <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
+      )}
+      <div
+        className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}
+      >
+        <div className="flex items-center gap-2">
+          {task.priority && (
+            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>
+              {task.priority}
+            </span>
+          )}
+          {showStatus && task.status && (
+            <span
+              className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}
+            >
+              {task.status}
+            </span>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
 
+// TaskCardOverlay - ドラッグ中のオーバーレイ表示用
+type TaskCardOverlayProps = {
+  task: TaskWithAssignments;
+  styles: ColumnStyle;
+  showStatus?: boolean;
+};
+
+function TaskCardOverlay({
+  task,
+  styles,
+  showStatus = false,
+}: TaskCardOverlayProps) {
+  return (
+    <article
+      className={`rounded border p-3 text-sm shadow-xl transition ${styles.card} cursor-grabbing ring-2 ring-blue-500 rotate-3`}
+      style={{ width: '280px' }}
+    >
+      <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
+      {task.description && (
         <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
       )}
       <div
@@ -404,8 +465,6 @@ type CategorySectionProps = {
   color: string;
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
@@ -416,13 +475,13 @@ function CategorySection({
   color,
   tasks,
   styles,
-  onDragStart,
-  onDragEnd,
   onSelect,
 }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   if (tasks.length === 0) return null;
+
+  const taskIds = tasks.map(t => t.task_id || `temp-${Math.random()}`);
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -441,19 +500,19 @@ function CategorySection({
       </button>
       {/* カテゴリ内のタスク */}
       {isExpanded && (
-        <div className="flex flex-col gap-2 pl-1 w-full">
-          {tasks.map((task, index) => (
-            <TaskCard
-              key={task.task_id ?? `category-${categoryKey}-${index}`}
-              task={task}
-              styles={styles}
-              showStatus={true}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
-              onSelect={onSelect}
-            />
-          ))}
-        </div>
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-col gap-2 pl-1 w-full">
+            {tasks.map((task, index) => (
+              <SortableTaskCard
+                key={task.task_id ?? `category-${categoryKey}-${index}`}
+                task={task}
+                styles={styles}
+                showStatus={true}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+        </SortableContext>
       )}
     </div>
   );
@@ -465,9 +524,6 @@ type MemberColumnProps = {
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
   isUnassigned?: boolean;
-  onDrop: (event: DragEvent<HTMLDivElement>) => void;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
@@ -477,14 +533,12 @@ function MemberColumn({
   tasks,
   styles,
   isUnassigned = false,
-  onDrop,
-  onDragStart,
-  onDragEnd,
   onSelect,
 }: MemberColumnProps) {
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  };
+  // dnd-kitのドロップ対象として登録
+  const { isOver, setNodeRef } = useDroppable({
+    id: memberId,
+  });
 
   // タスクをカテゴリ別にグループ化
   const groupedTasks = useMemo(() => {
@@ -509,11 +563,10 @@ function MemberColumn({
 
   return (
     <section
+      ref={setNodeRef}
       aria-label={`${memberName} column`}
-      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit w-full min-w-[280px] overflow-hidden ${styles.column}`}
+      className={`flex flex-col gap-3 rounded border p-4 transition-all duration-200 backdrop-blur-sm h-fit min-w-[320px] w-[320px] flex-shrink-0 overflow-hidden ${styles.column} ${isOver ? 'ring-2 ring-blue-400 bg-blue-50/50 dark:bg-blue-900/20 scale-[1.02]' : ''}`}
       data-member-id={memberId}
-      onDragOver={handleDragOver}
-      onDrop={onDrop}
     >
       <header
         className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}
@@ -552,8 +605,6 @@ function MemberColumn({
               color={color}
               tasks={groupedTasks[key] || []}
               styles={styles}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
               onSelect={onSelect}
             />
           ))
@@ -567,23 +618,18 @@ function MemberColumn({
 type UnassignedColumnProps = {
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
-  onDrop: (event: DragEvent<HTMLDivElement>) => void;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
 function UnassignedColumn({
   tasks,
   styles,
-  onDrop,
-  onDragStart,
-  onDragEnd,
   onSelect,
 }: UnassignedColumnProps) {
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  };
+  // dnd-kitのドロップ対象として登録
+  const { isOver, setNodeRef } = useDroppable({
+    id: UNASSIGNED_KEY,
+  });
 
   // タスクをカテゴリ別にグループ化
   const groupedTasks = useMemo(() => {
@@ -608,11 +654,10 @@ function UnassignedColumn({
 
   return (
     <section
+      ref={setNodeRef}
       aria-label="未割り当て column"
-      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit w-full min-w-[280px] overflow-hidden ${styles.column}`}
+      className={`flex flex-col gap-3 rounded border p-4 transition-all duration-200 backdrop-blur-sm h-fit min-w-[320px] w-[320px] flex-shrink-0 overflow-hidden ${styles.column} ${isOver ? 'ring-2 ring-blue-400 bg-blue-50/50 dark:bg-blue-900/20 scale-[1.02]' : ''}`}
       data-member-id={UNASSIGNED_KEY}
-      onDragOver={handleDragOver}
-      onDrop={onDrop}
     >
       <header className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}>
         <span className="truncate">未割り当て</span>
@@ -632,8 +677,6 @@ function UnassignedColumn({
               color={color}
               tasks={groupedTasks[key] || []}
               styles={styles}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
               onSelect={onSelect}
             />
           ))
@@ -657,7 +700,22 @@ export default function KanbanBoardPage() {
 
   const [taskAssignments, setTaskAssignments] = useState<Record<string, TaskAssignmentType[]>>({});
   const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
-  const draggingTaskIdRef = useRef<string | null>(null);
+
+  // dnd-kit: ドラッグ中のタスク状態
+  const [activeTask, setActiveTask] = useState<TaskWithAssignments | null>(null);
+  const [activeTaskColumnId, setActiveTaskColumnId] = useState<string | null>(null);
+
+  // dnd-kit: センサーの設定（8px以上動かしたらドラッグ開始）
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // ログインユーザーをプロジェクトメンバーに自動追加
   const ensureUserIsProjectMember = useCallback(
@@ -785,99 +843,146 @@ export default function KanbanBoardPage() {
   //   checkAndStartHandsOnGeneration();
   // }, [projectId]);
 
-  const handleCardDragStart = useCallback((taskId?: string) => {
-    if (taskId) {
-      draggingTaskIdRef.current = taskId;
+  // タスクIDからタスクを検索する関数
+  const findTaskById = useCallback((taskId: string): TaskWithAssignments | null => {
+    for (const columnKey of Object.keys(board)) {
+      const task = board[columnKey].find(t => t.task_id === taskId);
+      if (task) {
+        return task;
+      }
     }
-  }, []);
+    return null;
+  }, [board]);
 
-  const handleCardDragEnd = useCallback(() => {
-    draggingTaskIdRef.current = null;
-  }, []);
-
-  const handleMemberDrop = useCallback(
-    (targetMemberId: string) => async (event: DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      const taskId = draggingTaskIdRef.current;
-      if (!taskId) {
-        return;
+  // タスクIDからカラムIDを検索する関数
+  const findColumnByTaskId = useCallback((taskId: string): string | null => {
+    for (const columnKey of Object.keys(board)) {
+      const task = board[columnKey].find(t => t.task_id === taskId);
+      if (task) {
+        return columnKey;
       }
+    }
+    return null;
+  }, [board]);
 
-      // ボードのスナップショットを保存
-      const snapshot: BoardState = {};
-      Object.keys(board).forEach((key) => {
-        snapshot[key] = [...board[key]];
-      });
+  // dnd-kit: ドラッグ開始ハンドラー
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const taskId = event.active.id as string;
+    const task = findTaskById(taskId);
+    const columnId = findColumnByTaskId(taskId);
+    setActiveTask(task);
+    setActiveTaskColumnId(columnId);
+  }, [findTaskById, findColumnByTaskId]);
 
-      const { board: nextBoard, moved } = moveTaskToMember(
-        board,
-        taskId,
-        targetMemberId,
+  // IDがカラムID（メンバーID or UNASSIGNED_KEY）かどうかを判定
+  const isColumnId = useCallback((id: string): boolean => {
+    // UNASSIGNED_KEYの場合はカラムID
+    if (id === UNASSIGNED_KEY) return true;
+    // boardのキーに存在すればカラムID
+    return Object.keys(board).includes(id);
+  }, [board]);
+
+  // dnd-kit: ドラッグ終了ハンドラー
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+    setActiveTaskColumnId(null);
+
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const overId = over.id as string;
+
+    // over.idがカラムIDか、タスクIDかを判定
+    // タスクIDの場合は、そのタスクが属するカラムを探す
+    let targetMemberId: string;
+    if (isColumnId(overId)) {
+      targetMemberId = overId;
+    } else {
+      // over.idがタスクIDの場合、そのタスクが属するカラムを取得
+      const targetColumn = findColumnByTaskId(overId);
+      if (!targetColumn) return;
+      targetMemberId = targetColumn;
+    }
+
+    // 同じカラム内のドロップは無視
+    const sourceColumnId = findColumnByTaskId(taskId);
+    if (!sourceColumnId || sourceColumnId === targetMemberId) {
+      return;
+    }
+
+    // ボードのスナップショットを保存
+    const snapshot: BoardState = {};
+    Object.keys(board).forEach((key) => {
+      snapshot[key] = [...board[key]];
+    });
+
+    const { board: nextBoard, moved } = moveTaskToMember(
+      board,
+      taskId,
+      targetMemberId,
+    );
+    if (!moved) {
+      return;
+    }
+
+    // UIを即座に更新
+    setBoard(nextBoard);
+    setIsUpdating(true);
+
+    try {
+      // 既存の割り当てを削除
+      const currentAssignments = taskAssignments[taskId] || [];
+      await Promise.all(
+        currentAssignments.map((assignment) =>
+          deleteTaskAssignment(assignment.task_assignment_id!, taskId),
+        ),
       );
-      if (!moved) {
-        draggingTaskIdRef.current = null;
-        return;
-      }
 
-      // UIを即座に更新
-      setBoard(nextBoard);
-      setIsUpdating(true);
+      // 新しい割り当てを追加（未割り当て以外）
+      if (targetMemberId !== UNASSIGNED_KEY) {
+        const assignment: TaskAssignmentType = {
+          task_id: taskId,
+          project_member_id: targetMemberId,
+        };
+        await postTaskAssignment(assignment);
 
-      try {
-        // 既存の割り当てを削除
-        const currentAssignments = taskAssignments[taskId] || [];
-        await Promise.all(
-          currentAssignments.map((assignment) =>
-            deleteTaskAssignment(assignment.task_assignment_id!, taskId),
-          ),
+        // 割り当て情報を更新
+        const response = await axios.get<TaskAssignmentType[]>(
+          `${API_URL}/task_assignment/task/${taskId}`,
         );
-
-        // 新しい割り当てを追加（未割り当て以外）
-        if (targetMemberId !== UNASSIGNED_KEY) {
-          const assignment: TaskAssignmentType = {
-            task_id: taskId,
-            project_member_id: targetMemberId,
-          };
-          await postTaskAssignment(assignment);
-
-          // 割り当て情報を更新
-          const response = await axios.get<TaskAssignmentType[]>(
-            `${API_URL}/task_assignment/task/${taskId}`,
-          );
-          setTaskAssignments((prev) => ({
-            ...prev,
-            [taskId]: response.data || [],
-          }));
-        } else {
-          // 未割り当ての場合は空配列に設定
-          setTaskAssignments((prev) => ({
-            ...prev,
-            [taskId]: [],
-          }));
-        }
-      } catch (error) {
-        console.error("Failed to update task assignment:", error);
-        setBoard(snapshot);
-        alert("タスクの割り当て変更に失敗しました");
-      } finally {
-        setIsUpdating(false);
-        draggingTaskIdRef.current = null;
+        setTaskAssignments((prev) => ({
+          ...prev,
+          [taskId]: response.data || [],
+        }));
+      } else {
+        // 未割り当ての場合は空配列に設定
+        setTaskAssignments((prev) => ({
+          ...prev,
+          [taskId]: [],
+        }));
       }
-    },
-    [board, taskAssignments],
-  );
+    } catch (error) {
+      console.error("Failed to update task assignment:", error);
+      setBoard(snapshot);
+      alert("タスクの割り当て変更に失敗しました");
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [board, taskAssignments, findColumnByTaskId, isColumnId]);
 
   const handleTaskSelect = useCallback(
     (taskId?: string) => {
       if (!taskId || !userName || !projectId) {
         return;
       }
-      if (draggingTaskIdRef.current) {
+      // ドラッグ中はクリックを無視
+      if (activeTask) {
         return;
       }
       router.push(`/${userName}/${projectId}/${taskId}`);
     },
-    [router, userName, projectId],
+    [router, userName, projectId, activeTask],
   );
 
   if (isLoading) {
@@ -916,39 +1021,54 @@ export default function KanbanBoardPage() {
             onChangeRequest={() => setIsChangeRequestOpen(true)}
           />
 
-          {/* カンバンボード */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 items-start">
-            {/* 未割り当てカラム（カテゴリ別表示） */}
-            <UnassignedColumn
-              key={UNASSIGNED_KEY}
-              tasks={board[UNASSIGNED_KEY] || []}
-              styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle()}
-              onDrop={handleMemberDrop(UNASSIGNED_KEY)}
-              onDragStart={handleCardDragStart}
-              onDragEnd={handleCardDragEnd}
-              onSelect={handleTaskSelect}
-            />
+          {/* カンバンボード - dnd-kit でラップ */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 pb-4 overflow-x-auto items-start">
+              {/* 未割り当てカラム（カテゴリ別表示） */}
+              <UnassignedColumn
+                key={UNASSIGNED_KEY}
+                tasks={board[UNASSIGNED_KEY] || []}
+                styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle()}
+                onSelect={handleTaskSelect}
+              />
 
-            {/* メンバーごとのカラム */}
-            {projectMembers
-              .filter((member) => member.project_member_id)
-              .map((member, index) => {
-                const memberId = member.project_member_id!;
-                return (
-                  <MemberColumn
-                    key={memberId}
-                    memberId={memberId}
-                    memberName={member.member_name}
-                    tasks={board[memberId] || []}
-                    styles={columnStyles[memberId] || getColumnColor(index)}
-                    onDrop={handleMemberDrop(memberId)}
-                    onDragStart={handleCardDragStart}
-                    onDragEnd={handleCardDragEnd}
-                    onSelect={handleTaskSelect}
-                  />
-                );
-              })}
-          </div>
+              {/* メンバーごとのカラム */}
+              {projectMembers
+                .filter((member) => member.project_member_id)
+                .map((member, index) => {
+                  const memberId = member.project_member_id!;
+                  return (
+                    <MemberColumn
+                      key={memberId}
+                      memberId={memberId}
+                      memberName={member.member_name}
+                      tasks={board[memberId] || []}
+                      styles={columnStyles[memberId] || getColumnColor(index)}
+                      onSelect={handleTaskSelect}
+                    />
+                  );
+                })}
+            </div>
+
+            {/* ドラッグ中のオーバーレイ */}
+            <DragOverlay dropAnimation={{
+              duration: 200,
+              easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+            }}>
+              {activeTask && activeTaskColumnId && (
+                <TaskCardOverlay
+                  task={activeTask}
+                  styles={columnStyles[activeTaskColumnId] || getUnassignedColumnStyle()}
+                  showStatus={true}
+                />
+              )}
+            </DragOverlay>
+          </DndContext>
         </div>
       </div>
 
