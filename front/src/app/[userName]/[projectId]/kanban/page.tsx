@@ -73,70 +73,64 @@ type ColumnStyle = {
   meta: string;
   priority: string;
   empty: string;
+  accent?: string;
 };
 
-// カラムのカラーバリエーション (combined light dark: dark classes)
+// カラムのカラーバリエーション - 近未来・透明感デザイン
 const COLUMN_COLORS = [
   {
-    column:
-      "border-purple-200 bg-purple-50 shadow-sm dark:border-purple-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(168,85,247,0.2)]",
-    label: "text-purple-700 dark:text-purple-200",
-    count:
-      "bg-white text-purple-600 dark:border dark:border-purple-500/40 dark:bg-slate-900/80 dark:text-purple-200",
-    card: "border-purple-200 bg-white hover:border-purple-300 hover:shadow-md dark:border-purple-500/30 dark:bg-slate-900/80 dark:hover:border-purple-400/60 dark:shadow-[0_0_16px_rgba(168,85,247,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-cyan-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-cyan-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-cyan-500/20 dark:text-cyan-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-cyan-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-cyan-400/40",
+    accent: "bg-cyan-500",
   },
   {
-    column:
-      "border-blue-200 bg-blue-50 shadow-sm dark:border-cyan-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(6,182,212,0.2)]",
-    label: "text-blue-700 dark:text-cyan-200",
-    count:
-      "bg-white text-blue-600 dark:border dark:border-cyan-500/40 dark:bg-slate-900/80 dark:text-cyan-200",
-    card: "border-blue-200 bg-white hover:border-blue-300 hover:shadow-md dark:border-cyan-500/30 dark:bg-slate-900/80 dark:hover:border-cyan-400/60 dark:shadow-[0_0_16px_rgba(6,182,212,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-teal-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-teal-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-teal-500/20 dark:text-teal-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-teal-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-teal-400/40",
+    accent: "bg-teal-500",
   },
   {
-    column:
-      "border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(16,185,129,0.2)]",
-    label: "text-emerald-700 dark:text-emerald-200",
-    count:
-      "bg-white text-emerald-600 dark:border dark:border-emerald-500/40 dark:bg-slate-900/80 dark:text-emerald-200",
-    card: "border-emerald-200 bg-white hover:border-emerald-300 hover:shadow-md dark:border-emerald-500/30 dark:bg-slate-900/80 dark:hover:border-emerald-400/60 dark:shadow-[0_0_16px_rgba(16,185,129,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-emerald-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-emerald-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-emerald-500/20 dark:text-emerald-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-emerald-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-emerald-400/40",
+    accent: "bg-emerald-500",
   },
   {
-    column:
-      "border-pink-200 bg-pink-50 shadow-sm dark:border-pink-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(236,72,153,0.2)]",
-    label: "text-pink-700 dark:text-pink-200",
-    count:
-      "bg-white text-pink-600 dark:border dark:border-pink-500/40 dark:bg-slate-900/80 dark:text-pink-200",
-    card: "border-pink-200 bg-white hover:border-pink-300 hover:shadow-md dark:border-pink-500/30 dark:bg-slate-900/80 dark:hover:border-pink-400/60 dark:shadow-[0_0_16px_rgba(236,72,153,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-sky-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-sky-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-sky-500/20 dark:text-sky-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-sky-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-sky-400/40",
+    accent: "bg-sky-500",
   },
   {
-    column:
-      "border-orange-200 bg-orange-50 shadow-sm dark:border-orange-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(249,115,22,0.2)]",
-    label: "text-orange-700 dark:text-orange-200",
-    count:
-      "bg-white text-orange-600 dark:border dark:border-orange-500/40 dark:bg-slate-900/80 dark:text-orange-200",
-    card: "border-orange-200 bg-white hover:border-orange-300 hover:shadow-md dark:border-orange-500/30 dark:bg-slate-900/80 dark:hover:border-orange-400/60 dark:shadow-[0_0_16px_rgba(249,115,22,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-indigo-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-indigo-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-indigo-500/20 dark:text-indigo-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-indigo-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-indigo-400/40",
+    accent: "bg-indigo-500",
   },
 ];
 
-// 未割り当てカラムのスタイル (combined light dark: dark classes)
+// 未割り当てカラムのスタイル
 const UNASSIGNED_COLORS = {
-  column:
-    "border-gray-300 bg-gray-100 shadow-sm dark:border-slate-600/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(100,116,139,0.2)]",
-  label: "text-gray-600 dark:text-slate-300",
-  count:
-    "bg-white text-gray-500 dark:border dark:border-slate-600/40 dark:bg-slate-900/80 dark:text-slate-300",
-  card: "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md dark:border-slate-600/30 dark:bg-slate-900/80 dark:hover:border-slate-500/60 dark:shadow-[0_0_16px_rgba(100,116,139,0.25)]",
+  column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-slate-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+  label: "text-slate-600 dark:text-slate-200",
+  count: "bg-white/60 text-slate-500 backdrop-blur-sm dark:bg-slate-500/20 dark:text-slate-300",
+  card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-slate-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-slate-400/40",
+  accent: "bg-slate-500",
 };
 
-// 共通スタイル (combined light dark: dark classes)
+// 共通スタイル
 const COMMON_STYLES = {
-  title: "text-gray-800 dark:text-slate-100",
-  description: "text-gray-500 dark:text-slate-300",
-  meta: "text-gray-500 dark:text-slate-300",
-  priority:
-    "bg-gray-100 text-gray-600 dark:border dark:border-slate-400/50 dark:bg-slate-500/10 dark:text-slate-200",
-  empty: "text-gray-400 dark:text-slate-500",
+  title: "text-slate-800 dark:text-white",
+  description: "text-slate-600 dark:text-slate-300",
+  meta: "text-slate-500 dark:text-slate-400",
+  priority: "text-slate-500 dark:text-slate-400",
+  empty: "text-slate-400 dark:text-slate-500",
 };
 
 // メンバーIDに基づいて色を取得
@@ -311,18 +305,51 @@ const moveTaskToMember = (
   return { board: next, moved: true };
 };
 
-// ステータスのバッジ色を取得 (combined light dark: dark classes)
-const getStatusBadgeClass = (status?: TaskStatusEnum) => {
-  if (!status) return "";
-
-  const statusColors = {
-    TODO: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-500/20 dark:text-pink-200 dark:border-pink-500/40",
-    DOING:
-      "bg-blue-100 text-blue-700 border-blue-300 dark:bg-cyan-500/20 dark:text-cyan-200 dark:border-cyan-500/40",
-    DONE: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40",
+// ステータスの設定 - 近未来デザイン
+const getStatusConfig = (status?: TaskStatusEnum) => {
+  const configs = {
+    TODO: {
+      label: 'Todo',
+      dotClass: 'bg-slate-400 dark:bg-slate-500',
+      textClass: 'text-slate-600 dark:text-slate-300',
+      glowClass: '',
+    },
+    DOING: {
+      label: '進行中',
+      dotClass: 'bg-cyan-500 dark:bg-cyan-400 animate-pulse',
+      textClass: 'text-cyan-600 dark:text-cyan-300',
+      glowClass: 'dark:shadow-[0_0_8px_rgba(34,211,238,0.5)]',
+    },
+    DONE: {
+      label: '完了',
+      dotClass: 'bg-emerald-500 dark:bg-emerald-400',
+      textClass: 'text-emerald-600 dark:text-emerald-300',
+      glowClass: '',
+    },
   };
+  return status ? configs[status] : null;
+};
 
-  return statusColors[status] || "";
+// 優先度の設定 - 近未来デザイン
+const getPriorityConfig = (priority?: string) => {
+  const configs: Record<string, { label: string; bgClass: string; textClass: string }> = {
+    '高': {
+      label: '高',
+      bgClass: 'bg-rose-500/20 border border-rose-500/30 dark:bg-rose-500/10 dark:border-rose-400/30',
+      textClass: 'text-rose-600 dark:text-rose-300',
+    },
+    '中': {
+      label: '中',
+      bgClass: 'bg-amber-500/20 border border-amber-500/30 dark:bg-amber-500/10 dark:border-amber-400/30',
+      textClass: 'text-amber-600 dark:text-amber-300',
+    },
+    '低': {
+      label: '低',
+      bgClass: 'bg-slate-500/10 border border-slate-500/20 dark:bg-slate-500/10 dark:border-slate-400/20',
+      textClass: 'text-slate-500 dark:text-slate-400',
+    },
+  };
+  return priority ? configs[priority] : null;
 };
 
 // SortableTaskCard - dnd-kit対応のドラッグ可能なタスクカード
@@ -353,12 +380,11 @@ function SortableTaskCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition || 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)',
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 1000 : 'auto' as const,
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    // ドラッグ中はクリックを無視
     if (isDragging) {
       e.preventDefault();
       e.stopPropagation();
@@ -369,39 +395,52 @@ function SortableTaskCard({
     }
   };
 
+  const statusConfig = getStatusConfig(task.status);
+  const priorityConfig = getPriorityConfig(task.priority);
+
   return (
     <article
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`rounded border p-3 text-sm shadow-sm transition-all cursor-grab active:cursor-grabbing ${styles.card} ${isDragging ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}
+      className={`group relative rounded-xl border p-3.5 text-sm transition-all duration-200 cursor-grab active:cursor-grabbing ${styles.card} ${isDragging ? 'ring-2 ring-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_4px_20px_rgba(34,211,238,0.15)]'}`}
       onClick={handleClick}
       role="button"
       tabIndex={task.task_id ? 0 : -1}
     >
-      <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
+      {/* タイトル */}
+      <h3 className={`font-medium leading-snug line-clamp-2 ${styles.title}`}>
+        {task.title}
+      </h3>
+
+      {/* 説明文 */}
       {task.description && (
-        <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
+        <p className={`mt-2 text-xs leading-relaxed line-clamp-2 opacity-80 ${styles.description}`}>
+          {task.description}
+        </p>
       )}
-      <div
-        className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}
-      >
-        <div className="flex items-center gap-2">
-          {task.priority && (
-            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>
-              {task.priority}
-            </span>
-          )}
-          {showStatus && task.status && (
-            <span
-              className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}
-            >
-              {task.status}
-            </span>
-          )}
-        </div>
+
+      {/* メタ情報 */}
+      <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+        {/* ステータス */}
+        {showStatus && statusConfig && (
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${statusConfig.textClass}`}>
+            <span className={`w-2 h-2 rounded-full ${statusConfig.dotClass} ${statusConfig.glowClass}`} />
+            {statusConfig.label}
+          </span>
+        )}
+
+        {/* 優先度 */}
+        {priorityConfig && (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm ${priorityConfig.bgClass} ${priorityConfig.textClass}`}>
+            {priorityConfig.label}
+          </span>
+        )}
       </div>
+
+      {/* ホバー時のグロー効果 */}
+      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none dark:bg-gradient-to-r dark:from-cyan-500/5 dark:to-transparent" />
     </article>
   );
 }
@@ -418,43 +457,48 @@ function TaskCardOverlay({
   styles,
   showStatus = false,
 }: TaskCardOverlayProps) {
+  const statusConfig = getStatusConfig(task.status);
+  const priorityConfig = getPriorityConfig(task.priority);
+
   return (
     <article
-      className={`rounded border p-3 text-sm shadow-xl transition ${styles.card} cursor-grabbing ring-2 ring-blue-500 rotate-3`}
-      style={{ width: '280px' }}
+      className={`rounded-xl border p-3.5 text-sm cursor-grabbing ring-2 ring-cyan-400 rotate-3 scale-105 ${styles.card} shadow-[0_8px_32px_rgba(34,211,238,0.3)]`}
+      style={{ width: '290px' }}
     >
-      <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
+      <h3 className={`font-medium leading-snug line-clamp-2 ${styles.title}`}>
+        {task.title}
+      </h3>
+
       {task.description && (
-        <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
+        <p className={`mt-2 text-xs leading-relaxed line-clamp-2 opacity-80 ${styles.description}`}>
+          {task.description}
+        </p>
       )}
-      <div
-        className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}
-      >
-        <div className="flex items-center gap-2">
-          {task.priority && (
-            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>
-              {task.priority}
-            </span>
-          )}
-          {showStatus && task.status && (
-            <span
-              className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}
-            >
-              {task.status}
-            </span>
-          )}
-        </div>
+
+      <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+        {showStatus && statusConfig && (
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${statusConfig.textClass}`}>
+            <span className={`w-2 h-2 rounded-full ${statusConfig.dotClass}`} />
+            {statusConfig.label}
+          </span>
+        )}
+
+        {priorityConfig && (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm ${priorityConfig.bgClass} ${priorityConfig.textClass}`}>
+            {priorityConfig.label}
+          </span>
+        )}
       </div>
     </article>
   );
 }
 
-// カテゴリの定義と表示設定
+// カテゴリの定義と表示設定 - 近未来デザイン
 const TASK_CATEGORIES = [
-  { key: 'フロントエンド', label: 'フロントエンド', icon: '🎨', color: 'text-blue-600 dark:text-cyan-300' },
-  { key: 'バックエンド', label: 'バックエンド', icon: '⚙️', color: 'text-green-600 dark:text-emerald-300' },
-  { key: 'DB設計', label: 'DB設計', icon: '🗄️', color: 'text-purple-600 dark:text-purple-300' },
-  { key: 'other', label: 'その他', icon: '📋', color: 'text-gray-600 dark:text-slate-300' },
+  { key: 'フロントエンド', label: 'フロントエンド', icon: '◈', color: 'text-cyan-600 dark:text-cyan-300' },
+  { key: 'バックエンド', label: 'バックエンド', icon: '◇', color: 'text-teal-600 dark:text-teal-300' },
+  { key: 'DB設計', label: 'DB設計', icon: '◆', color: 'text-emerald-600 dark:text-emerald-300' },
+  { key: 'other', label: 'その他', icon: '○', color: 'text-slate-500 dark:text-slate-400' },
 ] as const;
 
 // カテゴリセクション（トグル付き）
@@ -987,7 +1031,7 @@ export default function KanbanBoardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
+      <div className="flex min-h-screen items-center justify-center ">
         <p className="text-sm text-gray-600 dark:text-cyan-200">
           読み込み中...
         </p>
@@ -997,7 +1041,7 @@ export default function KanbanBoardPage() {
 
   if (isError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
+      <div className="flex min-h-screen items-center justify-center ">
         <p className="text-sm text-red-600 dark:text-rose-300">
           タスクの取得に失敗しました
         </p>
@@ -1011,7 +1055,7 @@ export default function KanbanBoardPage() {
       <CyberHeader />
 
       {/* メインコンテンツ */}
-      <div className="min-h-screen bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
+      <div className="min-h-screen ">
         <div className="container mx-auto px-6 pt-28 pb-12">
           {/* カンバンボード固有のナビゲーション */}
           <KanbanNavigation
