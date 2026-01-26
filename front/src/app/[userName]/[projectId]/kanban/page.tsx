@@ -1,6 +1,5 @@
 "use client";
 
-
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, GitBranch, ChevronDown } from 'lucide-react';
@@ -8,11 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
-  type DragEvent,
-  type KeyboardEventHandler,
-
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTasksByProjectId, postTaskAssignment, deleteTaskAssignment } from '@/libs/modelAPI/task';
@@ -25,6 +20,27 @@ import CyberHeader from '@/components/Session/Header';
 import axios from 'axios';
 import { AgentChatWidget } from '@/components/chat';
 import { ChangeRequestChatWidget } from '@/components/ChangeRequest';
+
+// dnd-kit imports
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 // NOTE: 旧一括生成用の重複防止Setは廃止
@@ -57,70 +73,64 @@ type ColumnStyle = {
   meta: string;
   priority: string;
   empty: string;
+  accent?: string;
 };
 
-// カラムのカラーバリエーション (combined light dark: dark classes)
+// カラムのカラーバリエーション - 近未来・透明感デザイン
 const COLUMN_COLORS = [
   {
-    column:
-      "border-purple-200 bg-purple-50 shadow-sm dark:border-purple-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(168,85,247,0.2)]",
-    label: "text-purple-700 dark:text-purple-200",
-    count:
-      "bg-white text-purple-600 dark:border dark:border-purple-500/40 dark:bg-slate-900/80 dark:text-purple-200",
-    card: "border-purple-200 bg-white hover:border-purple-300 hover:shadow-md dark:border-purple-500/30 dark:bg-slate-900/80 dark:hover:border-purple-400/60 dark:shadow-[0_0_16px_rgba(168,85,247,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-cyan-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-cyan-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-cyan-500/20 dark:text-cyan-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-cyan-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-cyan-400/40",
+    accent: "bg-cyan-500",
   },
   {
-    column:
-      "border-blue-200 bg-blue-50 shadow-sm dark:border-cyan-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(6,182,212,0.2)]",
-    label: "text-blue-700 dark:text-cyan-200",
-    count:
-      "bg-white text-blue-600 dark:border dark:border-cyan-500/40 dark:bg-slate-900/80 dark:text-cyan-200",
-    card: "border-blue-200 bg-white hover:border-blue-300 hover:shadow-md dark:border-cyan-500/30 dark:bg-slate-900/80 dark:hover:border-cyan-400/60 dark:shadow-[0_0_16px_rgba(6,182,212,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-teal-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-teal-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-teal-500/20 dark:text-teal-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-teal-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-teal-400/40",
+    accent: "bg-teal-500",
   },
   {
-    column:
-      "border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(16,185,129,0.2)]",
-    label: "text-emerald-700 dark:text-emerald-200",
-    count:
-      "bg-white text-emerald-600 dark:border dark:border-emerald-500/40 dark:bg-slate-900/80 dark:text-emerald-200",
-    card: "border-emerald-200 bg-white hover:border-emerald-300 hover:shadow-md dark:border-emerald-500/30 dark:bg-slate-900/80 dark:hover:border-emerald-400/60 dark:shadow-[0_0_16px_rgba(16,185,129,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-emerald-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-emerald-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-emerald-500/20 dark:text-emerald-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-emerald-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-emerald-400/40",
+    accent: "bg-emerald-500",
   },
   {
-    column:
-      "border-pink-200 bg-pink-50 shadow-sm dark:border-pink-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(236,72,153,0.2)]",
-    label: "text-pink-700 dark:text-pink-200",
-    count:
-      "bg-white text-pink-600 dark:border dark:border-pink-500/40 dark:bg-slate-900/80 dark:text-pink-200",
-    card: "border-pink-200 bg-white hover:border-pink-300 hover:shadow-md dark:border-pink-500/30 dark:bg-slate-900/80 dark:hover:border-pink-400/60 dark:shadow-[0_0_16px_rgba(236,72,153,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-sky-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-sky-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-sky-500/20 dark:text-sky-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-sky-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-sky-400/40",
+    accent: "bg-sky-500",
   },
   {
-    column:
-      "border-orange-200 bg-orange-50 shadow-sm dark:border-orange-500/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(249,115,22,0.2)]",
-    label: "text-orange-700 dark:text-orange-200",
-    count:
-      "bg-white text-orange-600 dark:border dark:border-orange-500/40 dark:bg-slate-900/80 dark:text-orange-200",
-    card: "border-orange-200 bg-white hover:border-orange-300 hover:shadow-md dark:border-orange-500/30 dark:bg-slate-900/80 dark:hover:border-orange-400/60 dark:shadow-[0_0_16px_rgba(249,115,22,0.25)]",
+    column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-indigo-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+    label: "text-slate-700 dark:text-indigo-100",
+    count: "bg-white/60 text-slate-600 backdrop-blur-sm dark:bg-indigo-500/20 dark:text-indigo-200",
+    card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-indigo-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-indigo-400/40",
+    accent: "bg-indigo-500",
   },
 ];
 
-// 未割り当てカラムのスタイル (combined light dark: dark classes)
+// 未割り当てカラムのスタイル
 const UNASSIGNED_COLORS = {
-  column:
-    "border-gray-300 bg-gray-100 shadow-sm dark:border-slate-600/40 dark:bg-slate-950/70 dark:shadow-[0_0_18px_rgba(100,116,139,0.2)]",
-  label: "text-gray-600 dark:text-slate-300",
-  count:
-    "bg-white text-gray-500 dark:border dark:border-slate-600/40 dark:bg-slate-900/80 dark:text-slate-300",
-  card: "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md dark:border-slate-600/30 dark:bg-slate-900/80 dark:hover:border-slate-500/60 dark:shadow-[0_0_16px_rgba(100,116,139,0.25)]",
+  column: "border-white/20 bg-white/40 backdrop-blur-md shadow-lg dark:border-slate-500/20 dark:bg-slate-900/40 dark:backdrop-blur-md",
+  label: "text-slate-600 dark:text-slate-200",
+  count: "bg-white/60 text-slate-500 backdrop-blur-sm dark:bg-slate-500/20 dark:text-slate-300",
+  card: "border-white/30 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:shadow-lg dark:border-slate-500/20 dark:bg-slate-800/60 dark:backdrop-blur-sm dark:hover:bg-slate-800/80 dark:hover:border-slate-400/40",
+  accent: "bg-slate-500",
 };
 
-// 共通スタイル (combined light dark: dark classes)
+// 共通スタイル
 const COMMON_STYLES = {
-  title: "text-gray-800 dark:text-slate-100",
-  description: "text-gray-500 dark:text-slate-300",
-  meta: "text-gray-500 dark:text-slate-300",
-  priority:
-    "bg-gray-100 text-gray-600 dark:border dark:border-slate-400/50 dark:bg-slate-500/10 dark:text-slate-200",
-  empty: "text-gray-400 dark:text-slate-500",
+  title: "text-slate-800 dark:text-white",
+  description: "text-slate-600 dark:text-slate-300",
+  meta: "text-slate-500 dark:text-slate-400",
+  priority: "text-slate-500 dark:text-slate-400",
+  empty: "text-slate-400 dark:text-slate-500",
 };
 
 // メンバーIDに基づいて色を取得
@@ -295,105 +305,200 @@ const moveTaskToMember = (
   return { board: next, moved: true };
 };
 
-type TaskCardProps = {
+// ステータスの設定 - 近未来デザイン
+const getStatusConfig = (status?: TaskStatusEnum) => {
+  const configs = {
+    TODO: {
+      label: 'Todo',
+      dotClass: 'bg-slate-400 dark:bg-slate-500',
+      textClass: 'text-slate-600 dark:text-slate-300',
+      glowClass: '',
+    },
+    DOING: {
+      label: '進行中',
+      dotClass: 'bg-cyan-500 dark:bg-cyan-400 animate-pulse',
+      textClass: 'text-cyan-600 dark:text-cyan-300',
+      glowClass: 'dark:shadow-[0_0_8px_rgba(34,211,238,0.5)]',
+    },
+    DONE: {
+      label: '完了',
+      dotClass: 'bg-emerald-500 dark:bg-emerald-400',
+      textClass: 'text-emerald-600 dark:text-emerald-300',
+      glowClass: '',
+    },
+  };
+  return status ? configs[status] : null;
+};
+
+// 優先度の設定 - 近未来デザイン
+const getPriorityConfig = (priority?: string) => {
+  const configs: Record<string, { label: string; bgClass: string; textClass: string }> = {
+    '高': {
+      label: '高',
+      bgClass: 'bg-rose-500/20 border border-rose-500/30 dark:bg-rose-500/10 dark:border-rose-400/30',
+      textClass: 'text-rose-600 dark:text-rose-300',
+    },
+    '中': {
+      label: '中',
+      bgClass: 'bg-amber-500/20 border border-amber-500/30 dark:bg-amber-500/10 dark:border-amber-400/30',
+      textClass: 'text-amber-600 dark:text-amber-300',
+    },
+    '低': {
+      label: '低',
+      bgClass: 'bg-slate-500/10 border border-slate-500/20 dark:bg-slate-500/10 dark:border-slate-400/20',
+      textClass: 'text-slate-500 dark:text-slate-400',
+    },
+  };
+  return priority ? configs[priority] : null;
+};
+
+// SortableTaskCard - dnd-kit対応のドラッグ可能なタスクカード
+type SortableTaskCardProps = {
   task: TaskWithAssignments;
   styles: ColumnStyle;
   showStatus?: boolean;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
-function TaskCard({
+function SortableTaskCard({
   task,
   styles,
   showStatus = false,
-  onDragStart,
-  onDragEnd,
   onSelect,
-}: TaskCardProps) {
-  const canDrag = Boolean(task.task_id);
+}: SortableTaskCardProps) {
+  const taskId = task.task_id || `temp-${Math.random()}`;
 
-  const handleDragStart = () => {
-    if (canDrag) {
-      onDragStart(task.task_id);
-    }
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: taskId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)',
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 1000 : 'auto' as const,
   };
 
-  const handleClick = () => {
-    if (canDrag) {
-      onSelect(task.task_id);
-    }
-  };
-
-  const handleKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
-    if (!canDrag) {
+  const handleClick = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
+    if (task.task_id) {
       onSelect(task.task_id);
     }
   };
 
-  // ステータスのバッジ色を取得 (combined light dark: dark classes)
-  const getStatusBadgeClass = (status?: TaskStatusEnum) => {
-    if (!status) return "";
-
-    const statusColors = {
-      TODO: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-500/20 dark:text-pink-200 dark:border-pink-500/40",
-      DOING:
-        "bg-blue-100 text-blue-700 border-blue-300 dark:bg-cyan-500/20 dark:text-cyan-200 dark:border-cyan-500/40",
-      DONE: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40",
-    };
-
-    return statusColors[status] || "";
-  };
+  const statusConfig = getStatusConfig(task.status);
+  const priorityConfig = getPriorityConfig(task.priority);
 
   return (
     <article
-      className={`rounded border p-3 text-sm shadow-sm transition ${styles.card} cursor-pointer`}
-      draggable={canDrag}
-      onDragStart={handleDragStart}
-      onDragEnd={onDragEnd}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`group relative rounded-xl border p-3.5 text-sm transition-all duration-200 cursor-grab active:cursor-grabbing ${styles.card} ${isDragging ? 'ring-2 ring-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_4px_20px_rgba(34,211,238,0.15)]'}`}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       role="button"
-      tabIndex={canDrag ? 0 : -1}
+      tabIndex={task.task_id ? 0 : -1}
     >
-      <h3 className={`font-semibold truncate ${styles.title}`}>{task.title}</h3>
-      {task.description && (
+      {/* タイトル */}
+      <h3 className={`font-medium leading-snug line-clamp-2 ${styles.title}`}>
+        {task.title}
+      </h3>
 
-        <p className={`mt-2 text-xs line-clamp-2 ${styles.description}`}>{task.description}</p>
+      {/* 説明文 */}
+      {task.description && (
+        <p className={`mt-2 text-xs leading-relaxed line-clamp-2 opacity-80 ${styles.description}`}>
+          {task.description}
+        </p>
       )}
-      <div
-        className={`mt-2 flex items-center justify-between gap-2 text-xs ${styles.meta}`}
-      >
-        <div className="flex items-center gap-2">
-          {task.priority && (
-            <span className={`rounded px-2 py-0.5 ${styles.priority}`}>
-              {task.priority}
-            </span>
-          )}
-          {showStatus && task.status && (
-            <span
-              className={`rounded px-2 py-0.5 border text-xs ${getStatusBadgeClass(task.status)}`}
-            >
-              {task.status}
-            </span>
-          )}
-        </div>
+
+      {/* メタ情報 */}
+      <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+        {/* ステータス */}
+        {showStatus && statusConfig && (
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${statusConfig.textClass}`}>
+            <span className={`w-2 h-2 rounded-full ${statusConfig.dotClass} ${statusConfig.glowClass}`} />
+            {statusConfig.label}
+          </span>
+        )}
+
+        {/* 優先度 */}
+        {priorityConfig && (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm ${priorityConfig.bgClass} ${priorityConfig.textClass}`}>
+            {priorityConfig.label}
+          </span>
+        )}
+      </div>
+
+      {/* ホバー時のグロー効果 */}
+      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none dark:bg-gradient-to-r dark:from-cyan-500/5 dark:to-transparent" />
+    </article>
+  );
+}
+
+// TaskCardOverlay - ドラッグ中のオーバーレイ表示用
+type TaskCardOverlayProps = {
+  task: TaskWithAssignments;
+  styles: ColumnStyle;
+  showStatus?: boolean;
+};
+
+function TaskCardOverlay({
+  task,
+  styles,
+  showStatus = false,
+}: TaskCardOverlayProps) {
+  const statusConfig = getStatusConfig(task.status);
+  const priorityConfig = getPriorityConfig(task.priority);
+
+  return (
+    <article
+      className={`rounded-xl border p-3.5 text-sm cursor-grabbing ring-2 ring-cyan-400 rotate-3 scale-105 ${styles.card} shadow-[0_8px_32px_rgba(34,211,238,0.3)]`}
+      style={{ width: '290px' }}
+    >
+      <h3 className={`font-medium leading-snug line-clamp-2 ${styles.title}`}>
+        {task.title}
+      </h3>
+
+      {task.description && (
+        <p className={`mt-2 text-xs leading-relaxed line-clamp-2 opacity-80 ${styles.description}`}>
+          {task.description}
+        </p>
+      )}
+
+      <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+        {showStatus && statusConfig && (
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${statusConfig.textClass}`}>
+            <span className={`w-2 h-2 rounded-full ${statusConfig.dotClass}`} />
+            {statusConfig.label}
+          </span>
+        )}
+
+        {priorityConfig && (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm ${priorityConfig.bgClass} ${priorityConfig.textClass}`}>
+            {priorityConfig.label}
+          </span>
+        )}
       </div>
     </article>
   );
 }
 
-// カテゴリの定義と表示設定
+// カテゴリの定義と表示設定 - 近未来デザイン
 const TASK_CATEGORIES = [
-  { key: 'フロントエンド', label: 'フロントエンド', icon: '🎨', color: 'text-blue-600 dark:text-cyan-300' },
-  { key: 'バックエンド', label: 'バックエンド', icon: '⚙️', color: 'text-green-600 dark:text-emerald-300' },
-  { key: 'DB設計', label: 'DB設計', icon: '🗄️', color: 'text-purple-600 dark:text-purple-300' },
-  { key: 'other', label: 'その他', icon: '📋', color: 'text-gray-600 dark:text-slate-300' },
+  { key: 'フロントエンド', label: 'フロントエンド', icon: '◈', color: 'text-cyan-600 dark:text-cyan-300' },
+  { key: 'バックエンド', label: 'バックエンド', icon: '◇', color: 'text-teal-600 dark:text-teal-300' },
+  { key: 'DB設計', label: 'DB設計', icon: '◆', color: 'text-emerald-600 dark:text-emerald-300' },
+  { key: 'other', label: 'その他', icon: '○', color: 'text-slate-500 dark:text-slate-400' },
 ] as const;
 
 // カテゴリセクション（トグル付き）
@@ -404,8 +509,6 @@ type CategorySectionProps = {
   color: string;
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
@@ -416,13 +519,13 @@ function CategorySection({
   color,
   tasks,
   styles,
-  onDragStart,
-  onDragEnd,
   onSelect,
 }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   if (tasks.length === 0) return null;
+
+  const taskIds = tasks.map(t => t.task_id || `temp-${Math.random()}`);
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -441,19 +544,19 @@ function CategorySection({
       </button>
       {/* カテゴリ内のタスク */}
       {isExpanded && (
-        <div className="flex flex-col gap-2 pl-1 w-full">
-          {tasks.map((task, index) => (
-            <TaskCard
-              key={task.task_id ?? `category-${categoryKey}-${index}`}
-              task={task}
-              styles={styles}
-              showStatus={true}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
-              onSelect={onSelect}
-            />
-          ))}
-        </div>
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-col gap-2 pl-1 w-full">
+            {tasks.map((task, index) => (
+              <SortableTaskCard
+                key={task.task_id ?? `category-${categoryKey}-${index}`}
+                task={task}
+                styles={styles}
+                showStatus={true}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+        </SortableContext>
       )}
     </div>
   );
@@ -465,9 +568,6 @@ type MemberColumnProps = {
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
   isUnassigned?: boolean;
-  onDrop: (event: DragEvent<HTMLDivElement>) => void;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
@@ -477,14 +577,12 @@ function MemberColumn({
   tasks,
   styles,
   isUnassigned = false,
-  onDrop,
-  onDragStart,
-  onDragEnd,
   onSelect,
 }: MemberColumnProps) {
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  };
+  // dnd-kitのドロップ対象として登録
+  const { isOver, setNodeRef } = useDroppable({
+    id: memberId,
+  });
 
   // タスクをカテゴリ別にグループ化
   const groupedTasks = useMemo(() => {
@@ -509,11 +607,10 @@ function MemberColumn({
 
   return (
     <section
+      ref={setNodeRef}
       aria-label={`${memberName} column`}
-      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit w-full min-w-[280px] overflow-hidden ${styles.column}`}
+      className={`flex flex-col gap-3 rounded border p-4 transition-all duration-200 backdrop-blur-sm h-fit min-w-[320px] w-[320px] flex-shrink-0 overflow-hidden ${styles.column} ${isOver ? 'ring-2 ring-blue-400 bg-blue-50/50 dark:bg-blue-900/20 scale-[1.02]' : ''}`}
       data-member-id={memberId}
-      onDragOver={handleDragOver}
-      onDrop={onDrop}
     >
       <header
         className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}
@@ -552,8 +649,6 @@ function MemberColumn({
               color={color}
               tasks={groupedTasks[key] || []}
               styles={styles}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
               onSelect={onSelect}
             />
           ))
@@ -567,23 +662,18 @@ function MemberColumn({
 type UnassignedColumnProps = {
   tasks: TaskWithAssignments[];
   styles: ColumnStyle;
-  onDrop: (event: DragEvent<HTMLDivElement>) => void;
-  onDragStart: (taskId?: string) => void;
-  onDragEnd: () => void;
   onSelect: (taskId?: string) => void;
 };
 
 function UnassignedColumn({
   tasks,
   styles,
-  onDrop,
-  onDragStart,
-  onDragEnd,
   onSelect,
 }: UnassignedColumnProps) {
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  };
+  // dnd-kitのドロップ対象として登録
+  const { isOver, setNodeRef } = useDroppable({
+    id: UNASSIGNED_KEY,
+  });
 
   // タスクをカテゴリ別にグループ化
   const groupedTasks = useMemo(() => {
@@ -608,11 +698,10 @@ function UnassignedColumn({
 
   return (
     <section
+      ref={setNodeRef}
       aria-label="未割り当て column"
-      className={`flex flex-col gap-3 rounded border p-4 transition backdrop-blur-sm h-fit w-full min-w-[280px] overflow-hidden ${styles.column}`}
+      className={`flex flex-col gap-3 rounded border p-4 transition-all duration-200 backdrop-blur-sm h-fit min-w-[320px] w-[320px] flex-shrink-0 overflow-hidden ${styles.column} ${isOver ? 'ring-2 ring-blue-400 bg-blue-50/50 dark:bg-blue-900/20 scale-[1.02]' : ''}`}
       data-member-id={UNASSIGNED_KEY}
-      onDragOver={handleDragOver}
-      onDrop={onDrop}
     >
       <header className={`flex items-center justify-between text-xs font-semibold transition ${styles.label}`}>
         <span className="truncate">未割り当て</span>
@@ -632,8 +721,6 @@ function UnassignedColumn({
               color={color}
               tasks={groupedTasks[key] || []}
               styles={styles}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
               onSelect={onSelect}
             />
           ))
@@ -657,7 +744,22 @@ export default function KanbanBoardPage() {
 
   const [taskAssignments, setTaskAssignments] = useState<Record<string, TaskAssignmentType[]>>({});
   const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
-  const draggingTaskIdRef = useRef<string | null>(null);
+
+  // dnd-kit: ドラッグ中のタスク状態
+  const [activeTask, setActiveTask] = useState<TaskWithAssignments | null>(null);
+  const [activeTaskColumnId, setActiveTaskColumnId] = useState<string | null>(null);
+
+  // dnd-kit: センサーの設定（8px以上動かしたらドラッグ開始）
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // ログインユーザーをプロジェクトメンバーに自動追加
   const ensureUserIsProjectMember = useCallback(
@@ -785,104 +887,151 @@ export default function KanbanBoardPage() {
   //   checkAndStartHandsOnGeneration();
   // }, [projectId]);
 
-  const handleCardDragStart = useCallback((taskId?: string) => {
-    if (taskId) {
-      draggingTaskIdRef.current = taskId;
+  // タスクIDからタスクを検索する関数
+  const findTaskById = useCallback((taskId: string): TaskWithAssignments | null => {
+    for (const columnKey of Object.keys(board)) {
+      const task = board[columnKey].find(t => t.task_id === taskId);
+      if (task) {
+        return task;
+      }
     }
-  }, []);
+    return null;
+  }, [board]);
 
-  const handleCardDragEnd = useCallback(() => {
-    draggingTaskIdRef.current = null;
-  }, []);
-
-  const handleMemberDrop = useCallback(
-    (targetMemberId: string) => async (event: DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      const taskId = draggingTaskIdRef.current;
-      if (!taskId) {
-        return;
+  // タスクIDからカラムIDを検索する関数
+  const findColumnByTaskId = useCallback((taskId: string): string | null => {
+    for (const columnKey of Object.keys(board)) {
+      const task = board[columnKey].find(t => t.task_id === taskId);
+      if (task) {
+        return columnKey;
       }
+    }
+    return null;
+  }, [board]);
 
-      // ボードのスナップショットを保存
-      const snapshot: BoardState = {};
-      Object.keys(board).forEach((key) => {
-        snapshot[key] = [...board[key]];
-      });
+  // dnd-kit: ドラッグ開始ハンドラー
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const taskId = event.active.id as string;
+    const task = findTaskById(taskId);
+    const columnId = findColumnByTaskId(taskId);
+    setActiveTask(task);
+    setActiveTaskColumnId(columnId);
+  }, [findTaskById, findColumnByTaskId]);
 
-      const { board: nextBoard, moved } = moveTaskToMember(
-        board,
-        taskId,
-        targetMemberId,
+  // IDがカラムID（メンバーID or UNASSIGNED_KEY）かどうかを判定
+  const isColumnId = useCallback((id: string): boolean => {
+    // UNASSIGNED_KEYの場合はカラムID
+    if (id === UNASSIGNED_KEY) return true;
+    // boardのキーに存在すればカラムID
+    return Object.keys(board).includes(id);
+  }, [board]);
+
+  // dnd-kit: ドラッグ終了ハンドラー
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+    setActiveTaskColumnId(null);
+
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const overId = over.id as string;
+
+    // over.idがカラムIDか、タスクIDかを判定
+    // タスクIDの場合は、そのタスクが属するカラムを探す
+    let targetMemberId: string;
+    if (isColumnId(overId)) {
+      targetMemberId = overId;
+    } else {
+      // over.idがタスクIDの場合、そのタスクが属するカラムを取得
+      const targetColumn = findColumnByTaskId(overId);
+      if (!targetColumn) return;
+      targetMemberId = targetColumn;
+    }
+
+    // 同じカラム内のドロップは無視
+    const sourceColumnId = findColumnByTaskId(taskId);
+    if (!sourceColumnId || sourceColumnId === targetMemberId) {
+      return;
+    }
+
+    // ボードのスナップショットを保存
+    const snapshot: BoardState = {};
+    Object.keys(board).forEach((key) => {
+      snapshot[key] = [...board[key]];
+    });
+
+    const { board: nextBoard, moved } = moveTaskToMember(
+      board,
+      taskId,
+      targetMemberId,
+    );
+    if (!moved) {
+      return;
+    }
+
+    // UIを即座に更新
+    setBoard(nextBoard);
+    setIsUpdating(true);
+
+    try {
+      // 既存の割り当てを削除
+      const currentAssignments = taskAssignments[taskId] || [];
+      await Promise.all(
+        currentAssignments.map((assignment) =>
+          deleteTaskAssignment(assignment.task_assignment_id!, taskId),
+        ),
       );
-      if (!moved) {
-        draggingTaskIdRef.current = null;
-        return;
-      }
 
-      // UIを即座に更新
-      setBoard(nextBoard);
-      setIsUpdating(true);
+      // 新しい割り当てを追加（未割り当て以外）
+      if (targetMemberId !== UNASSIGNED_KEY) {
+        const assignment: TaskAssignmentType = {
+          task_id: taskId,
+          project_member_id: targetMemberId,
+        };
+        await postTaskAssignment(assignment);
 
-      try {
-        // 既存の割り当てを削除
-        const currentAssignments = taskAssignments[taskId] || [];
-        await Promise.all(
-          currentAssignments.map((assignment) =>
-            deleteTaskAssignment(assignment.task_assignment_id!, taskId),
-          ),
+        // 割り当て情報を更新
+        const response = await axios.get<TaskAssignmentType[]>(
+          `${API_URL}/task_assignment/task/${taskId}`,
         );
-
-        // 新しい割り当てを追加（未割り当て以外）
-        if (targetMemberId !== UNASSIGNED_KEY) {
-          const assignment: TaskAssignmentType = {
-            task_id: taskId,
-            project_member_id: targetMemberId,
-          };
-          await postTaskAssignment(assignment);
-
-          // 割り当て情報を更新
-          const response = await axios.get<TaskAssignmentType[]>(
-            `${API_URL}/task_assignment/task/${taskId}`,
-          );
-          setTaskAssignments((prev) => ({
-            ...prev,
-            [taskId]: response.data || [],
-          }));
-        } else {
-          // 未割り当ての場合は空配列に設定
-          setTaskAssignments((prev) => ({
-            ...prev,
-            [taskId]: [],
-          }));
-        }
-      } catch (error) {
-        console.error("Failed to update task assignment:", error);
-        setBoard(snapshot);
-        alert("タスクの割り当て変更に失敗しました");
-      } finally {
-        setIsUpdating(false);
-        draggingTaskIdRef.current = null;
+        setTaskAssignments((prev) => ({
+          ...prev,
+          [taskId]: response.data || [],
+        }));
+      } else {
+        // 未割り当ての場合は空配列に設定
+        setTaskAssignments((prev) => ({
+          ...prev,
+          [taskId]: [],
+        }));
       }
-    },
-    [board, taskAssignments],
-  );
+    } catch (error) {
+      console.error("Failed to update task assignment:", error);
+      setBoard(snapshot);
+      alert("タスクの割り当て変更に失敗しました");
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [board, taskAssignments, findColumnByTaskId, isColumnId]);
 
   const handleTaskSelect = useCallback(
     (taskId?: string) => {
       if (!taskId || !userName || !projectId) {
         return;
       }
-      if (draggingTaskIdRef.current) {
+      // ドラッグ中はクリックを無視
+      if (activeTask) {
         return;
       }
       router.push(`/${userName}/${projectId}/${taskId}`);
     },
-    [router, userName, projectId],
+    [router, userName, projectId, activeTask],
   );
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
+      <div className="flex min-h-screen items-center justify-center ">
         <p className="text-sm text-gray-600 dark:text-cyan-200">
           読み込み中...
         </p>
@@ -892,7 +1041,7 @@ export default function KanbanBoardPage() {
 
   if (isError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
+      <div className="flex min-h-screen items-center justify-center ">
         <p className="text-sm text-red-600 dark:text-rose-300">
           タスクの取得に失敗しました
         </p>
@@ -906,7 +1055,7 @@ export default function KanbanBoardPage() {
       <CyberHeader />
 
       {/* メインコンテンツ */}
-      <div className="min-h-screen bg-gray-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900">
+      <div className="min-h-screen ">
         <div className="container mx-auto px-6 pt-28 pb-12">
           {/* カンバンボード固有のナビゲーション */}
           <KanbanNavigation
@@ -916,39 +1065,54 @@ export default function KanbanBoardPage() {
             onChangeRequest={() => setIsChangeRequestOpen(true)}
           />
 
-          {/* カンバンボード */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 items-start">
-            {/* 未割り当てカラム（カテゴリ別表示） */}
-            <UnassignedColumn
-              key={UNASSIGNED_KEY}
-              tasks={board[UNASSIGNED_KEY] || []}
-              styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle()}
-              onDrop={handleMemberDrop(UNASSIGNED_KEY)}
-              onDragStart={handleCardDragStart}
-              onDragEnd={handleCardDragEnd}
-              onSelect={handleTaskSelect}
-            />
+          {/* カンバンボード - dnd-kit でラップ */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 pb-4 overflow-x-auto items-start">
+              {/* 未割り当てカラム（カテゴリ別表示） */}
+              <UnassignedColumn
+                key={UNASSIGNED_KEY}
+                tasks={board[UNASSIGNED_KEY] || []}
+                styles={columnStyles[UNASSIGNED_KEY] || getUnassignedColumnStyle()}
+                onSelect={handleTaskSelect}
+              />
 
-            {/* メンバーごとのカラム */}
-            {projectMembers
-              .filter((member) => member.project_member_id)
-              .map((member, index) => {
-                const memberId = member.project_member_id!;
-                return (
-                  <MemberColumn
-                    key={memberId}
-                    memberId={memberId}
-                    memberName={member.member_name}
-                    tasks={board[memberId] || []}
-                    styles={columnStyles[memberId] || getColumnColor(index)}
-                    onDrop={handleMemberDrop(memberId)}
-                    onDragStart={handleCardDragStart}
-                    onDragEnd={handleCardDragEnd}
-                    onSelect={handleTaskSelect}
-                  />
-                );
-              })}
-          </div>
+              {/* メンバーごとのカラム */}
+              {projectMembers
+                .filter((member) => member.project_member_id)
+                .map((member, index) => {
+                  const memberId = member.project_member_id!;
+                  return (
+                    <MemberColumn
+                      key={memberId}
+                      memberId={memberId}
+                      memberName={member.member_name}
+                      tasks={board[memberId] || []}
+                      styles={columnStyles[memberId] || getColumnColor(index)}
+                      onSelect={handleTaskSelect}
+                    />
+                  );
+                })}
+            </div>
+
+            {/* ドラッグ中のオーバーレイ */}
+            <DragOverlay dropAnimation={{
+              duration: 200,
+              easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+            }}>
+              {activeTask && activeTaskColumnId && (
+                <TaskCardOverlay
+                  task={activeTask}
+                  styles={columnStyles[activeTaskColumnId] || getUnassignedColumnStyle()}
+                  showStatus={true}
+                />
+              )}
+            </DragOverlay>
+          </DndContext>
         </div>
       </div>
 
