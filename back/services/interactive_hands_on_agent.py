@@ -13,7 +13,7 @@ import json
 import uuid
 from typing import Dict, Optional, AsyncGenerator, List, Any
 from datetime import datetime
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict
 from enum import Enum
 
 from sqlalchemy.orm import Session
@@ -23,127 +23,18 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from models.project_base import Task, TaskHandsOn, TaskDependency
 from services.tech_selection_service import TechSelectionService
 
-
-class GenerationPhase(str, Enum):
-    """生成フェーズ"""
-    DEPENDENCY_CHECK = "dependency_check"  # 依存タスクチェック
-    WAITING_DEPENDENCY_DECISION = "waiting_dep_decision"  # 依存タスク対応方針待ち
-    CONTEXT = "context"                    # タスクの位置づけ説明
-    OVERVIEW = "overview"                  # 概要生成（生成のみ、技術選定は別）
-    TECH_CHECK = "tech_check"              # 技術選定判断
-    CHOICE_REQUIRED = "choice"             # 選択肢提示待ち
-    WAITING_CHOICE_CONFIRM = "waiting_choice_confirm"  # 決定済み技術の確認待ち
-    IMPLEMENTATION_PLANNING = "impl_planning"  # 実装ステップ計画
-    IMPLEMENTATION_STEP = "impl_step"      # 実装ステップ生成中
-    WAITING_STEP_CHOICE = "waiting_step_choice"  # ステップ内技術選定待ち
-    WAITING_STEP_COMPLETE = "waiting_step" # ステップ完了待ち
-    VERIFICATION = "verification"          # 動作確認
-    COMPLETE = "complete"                  # 完了
-
-
-@dataclass
-class ChoiceOption:
-    """選択肢"""
-    id: str
-    label: str
-    description: str
-    pros: List[str] = field(default_factory=list)
-    cons: List[str] = field(default_factory=list)
-
-
-@dataclass
-class ChoiceRequest:
-    """選択肢リクエスト"""
-    choice_id: str
-    question: str
-    options: List[ChoiceOption]
-    allow_custom: bool = True
-    skip_allowed: bool = False
-    research_hint: Optional[str] = None
-
-
-@dataclass
-class InputPrompt:
-    """ユーザー入力プロンプト"""
-    prompt_id: str
-    question: str
-    placeholder: Optional[str] = None
-    options: Optional[List[str]] = None  # ボタン選択肢
-
-
-@dataclass
-class ImplementationStep:
-    """実装ステップ"""
-    step_number: int
-    title: str
-    description: str
-    content: str = ""
-    is_completed: bool = False
-    user_feedback: Optional[str] = None
-
-
-@dataclass
-class Decision:
-    """ユーザーが採用した決定事項"""
-    step_number: int
-    description: str  # 「TypeScriptを使用する」など
-    reason: str       # 採用理由
-
-
-@dataclass
-class DependencyTaskInfo:
-    """依存タスク情報"""
-    task_id: str
-    title: str
-    description: str
-    hands_on_status: str  # "completed" | "in_progress" | "not_started"
-    implementation_summary: Optional[str] = None  # 完了済みの場合のサマリー
-
-
-@dataclass
-class StepRequirements:
-    """ステップ内の要件（概念説明・技術選定）"""
-    objective: str  # このステップの目的
-    prerequisite_concept: Optional[str] = None  # 前提概念名（例: "DBマイグレーション"）
-    prerequisite_brief: Optional[str] = None  # 前提概念の簡潔な説明
-    tech_selection_needed: bool = False  # 技術選定が必要か
-    tech_selection_question: Optional[str] = None  # 選定の質問
-    tech_selection_options: List[Dict[str, str]] = field(default_factory=list)  # 選択肢
-
-
-@dataclass
-class SessionState:
-    """セッション状態"""
-    session_id: str
-    task_id: str
-    phase: GenerationPhase
-    generated_content: Dict[str, str] = field(default_factory=dict)
-    user_choices: Dict[str, Any] = field(default_factory=dict)
-    user_inputs: Dict[str, str] = field(default_factory=dict)
-    pending_choice: Optional[ChoiceRequest] = None
-    pending_input: Optional[InputPrompt] = None
-    # 実装ステップ管理
-    implementation_steps: List[ImplementationStep] = field(default_factory=list)
-    current_step_index: int = 0
-    # ステップ内の要件（概念説明・技術選定）
-    current_step_requirements: Optional[StepRequirements] = None
-    # ステップごとの技術選択（step_number -> 選択内容）
-    step_choices: Dict[int, Dict[str, Any]] = field(default_factory=dict)
-    # ユーザーが採用した決定事項（次のステップ生成に反映）
-    decisions: List[Decision] = field(default_factory=list)
-    # 保留中の変更提案（ユーザーの採用確認待ち）
-    pending_decision: Optional[Dict[str, str]] = None
-    # 依存タスク情報
-    predecessor_tasks: List[DependencyTaskInfo] = field(default_factory=list)
-    successor_tasks: List[DependencyTaskInfo] = field(default_factory=list)
-    dependency_decision: Optional[str] = None  # "proceed" | "mock" | "redirect"
-    # プロジェクト全体の実装概要（重複実装回避用）
-    project_implementation_overview: str = ""
-    # 現在選択中の技術領域（DB記録用）
-    current_domain_key: Optional[str] = None
-    # タイムスタンプ
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+# 型定義は hands_on モジュールからインポート
+from services.hands_on.types import (
+    GenerationPhase,
+    ChoiceOption,
+    ChoiceRequest,
+    InputPrompt,
+    ImplementationStep,
+    Decision,
+    DependencyTaskInfo,
+    StepRequirements,
+    SessionState,
+)
 
 
 class InteractiveHandsOnAgent:
@@ -2216,195 +2107,14 @@ B) **単純な質問**: 理解を深めるための質問、エラーの相談�
             return None
 
 
-# セッションストア（インメモリ）
-_session_store: Dict[str, SessionState] = {}
+# セッション管理は hands_on モジュールからインポート
+from services.hands_on.state import (
+    default_manager as _session_manager,
+    get_session,
+    create_session,
+    delete_session,
+    restore_session_from_db,
+)
 
-
-def get_session(session_id: str) -> Optional[SessionState]:
-    """セッションを取得"""
-    return _session_store.get(session_id)
-
-
-def create_session(task_id: str, initial_phase: GenerationPhase = GenerationPhase.DEPENDENCY_CHECK) -> SessionState:
-    """新しいセッションを作成（同じtask_idの古いセッションは削除）"""
-    # 同じtask_idの古いセッションを削除
-    sessions_to_delete = [
-        sid for sid, s in _session_store.items()
-        if s.task_id == task_id
-    ]
-    for sid in sessions_to_delete:
-        del _session_store[sid]
-
-    session = SessionState(
-        session_id=str(uuid.uuid4()),
-        task_id=task_id,
-        phase=initial_phase
-    )
-    _session_store[session.session_id] = session
-    return session
-
-
-def delete_session(session_id: str) -> bool:
-    """セッションを削除"""
-    if session_id in _session_store:
-        del _session_store[session_id]
-        return True
-    return False
-
-
-def restore_session_from_db(hands_on: 'TaskHandsOn', task_id: str) -> Optional[SessionState]:
-    """DBからセッション状態を復元"""
-    if not hands_on or not hands_on.user_interactions:
-        return None
-
-    interactions = hands_on.user_interactions
-    phase_str = interactions.get("phase", "CONTEXT")
-
-    # フェーズを復元
-    try:
-        phase = GenerationPhase(phase_str)
-    except ValueError:
-        phase = GenerationPhase.CONTEXT
-
-    # 実装ステップを復元
-    steps_data = interactions.get("steps", [])
-    implementation_steps = [
-        ImplementationStep(
-            step_number=s["step_number"],
-            title=s["title"],
-            description=s["description"],
-            content=s.get("content", ""),
-            is_completed=s.get("is_completed", False),
-            user_feedback=s.get("user_feedback")
-        )
-        for s in steps_data
-    ]
-
-    # 決定事項を復元
-    decisions_data = interactions.get("decisions", [])
-    decisions = [
-        Decision(
-            step_number=d["step_number"],
-            description=d["description"],
-            reason=d.get("reason", "")
-        )
-        for d in decisions_data
-    ]
-
-    # 保留中の入力プロンプトと選択肢を復元
-    # 優先: pending_stateフィールド、フォールバック: user_interactions
-    pending_input = None
-    pending_choice = None
-
-    # 新しいpending_stateフィールドから復元（優先）
-    if hands_on.pending_state:
-        pending_type = hands_on.pending_state.get("type")
-        state_data = hands_on.pending_state.get("state", {})
-
-        if pending_type == "choice" and "choice" in state_data:
-            choice_data = state_data["choice"]
-            pending_choice = ChoiceRequest(
-                choice_id=choice_data.get("choice_id", ""),
-                question=choice_data.get("question", ""),
-                options=[
-                    ChoiceOption(
-                        id=opt.get("id", ""),
-                        label=opt.get("label", ""),
-                        description=opt.get("description", ""),
-                        pros=opt.get("pros", []),
-                        cons=opt.get("cons", [])
-                    )
-                    for opt in choice_data.get("options", [])
-                ],
-                allow_custom=choice_data.get("allow_custom", True),
-                skip_allowed=choice_data.get("skip_allowed", False),
-                research_hint=choice_data.get("research_hint")
-            )
-        elif pending_type in ("input", "step_confirmation") and "input" in state_data:
-            input_data = state_data["input"]
-            pending_input = InputPrompt(
-                prompt_id=input_data.get("prompt_id", ""),
-                question=input_data.get("question", ""),
-                placeholder=input_data.get("placeholder"),
-                options=input_data.get("options")
-            )
-    else:
-        # フォールバック: user_interactionsから復元
-        # pending_choiceを復元
-        pending_choice_data = interactions.get("pending_choice")
-        if pending_choice_data:
-            pending_choice = ChoiceRequest(
-                choice_id=pending_choice_data.get("choice_id", ""),
-                question=pending_choice_data.get("question", ""),
-                options=[
-                    ChoiceOption(
-                        id=opt.get("id", ""),
-                        label=opt.get("label", ""),
-                        description=opt.get("description", ""),
-                        pros=opt.get("pros", []),
-                        cons=opt.get("cons", [])
-                    )
-                    for opt in pending_choice_data.get("options", [])
-                ],
-                allow_custom=pending_choice_data.get("allow_custom", True),
-                skip_allowed=pending_choice_data.get("skip_allowed", False),
-                research_hint=pending_choice_data.get("research_hint")
-            )
-
-        # pending_inputを復元
-        pending_input_data = interactions.get("pending_input")
-        if pending_input_data:
-            pending_input = InputPrompt(
-                prompt_id=pending_input_data.get("prompt_id", ""),
-                question=pending_input_data.get("question", ""),
-                placeholder=pending_input_data.get("placeholder"),
-                options=pending_input_data.get("options")
-            )
-
-    # user_choicesを復元
-    choices_data = interactions.get("choices", [])
-    user_choices = {}
-    for choice in choices_data:
-        choice_id = choice.get("choice_id")
-        if choice_id:
-            user_choices[choice_id] = {
-                "selected": choice.get("selected"),
-                "user_note": choice.get("user_note")
-            }
-
-    # 生成済みコンテンツを復元
-    generated_content = {
-        "overview": hands_on.overview or "",
-        "implementation": hands_on.implementation_steps or "",
-        "verification": hands_on.verification or "",
-        "context": hands_on.technical_context or ""
-    }
-
-    # ステップごとの技術選択を復元（キーをintに変換）
-    step_choices_data = interactions.get("step_choices", {})
-    step_choices = {
-        int(k): v for k, v in step_choices_data.items()
-    }
-
-    # セッション作成
-    session = SessionState(
-        session_id=hands_on.session_id or str(uuid.uuid4()),
-        task_id=task_id,
-        phase=phase,
-        generated_content=generated_content,
-        user_choices=user_choices,
-        user_inputs=interactions.get("inputs", {}),
-        pending_choice=pending_choice,  # 選択肢待ち状態を復元
-        pending_input=pending_input,
-        implementation_steps=implementation_steps,
-        current_step_index=interactions.get("current_step", 0),
-        step_choices=step_choices,
-        decisions=decisions,
-        pending_decision=interactions.get("pending_decision"),
-        project_implementation_overview=interactions.get("project_implementation_overview", "")
-    )
-
-    # セッションストアに登録
-    _session_store[session.session_id] = session
-
-    return session
+# 後方互換性: _session_storeへの参照を維持
+_session_store = _session_manager._store
