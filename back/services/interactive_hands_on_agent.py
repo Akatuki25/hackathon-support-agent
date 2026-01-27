@@ -21,6 +21,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from models.project_base import Task, TaskHandsOn, TaskDependency
+from services.tech_selection_service import TechSelectionService
 
 
 class GenerationPhase(str, Enum):
@@ -138,6 +139,8 @@ class SessionState:
     dependency_decision: Optional[str] = None  # "proceed" | "mock" | "redirect"
     # プロジェクト全体の実装概要（重複実装回避用）
     project_implementation_overview: str = ""
+    # 現在選択中の技術領域（DB記録用）
+    current_domain_key: Optional[str] = None
     # タイムスタンプ
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
@@ -170,6 +173,17 @@ class InteractiveHandsOnAgent:
             model=self.config.get("model", "gemini-2.0-flash"),
             temperature=0.7
         )
+
+        # 技術選定サービス初期化
+        self.tech_service = TechSelectionService(db)
+
+        # 決定済みdomainをキャッシュ
+        self.decided_domains = self.tech_service.get_decided_domains(
+            task.project_id, task.task_id
+        )
+
+        # エコシステム特定
+        self.ecosystem = self._detect_ecosystem(project_context.get('tech_stack', []))
 
     def _get_task_position(self) -> Dict:
         """タスクの全体における位置づけを取得"""
@@ -237,48 +251,70 @@ class InteractiveHandsOnAgent:
 
         return " → ".join(parts)
 
+    def _detect_ecosystem(self, tech_stack: List[str]) -> Optional[str]:
+        """
+        tech_stackからエコシステムを特定
+
+        Args:
+            tech_stack: 技術スタックのリスト
+
+        Returns:
+            "python", "next.js"等、または特定できない場合はNone
+        """
+        tech_stack_lower = [t.lower() for t in tech_stack]
+
+        # Python系
+        python_indicators = ["python", "fastapi", "flask", "django", "sqlalchemy"]
+        if any(indicator in " ".join(tech_stack_lower) for indicator in python_indicators):
+            return "python"
+
+        # Next.js/React系
+        nextjs_indicators = ["next.js", "nextjs", "next", "react"]
+        if any(indicator in " ".join(tech_stack_lower) for indicator in nextjs_indicators):
+            return "next.js"
+
+        # Node.js系
+        nodejs_indicators = ["node.js", "nodejs", "express"]
+        if any(indicator in " ".join(tech_stack_lower) for indicator in nodejs_indicators):
+            return "node.js"
+
+        return None
+
     async def _check_tech_selection(self, session: SessionState, force_choice: bool = False) -> Dict:
         """
-        技術選定が必要かどうかを判断し、必要なら選択肢も生成
+        技術選定が必要かどうかを判断（DBプリセット + LLM判断）
+
+        LLMはdomain検出のみ行い、選択肢はDBから取得する。
 
         Returns:
             選択が必要な場合:
             {
                 "needs_choice": True,
-                "question": "何を選定するか",
+                "domain_key": "orm_python",
+                "question": "どのORMを使用しますか？",
                 "options": [{"id": "...", "label": "...", "description": "...", "pros": [...], "cons": [...]}]
             }
             既に決まっている場合:
             {
                 "needs_choice": False,
-                "decided": "PostgreSQL",
+                "decided": "SQLAlchemy",
                 "reason": "タスク説明で指定済み"
             }
         """
-        if force_choice:
-            # 強制的に選択肢を出す
-            prompt = f"""
-以下のタスクで技術選定の選択肢を提示してください。
+        # 利用可能なdomainを取得
+        domains = self.tech_service.get_available_domains(self.ecosystem)
+        if not domains:
+            return {"needs_choice": False, "decided": None, "reason": "利用可能な技術領域がありません"}
 
-## タスク情報
-- タイトル: {self.task.title}
-- 説明: {self.task.description or 'なし'}
+        # 決定済みdomainを取得（キャッシュを使用）
+        decided_text = self.tech_service.get_decided_for_prompt(
+            self.task.project_id, self.task.task_id
+        )
 
-## プロジェクト情報
-- 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
-- フレームワーク: {self.project_context.get('framework', '未設定')}
+        # domain一覧をテキスト化
+        domains_text = "\n".join([f"- {d.key}: {d.name}" for d in domains])
 
-## 出力形式（JSON）
-{{
-  "needs_choice": true,
-  "question": "何を選定するか",
-  "options": [
-    {{"id": "option1", "label": "選択肢名", "description": "説明", "pros": ["メリット"], "cons": ["デメリット"]}}
-  ]
-}}
-"""
-        else:
-            prompt = f"""
+        prompt = f"""
 以下のタスクを実装するにあたり、技術選定が必要かどうか判断してください。
 
 ## タスク情報
@@ -289,29 +325,33 @@ class InteractiveHandsOnAgent:
 - 技術スタック: {', '.join(self.project_context.get('tech_stack', []))}
 - フレームワーク: {self.project_context.get('framework', '未設定')}
 
-## プロジェクト内で既に決定済みの技術
-{session.project_implementation_overview or 'なし'}
+## 利用可能な技術領域（プリセットあり）
+{domains_text}
+
+## プロジェクトで決定済み（これらは除外）
+{decided_text}
 
 ## 判断基準
-- タスク説明で既に技術が明記されている場合（例: PostgreSQL、REST API等） → 選択不要
-- プロジェクトで既に決定済みの場合 → 選択不要
-- 複数の選択肢があり得て、ユーザーに確認すべき場合のみ → 選択必要
+以下の場合は選択不要（needs_selection: false）:
+- タスク説明で既に技術が明記されている（例: 「SQLAlchemyでモデルを作成」）
+- プロジェクトで決定済みの技術領域のみ使用する
+- 技術選定と無関係なタスク（ドキュメント作成、テスト、リファクタリング等）
+- 選択の余地がない（フレームワーク指定で選択肢が1つしかない）
+
+選択が必要な場合のみ、domain_keyを出力してください。
 
 ## 出力形式（JSON）
-選択が必要な場合:
+選択不要の場合:
 {{
-  "needs_choice": true,
-  "question": "何を選定するか",
-  "options": [
-    {{"id": "option1", "label": "選択肢名", "description": "説明", "pros": ["メリット"], "cons": ["デメリット"]}}
-  ]
+  "needs_selection": false,
+  "decided": "決定済みの技術名（あれば）",
+  "reason": "理由"
 }}
 
-既に決まっている場合:
+選択が必要な場合:
 {{
-  "needs_choice": false,
-  "decided": "決定済みの技術名",
-  "reason": "判断理由"
+  "needs_selection": true,
+  "domain_key": "利用可能な技術領域のkey"
 }}
 """
 
@@ -327,9 +367,50 @@ class InteractiveHandsOnAgent:
             elif "```" in content:
                 content = content.split("```")[1].split("```")[0]
 
-            return json.loads(content.strip())
-        except Exception:
-            return {"needs_choice": False, "decided": None, "reason": "判断できませんでした"}
+            result = json.loads(content.strip())
+
+            if not result.get("needs_selection"):
+                return {
+                    "needs_choice": False,
+                    "decided": result.get("decided"),
+                    "reason": result.get("reason", "")
+                }
+
+            # DBからstackを取得
+            domain_key = result.get("domain_key")
+            if not domain_key:
+                return {"needs_choice": False, "decided": None, "reason": "domain_keyが指定されていません"}
+
+            stacks = self.tech_service.get_stacks_for_domain(domain_key, self.ecosystem)
+            if not stacks:
+                return {"needs_choice": False, "decided": None, "reason": f"domain '{domain_key}' に選択肢がありません"}
+
+            # domainを取得
+            domain = self.tech_service.get_domain_by_key(domain_key)
+            if not domain:
+                return {"needs_choice": False, "decided": None, "reason": f"domain '{domain_key}' が見つかりません"}
+
+            # 現在の選択対象domainをセッションに記録
+            session.current_domain_key = domain_key
+
+            return {
+                "needs_choice": True,
+                "domain_key": domain_key,
+                "question": domain.decision_prompt,
+                "options": [
+                    {
+                        "id": s.key,
+                        "label": s.label,
+                        "description": s.summary,
+                        "pros": s.pros or [],
+                        "cons": s.cons or []
+                    }
+                    for s in stacks
+                ]
+            }
+
+        except Exception as e:
+            return {"needs_choice": False, "decided": None, "reason": f"判断できませんでした: {str(e)}"}
 
     async def _check_step_requirements(
         self,
@@ -669,14 +750,21 @@ class InteractiveHandsOnAgent:
             if step.content:
                 steps_text += f"\n### {step.title}\n{step.content[:500]}\n"
 
-        # ユーザーの技術選択を取得
+        # ユーザーの技術選択を取得（新形式: domain_key/stack_key 対応）
         choices_text = ""
         if session.user_choices:
             choices_text = "\n## 技術選択\n"
             for choice_id, choice_data in session.user_choices.items():
-                selected = choice_data.get("selected", "")
-                if selected:
-                    choices_text += f"- {selected}\n"
+                if "domain_key" in choice_data and "stack_key" in choice_data:
+                    # 新形式: DBプリセットからの選択
+                    domain = self.tech_service.get_domain_by_key(choice_data["domain_key"])
+                    domain_name = domain.name if domain else choice_data["domain_key"]
+                    choices_text += f"- {domain_name}: {choice_data['stack_key']}\n"
+                else:
+                    # 従来形式（後方互換）
+                    selected = choice_data.get("selected", "")
+                    if selected:
+                        choices_text += f"- {selected}\n"
 
         prompt = f"""
 以下の完了したタスクから、実装されたリソースと技術決定をJSON形式で抽出してください。
@@ -740,10 +828,27 @@ class InteractiveHandsOnAgent:
         session: SessionState
     ) -> List[ImplementationStep]:
         """MVPアプローチで実装ステップを計画"""
+        # ユーザー選択を文字列化（新形式: domain_key/stack_key 対応）
         choices_text = ""
         if user_choices:
             for choice_id, choice_data in user_choices.items():
-                choices_text += f"- 選択: {choice_data.get('selected', 'なし')}\n"
+                if "domain_key" in choice_data and "stack_key" in choice_data:
+                    # 新形式: DBプリセットからの選択
+                    domain = self.tech_service.get_domain_by_key(choice_data["domain_key"])
+                    domain_name = domain.name if domain else choice_data["domain_key"]
+                    choices_text += f"- {domain_name}: {choice_data['stack_key']}\n"
+                else:
+                    # 従来形式（後方互換）
+                    choices_text += f"- 選択: {choice_data.get('selected', 'なし')}\n"
+
+        # プロジェクト全体で決定済みの技術（DBから取得）
+        decided_tech_section = ""
+        if self.decided_domains:
+            decided_tech_section = "\n## プロジェクトで決定済みの技術（必ず使用すること）\n"
+            for domain_key, stack_key in self.decided_domains.items():
+                domain = self.tech_service.get_domain_by_key(domain_key)
+                domain_name = domain.name if domain else domain_key
+                decided_tech_section += f"- {domain_name}: {stack_key}\n"
 
         # 依存タスクの実装サマリーを取得（直接依存のみ詳細）
         dependency_summary = ""
@@ -801,6 +906,7 @@ class InteractiveHandsOnAgent:
 - 説明: {self.task.description or 'なし'}
 - カテゴリ: {self.task.category or '未分類'}
 {choices_text}
+{decided_tech_section}
 {successor_tasks_text}
 
 ## プロジェクト情報
@@ -877,17 +983,31 @@ class InteractiveHandsOnAgent:
         session: SessionState = None
     ) -> AsyncGenerator[str, None]:
         """ステップの実装内容をストリーミング生成"""
-        # タスク全体の選択
+        # タスク全体の選択（新形式: domain_key/stack_key 対応）
         choices_text = ""
         if user_choices:
             for choice_id, choice_data in user_choices.items():
-                choices_text += f"- 選択: {choice_data.get('selected', 'なし')}\n"
+                if "domain_key" in choice_data and "stack_key" in choice_data:
+                    # 新形式: DBプリセットからの選択
+                    domain = self.tech_service.get_domain_by_key(choice_data["domain_key"])
+                    domain_name = domain.name if domain else choice_data["domain_key"]
+                    choices_text += f"- {domain_name}: {choice_data['stack_key']}\n"
+                else:
+                    # 従来形式（後方互換）
+                    choices_text += f"- 選択: {choice_data.get('selected', 'なし')}\n"
 
         # このステップで選択した技術
         step_choice_text = ""
         if session and step.step_number in session.step_choices:
             step_choice = session.step_choices[step.step_number]
-            step_choice_text = f"\n## このステップで選択した技術（必ずこれを使って実装すること）\n- **{step_choice.get('selected', '')}**\n"
+            if "domain_key" in step_choice and "stack_key" in step_choice:
+                # 新形式
+                domain = self.tech_service.get_domain_by_key(step_choice["domain_key"])
+                domain_name = domain.name if domain else step_choice["domain_key"]
+                step_choice_text = f"\n## このステップで選択した技術（必ずこれを使って実装すること）\n- **{domain_name}: {step_choice['stack_key']}**\n"
+            else:
+                # 従来形式
+                step_choice_text = f"\n## このステップで選択した技術（必ずこれを使って実装すること）\n- **{step_choice.get('selected', '')}**\n"
 
         prev_steps_text = ""
         if previous_steps:
@@ -910,6 +1030,15 @@ class InteractiveHandsOnAgent:
 {session.project_implementation_overview}
 """
 
+        # プロジェクト全体で決定済みの技術（DBから取得）
+        decided_tech_context = ""
+        if self.decided_domains:
+            decided_tech_context = "\n## プロジェクトで決定済みの技術（必ず使用すること）\n"
+            for domain_key, stack_key in self.decided_domains.items():
+                domain = self.tech_service.get_domain_by_key(domain_key)
+                domain_name = domain.name if domain else domain_key
+                decided_tech_context += f"- {domain_name}: {stack_key}\n"
+
         prompt = f"""
 以下のステップの詳細な実装手順を説明してください。
 {project_overview_context}
@@ -919,6 +1048,7 @@ class InteractiveHandsOnAgent:
 - 説明: {self.task.description or 'なし'}
 - カテゴリ: {self.task.category or '未分類'}
 {choices_text}
+{decided_tech_context}
 {step_choice_text}
 {prev_steps_text}
 {decisions_context}
@@ -1624,12 +1754,21 @@ Markdown形式で、以下の構成で説明してください：
                     yield event
                 return
 
-            # タスク全体の技術選定の場合（従来の処理）
-            # 選択を記録
-            session.user_choices[choice_id] = {
-                "selected": selected or user_input,
-                "note": user_note
-            }
+            # タスク全体の技術選定の場合
+            # 選択を記録（domain_keyがある場合は新形式）
+            if session.current_domain_key:
+                session.user_choices[choice_id] = {
+                    "domain_key": session.current_domain_key,
+                    "stack_key": selected or user_input
+                }
+                # 決定済みdomainをキャッシュに追加
+                self.decided_domains[session.current_domain_key] = selected or user_input
+            else:
+                # 従来形式（後方互換）
+                session.user_choices[choice_id] = {
+                    "selected": selected or user_input,
+                    "note": user_note
+                }
 
             # メリデメ分析を生成
             if session.pending_choice:
