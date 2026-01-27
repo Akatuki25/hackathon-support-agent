@@ -17,11 +17,13 @@ from pydantic import BaseModel
 
 from database import get_db
 from models.project_base import Task, ProjectBase, ProjectDocument, TaskHandsOn, TaskDependency
-from services.interactive_hands_on_agent import (
-    InteractiveHandsOnAgent,
+from services.hands_on import (
     SessionState,
     GenerationPhase,
     InputPrompt,
+)
+from services.hands_on.agent import HandsOnAgent as InteractiveHandsOnAgent
+from services.hands_on.state import (
     get_session,
     create_session,
     delete_session,
@@ -733,7 +735,7 @@ async def resume_interactive_session(
             elif session.pending_choice:
                 # 保留中の選択肢があれば送信
                 # フェーズに応じて適切なイベントタイプを選択
-                from services.interactive_hands_on_agent import GenerationPhase
+                from services.hands_on import GenerationPhase
 
                 if session.phase == GenerationPhase.WAITING_STEP_CHOICE:
                     # ステップ内技術選定: step_choice_required イベント

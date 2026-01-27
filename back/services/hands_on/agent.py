@@ -9,8 +9,10 @@ from typing import Dict, Any, AsyncGenerator, Optional, List
 from uuid import UUID
 
 from sqlalchemy.orm import Session
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from models.project_base import Task, TaskHandsOn
+from services.tech_selection_service import TechSelectionService
 
 from .types import (
     GenerationPhase,
@@ -46,35 +48,44 @@ class HandsOnAgent:
 
     def __init__(
         self,
-        task: Task,
         db: Session,
+        task: Task,
         project_context: Dict[str, Any],
-        dependency_context: Optional[Dict[str, Any]] = None,
         config: Optional[Dict[str, Any]] = None,
-        llm: Any = None,
-        tech_service: Any = None,
+        dependency_context: Optional[Dict[str, Any]] = None,
     ):
         """
         エージェントを初期化
 
         Args:
-            task: 対象タスク
             db: DBセッション
+            task: 対象タスク
             project_context: プロジェクト情報
-            dependency_context: 依存関係コンテキスト
             config: 設定オプション
-            llm: LLMインスタンス
-            tech_service: 技術選定サービス
+            dependency_context: 依存関係コンテキスト
         """
-        self.task = task
         self.db = db
+        self.task = task
         self.project_context = project_context or {}
-        self.dependency_context = dependency_context or {}
         self.config = config or {}
+        self.dependency_context = dependency_context or {}
 
-        # サービス
-        self.llm = llm
-        self.tech_service = tech_service
+        # LLM初期化
+        self.llm = ChatGoogleGenerativeAI(
+            model=self.config.get("model", "gemini-2.0-flash"),
+            temperature=0.7
+        )
+
+        # 技術選定サービス初期化
+        self.tech_service = TechSelectionService(db)
+
+        # 決定済みdomainをキャッシュ
+        self.decided_domains = self.tech_service.get_decided_domains(
+            task.project_id, task.task_id
+        )
+
+        # エコシステム特定
+        self.ecosystem = self._detect_ecosystem()
 
         # フェーズレジストリとセッションマネージャー
         self.phase_registry = default_registry
@@ -88,9 +99,6 @@ class HandsOnAgent:
         self.framework = self.project_context.get("framework", "未設定")
         self.directory_info = self.project_context.get("directory_info", "")
 
-        # 決定済み技術（プロジェクト全体）
-        self.decided_domains: Dict[str, str] = {}
-
     def _create_context(self) -> AgentContext:
         """フェーズハンドラに渡すコンテキストを作成"""
         return AgentContext(
@@ -102,13 +110,13 @@ class HandsOnAgent:
             dependency_context=self.dependency_context,
             tech_service=self.tech_service,
             decided_domains=self.decided_domains,
-            ecosystem=self._detect_ecosystem(),
+            ecosystem=self.ecosystem,
         )
 
     def _detect_ecosystem(self) -> str:
         """エコシステムを検出"""
-        tech_stack = self.tech_stack
-        framework = self.framework.lower() if self.framework else ""
+        tech_stack = self.project_context.get("tech_stack", [])
+        framework = self.project_context.get("framework", "").lower()
 
         if "next.js" in framework or "react" in framework:
             return "next.js"
