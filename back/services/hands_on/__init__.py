@@ -15,6 +15,7 @@ from .types import (
     StepRequirements,
     SessionState,
 )
+from .context import AgentContext
 
 __all__ = [
     # Enums
@@ -28,4 +29,6 @@ __all__ = [
     "DependencyTaskInfo",
     "StepRequirements",
     "SessionState",
+    # Context
+    "AgentContext",
 ]
