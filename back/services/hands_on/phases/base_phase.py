@@ -109,7 +109,21 @@ class WaitingPhase(BasePhase):
     ユーザー応答を待つフェーズの基底クラス
 
     WAITING_* 系のフェーズはこのクラスを継承する。
+    execute()はユーザー応答を待つだけなので、デフォルトでは何も生成しない。
     """
+
+    async def execute(
+        self,
+        session: SessionState,
+        context: 'AgentContext'
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        待機フェーズのexecute（何も生成しない）
+
+        ユーザー応答を待つだけなので、すぐにreturnする。
+        """
+        return
+        yield  # type: ignore - AsyncGeneratorのために必要
 
     def can_handle_response(self) -> bool:
         """ユーザー応答を処理可能"""

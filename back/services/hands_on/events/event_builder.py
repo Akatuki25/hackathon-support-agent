@@ -115,14 +115,29 @@ class EventBuilder:
         }
 
     @staticmethod
-    def step_confirmation_required(prompt: InputPrompt) -> Dict[str, Any]:
+    def step_confirmation_required(
+        prompt: InputPrompt = None,
+        *,
+        prompt_id: str = None,
+        question: str = None,
+        options: List[str] = None
+    ) -> Dict[str, Any]:
         """ステップ完了確認イベント"""
+        if prompt:
+            return {
+                "type": EventType.STEP_CONFIRMATION_REQUIRED.value,
+                "prompt": {
+                    "prompt_id": prompt.prompt_id,
+                    "question": prompt.question,
+                    "options": prompt.options
+                }
+            }
         return {
             "type": EventType.STEP_CONFIRMATION_REQUIRED.value,
             "prompt": {
-                "prompt_id": prompt.prompt_id,
-                "question": prompt.question,
-                "options": prompt.options
+                "prompt_id": prompt_id,
+                "question": question,
+                "options": options
             }
         }
 
@@ -181,7 +196,35 @@ class EventBuilder:
             "message": message
         }
 
+    # --- 依存タスク ---
+
+    @staticmethod
+    def redirect_to_dependency() -> Dict[str, Any]:
+        """依存タスクへリダイレクトイベント"""
+        return {"type": "redirect_to_dependency"}
+
+    @staticmethod
+    def dependency_decision_required(
+        prompt_id: str,
+        question: str,
+        options: List[str]
+    ) -> Dict[str, Any]:
+        """依存タスク対応方針選択イベント"""
+        return {
+            "type": "dependency_decision_required",
+            "prompt": {
+                "prompt_id": prompt_id,
+                "question": question,
+                "options": options
+            }
+        }
+
     # --- 完了・エラー ---
+
+    @staticmethod
+    def complete() -> Dict[str, Any]:
+        """生成完了イベント（シンプル版）"""
+        return {"type": EventType.DONE.value}
 
     @staticmethod
     def done(hands_on_id: str, session_id: str) -> Dict[str, Any]:

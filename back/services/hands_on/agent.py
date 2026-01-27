@@ -98,13 +98,26 @@ class HandsOnAgent:
             db=self.db,
             llm=self.llm,
             config=self.config,
+            project_context=self.project_context,
+            dependency_context=self.dependency_context,
             tech_service=self.tech_service,
-            events=self.events,
-            tech_stack=self.tech_stack,
-            framework=self.framework,
-            directory_info=self.directory_info,
             decided_domains=self.decided_domains,
+            ecosystem=self._detect_ecosystem(),
         )
+
+    def _detect_ecosystem(self) -> str:
+        """エコシステムを検出"""
+        tech_stack = self.tech_stack
+        framework = self.framework.lower() if self.framework else ""
+
+        if "next.js" in framework or "react" in framework:
+            return "next.js"
+        if "fastapi" in framework or "python" in str(tech_stack).lower():
+            return "python"
+        if "express" in framework or "node" in str(tech_stack).lower():
+            return "node.js"
+
+        return "unknown"
 
     async def generate_stream(
         self,
@@ -215,7 +228,7 @@ class HandsOnAgent:
         hands_on.current_phase = session.phase.value
         hands_on.generated_content = session.generated_content
         hands_on.implementation_steps = serialize_steps(session.implementation_steps)
-        hands_on.current_step = session.current_step
+        hands_on.current_step = session.current_step_index
         hands_on.decisions = serialize_decisions(session.decisions)
         hands_on.user_choices = session.user_choices
         hands_on.step_choices = session.step_choices
