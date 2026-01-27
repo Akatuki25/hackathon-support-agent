@@ -6,6 +6,7 @@
 
 from .session_manager import (
     SessionManager,
+    _default_manager as default_manager,
     get_session,
     create_session,
     delete_session,
@@ -23,6 +24,7 @@ from .persistence import (
 __all__ = [
     # Session Manager
     "SessionManager",
+    "default_manager",
     "get_session",
     "create_session",
     "delete_session",
