@@ -147,7 +147,7 @@ class HandsOnAgent:
         context = self._create_context()
 
         # メイン生成ループ
-        while session.phase != GenerationPhase.COMPLETE:
+        while True:
             handler = self.phase_registry.get(session.phase)
 
             if handler is None:
@@ -159,24 +159,34 @@ class HandsOnAgent:
             async for event in handler.execute(session, context):
                 yield event
 
-                # ユーザー待ちイベントの場合は一旦返す
+                # 進捗保存イベント時にDB保存
+                if event.get("type") == "progress_saved":
+                    await self.save_progress(session, "generating")
+
+                # ユーザー待ちイベントの場合はDB保存して一旦返す
                 if event.get("type") in [
                     "choice_required",
                     "user_input_required",
                     "step_choice_required",
-                    "step_complete_required",
+                    "step_confirmation_required",
                     "dependency_decision_required",
+                    "redirect_to_task",
                 ]:
+                    await self.save_progress(session, "waiting_input")
                     return
 
-        # 完了イベント
-        yield self.events.complete()
+                # 完了イベントの場合はループを抜ける
+                if event.get("type") == "done":
+                    return
 
     async def handle_user_response(
         self,
         session: SessionState,
         response_type: str,
-        **kwargs
+        choice_id: Optional[str] = None,
+        selected: Optional[str] = None,
+        user_input: Optional[str] = None,
+        user_note: Optional[str] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         ユーザー応答を処理
@@ -184,7 +194,10 @@ class HandsOnAgent:
         Args:
             session: 現在のセッション
             response_type: 応答タイプ
-            **kwargs: 応答データ
+            choice_id: 選択肢ID
+            selected: 選択された値
+            user_input: ユーザー入力
+            user_note: ユーザーメモ
 
         Yields:
             SSEイベント辞書
@@ -196,9 +209,27 @@ class HandsOnAgent:
             yield self.events.error(f"Unknown phase: {session.phase.value}")
             return
 
+        # ユーザー応答イベントを通知
+        yield self.events.user_response(
+            response_type=response_type,
+            choice_id=choice_id,
+            selected=selected,
+            user_input=user_input,
+            user_note=user_note
+        )
+
         # ハンドラにユーザー応答を委譲
-        async for event in handler.handle_response(session, context, response_type, **kwargs):
+        async for event in handler.handle_response(
+            session, context, response_type,
+            choice_id=choice_id,
+            selected=selected,
+            user_input=user_input,
+            user_note=user_note
+        ):
             yield event
+
+        # 応答処理後に進捗を保存
+        await self.save_progress(session, "generating")
 
         # 応答処理後、生成を継続
         async for event in self.generate_stream(session):
@@ -214,11 +245,13 @@ class HandsOnAgent:
 
         Args:
             session: 現在のセッション
-            state: 保存状態
+            state: 保存状態 ("generating", "waiting_input", "completed")
 
         Returns:
             TaskHandsOnレコード
         """
+        from datetime import datetime
+
         # 既存のTaskHandsOnを取得または作成
         hands_on = self.db.query(TaskHandsOn).filter(
             TaskHandsOn.task_id == self.task.task_id
@@ -227,22 +260,30 @@ class HandsOnAgent:
         if not hands_on:
             hands_on = TaskHandsOn(
                 task_id=self.task.task_id,
-                state=state
+                generation_state=state,
+                generation_mode="interactive",
+                session_id=session.session_id,
+                generation_model=self.config.get("model", "gemini-2.0-flash"),
             )
             self.db.add(hands_on)
 
-        # セッション状態を保存
-        hands_on.state = state
-        hands_on.current_phase = session.phase.value
-        hands_on.generated_content = session.generated_content
-        hands_on.implementation_steps = serialize_steps(session.implementation_steps)
-        hands_on.current_step = session.current_step_index
-        hands_on.decisions = serialize_decisions(session.decisions)
-        hands_on.user_choices = session.user_choices
-        hands_on.step_choices = session.step_choices
+        # 生成済みコンテンツを各カラムに保存
+        hands_on.overview = session.generated_content.get("overview", "")
+        hands_on.implementation_steps = session.generated_content.get("implementation", "")
+        hands_on.verification = session.generated_content.get("verification", "")
+        hands_on.technical_context = session.generated_content.get("context", "")
+
+        # 状態を更新
+        hands_on.generation_state = state
+        hands_on.session_id = session.session_id
+
+        # pending_stateを保存（セッション復帰用）
         hands_on.pending_state = build_pending_state(session)
+
+        # user_interactionsに詳細情報を保存
         hands_on.user_interactions = build_user_interactions(session)
-        hands_on.dependency_decision = session.dependency_decision
+
+        hands_on.updated_at = datetime.now()
 
         self.db.commit()
         self.db.refresh(hands_on)

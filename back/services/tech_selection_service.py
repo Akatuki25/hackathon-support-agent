@@ -5,7 +5,7 @@
 プロジェクト内で決定済みの技術を管理するサービス。
 """
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -172,3 +172,5 @@ class TechSelectionService:
         for domain_key, stack_key in decided.items():
             lines.append(f"- {domain_key}: {stack_key}")
         return "\n".join(lines)
+
+

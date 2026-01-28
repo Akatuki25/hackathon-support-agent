@@ -4,8 +4,11 @@ TECH_CHECKフェーズハンドラ
 技術選定判断と選択肢提示を処理。
 """
 
+import json
 import uuid
 from typing import Dict, Any, AsyncGenerator, List, Optional
+
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from ..types import (
     GenerationPhase,
@@ -26,7 +29,7 @@ class TechCheckPhase(BasePhase):
 
     処理内容:
     1. 既に選択済みならIMPLEMENTATION_PLANNINGへスキップ
-    2. 技術選定が必要か判断
+    2. LLMで技術選定が必要か判断
     3. 必要なら選択肢提示またはユーザー確認
     4. 不要ならIMPLEMENTATION_PLANNINGへ遷移
     """
@@ -52,7 +55,7 @@ class TechCheckPhase(BasePhase):
         if force_choice:
             del session.generated_content["force_choice"]
 
-        # 技術選定チェック
+        # LLMで技術選定チェック
         tech_check = await self._check_tech_selection(session, context, force_choice)
 
         if tech_check.get("needs_choice"):
@@ -120,64 +123,100 @@ class TechCheckPhase(BasePhase):
         context: AgentContext,
         force_choice: bool = False
     ) -> Dict[str, Any]:
-        """技術選定が必要か判断"""
+        """
+        技術選定が必要かどうかを判断し、必要なら選択肢も生成
+
+        Returns:
+            選択が必要な場合:
+            {
+                "needs_choice": True,
+                "question": "何を選定するか",
+                "options": [{"id": "...", "label": "...", "description": "...", "pros": [...], "cons": [...]}]
+            }
+            既に決まっている場合:
+            {
+                "needs_choice": False,
+                "decided": "PostgreSQL",
+                "reason": "タスク説明で指定済み"
+            }
+        """
         task = context.task
 
-        # DBプリセットからの技術選定チェック
-        if context.tech_service:
-            ecosystem = context.ecosystem or self._detect_ecosystem(context)
-            result = context.tech_service.check_tech_selection(
-                task_category=task.category,
-                ecosystem=ecosystem,
-                decided_domains=context.decided_domains
-            )
-
-            if result.get("needs_selection"):
-                domain = result.get("domain")
-                options = result.get("options", [])
-
-                # ドメインキーをセッションに記録
-                session.current_domain_key = domain.domain_key if domain else None
-
-                return {
-                    "needs_choice": True,
-                    "question": domain.question_template if domain else "技術を選定してください",
-                    "options": [
-                        {
-                            "id": opt.stack_key,
-                            "label": opt.display_name,
-                            "description": opt.one_liner or "",
-                            "pros": opt.pros or [],
-                            "cons": opt.cons or []
-                        }
-                        for opt in options
-                    ]
-                }
-
-        # force_choiceの場合はLLMで判断
         if force_choice:
-            return await self._llm_tech_check(context)
+            # 強制的に選択肢を出す
+            prompt = f"""
+以下のタスクで技術選定の選択肢を提示してください。
 
-        return {"needs_choice": False}
+## タスク情報
+- タイトル: {task.title}
+- 説明: {task.description or 'なし'}
 
-    def _detect_ecosystem(self, context: AgentContext) -> str:
-        """エコシステムを検出"""
-        tech_stack = context.tech_stack
-        framework = context.framework.lower() if context.framework else ""
+## プロジェクト情報
+- 技術スタック: {', '.join(context.tech_stack)}
+- フレームワーク: {context.framework}
 
-        if "next.js" in framework or "react" in framework:
-            return "next.js"
-        if "fastapi" in framework or "python" in str(tech_stack).lower():
-            return "python"
-        if "express" in framework or "node" in str(tech_stack).lower():
-            return "node.js"
+## 出力形式（JSON）
+{{
+  "needs_choice": true,
+  "question": "何を選定するか",
+  "options": [
+    {{"id": "option1", "label": "選択肢名", "description": "説明", "pros": ["メリット"], "cons": ["デメリット"]}}
+  ]
+}}
+"""
+        else:
+            prompt = f"""
+以下のタスクを実装するにあたり、技術選定が必要かどうか判断してください。
 
-        return "unknown"
+## タスク情報
+- タイトル: {task.title}
+- 説明: {task.description or 'なし'}
 
-    async def _llm_tech_check(self, context: AgentContext) -> Dict[str, Any]:
-        """LLMで技術選定をチェック（フォールバック）"""
-        # LLMベースの判断（既存ロジックを簡略化）
-        return {"needs_choice": False}
+## プロジェクト情報
+- 技術スタック: {', '.join(context.tech_stack)}
+- フレームワーク: {context.framework}
+
+## プロジェクト内で既に決定済みの技術
+{session.project_implementation_overview or 'なし'}
+
+## 判断基準
+- タスク説明で既に技術が明記されている場合（例: PostgreSQL、REST API等） → 選択不要
+- プロジェクトで既に決定済みの場合 → 選択不要
+- 複数の選択肢があり得て、ユーザーに確認すべき場合のみ → 選択必要
+
+## 出力形式（JSON）
+選択が必要な場合:
+{{
+  "needs_choice": true,
+  "question": "何を選定するか",
+  "options": [
+    {{"id": "option1", "label": "選択肢名", "description": "説明", "pros": ["メリット"], "cons": ["デメリット"]}}
+  ]
+}}
+
+既に決まっている場合:
+{{
+  "needs_choice": false,
+  "decided": "決定済みの技術名",
+  "reason": "判断理由"
+}}
+"""
+
+        try:
+            response = await context.llm.ainvoke([
+                SystemMessage(content="技術選定を判断するアシスタントです。JSON形式で回答してください。"),
+                HumanMessage(content=prompt)
+            ])
+
+            content = response.content
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+
+            return json.loads(content.strip())
+        except Exception:
+            return {"needs_choice": False, "decided": None, "reason": "判断できませんでした"}
 
 
 @register_phase(GenerationPhase.CHOICE_REQUIRED)
@@ -201,34 +240,16 @@ class ChoiceRequiredPhase(WaitingPhase):
         choice_id = kwargs.get("choice_id", "")
         selected = kwargs.get("selected", "")
         user_note = kwargs.get("user_note", "")
-        domain_key = kwargs.get("domain_key")
-        stack_key = kwargs.get("stack_key")
 
-        # 新形式（domain_key/stack_key）または旧形式で保存
-        if domain_key and stack_key:
-            session.user_choices[choice_id] = {
-                "domain_key": domain_key,
-                "stack_key": stack_key
-            }
-            # プロジェクト技術決定をDBに記録
-            if context.tech_service:
-                context.tech_service.record_project_decision(
-                    project_id=context.task.project_id,
-                    domain_key=domain_key,
-                    stack_key=stack_key,
-                    source_task_id=context.task.task_id
-                )
-        else:
-            session.user_choices[choice_id] = {
-                "selected": selected,
-                "user_note": user_note
-            }
+        session.user_choices[choice_id] = {
+            "selected": selected,
+            "user_note": user_note
+        }
 
         session.pending_choice = None
-        session.current_domain_key = None
         self.transition_to(session, GenerationPhase.IMPLEMENTATION_PLANNING)
 
-        yield context.events.chunk(f"\n✅ **選択完了**: {selected or stack_key}\n\n")
+        yield context.events.chunk(f"\n✅ **選択完了**: {selected}\n\n")
 
 
 @register_phase(GenerationPhase.WAITING_CHOICE_CONFIRM)
@@ -253,7 +274,8 @@ class WaitingChoiceConfirmPhase(WaitingPhase):
 
         if "別" in user_input or "検討" in user_input:
             # 別の選択肢を検討 → 強制的に選択肢表示
-            del session.user_choices["auto_decided"]
+            if "auto_decided" in session.user_choices:
+                del session.user_choices["auto_decided"]
             session.generated_content["force_choice"] = "true"
             self.transition_to(session, GenerationPhase.TECH_CHECK)
         else:

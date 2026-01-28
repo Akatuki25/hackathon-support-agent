@@ -212,13 +212,25 @@ class WaitingDependencyDecisionPhase(WaitingPhase):
         if "先に" in user_input or "完了" in user_input:
             # リダイレクト
             session.dependency_decision = "redirect"
-            yield context.events.redirect_to_dependency()
+            # 未完了の依存タスクを特定
+            incomplete_tasks = [
+                pt for pt in session.predecessor_tasks
+                if pt.hands_on_status != "completed"
+            ]
+            if incomplete_tasks:
+                yield context.events.redirect_to_task(
+                    task_id=incomplete_tasks[0].task_id,
+                    task_title=incomplete_tasks[0].title,
+                    message=f"先に「{incomplete_tasks[0].title}」を完了させてください。"
+                )
             return
 
         if "モック" in user_input:
             session.dependency_decision = "mock"
+            yield context.events.chunk("\n\nモック実装で進めます。後で依存タスクと結合してください。\n\n")
         else:
             session.dependency_decision = "proceed"
+            yield context.events.chunk("\n\n依存タスクを無視して進めます。\n\n")
 
         session.pending_input = None
         self.transition_to(session, GenerationPhase.CONTEXT)
