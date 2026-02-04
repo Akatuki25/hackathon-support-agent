@@ -13,7 +13,7 @@ from typing import Optional, Dict
 from uuid import UUID
 
 from database import get_db
-from services.task_hands_on_service import TaskHandsOnService
+from services.task import TaskHandsOnService
 from models.project_base import TaskHandsOn
 
 

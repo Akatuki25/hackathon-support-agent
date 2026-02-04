@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from models.project_base import Task, TaskHandsOn
-from services.tech_selection_service import TechSelectionService
+from services.tech import TechSelectionService
 
 from .types import (
     GenerationPhase,

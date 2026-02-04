@@ -29,7 +29,7 @@ from services.hands_on.state import (
     delete_session,
     restore_session_from_db,
 )
-from services.task_hands_on_service import TaskHandsOnService
+from services.task import TaskHandsOnService
 
 
 router = APIRouter(prefix="/api/interactive-hands-on", tags=["InteractiveHandsOn"])

@@ -14,6 +14,8 @@ from .base_handler import (
 )
 from .chat_router import ChatRouter
 from .actions import ActionType, PAGE_ACTIONS
+from .chat_hanson_service import ChatHansonService
+from .idea_support_service import IdeaSupportService
 
 __all__ = [
     "BaseChatHandler",
@@ -24,4 +26,6 @@ __all__ = [
     "ChatRouter",
     "ActionType",
     "PAGE_ACTIONS",
+    "ChatHansonService",
+    "IdeaSupportService",
 ]

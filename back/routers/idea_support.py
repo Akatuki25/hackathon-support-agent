@@ -12,7 +12,7 @@ from typing import List
 import logging
 
 from database import get_db
-from services.idea_support_service import IdeaSupportService, ChatMessage, FinalizedIdea
+from services.chat.idea_support_service import IdeaSupportService, ChatMessage, FinalizedIdea
 from utils.streaming_json import sse_event
 
 

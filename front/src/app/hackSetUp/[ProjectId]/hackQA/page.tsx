@@ -632,29 +632,34 @@ export default function HackQA() {
                 </div>
               </div>
 
-              {/* 次へ進むボタン */}
+              {/* 次へ進むボタン - ストリーミング完了後のみ表示 */}
               <div className="flex justify-end">
-                <button
-                  onClick={handleNext}
-                  className="px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 disabled:from-gray-400 disabled:to-gray-500 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 dark:hover:from-cyan-600 dark:hover:to-cyan-600 dark:disabled:bg-gray-600 dark:disabled:text-gray-400"
-                  disabled={
-                    processingNext ||
-                    streamingStatus === "streaming" ||
-                    streamingStatus === "saving"
-                  }
-                >
-                  {processingNext ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white dark:border-gray-900 mr-2"></div>
-                      処理中...
-                    </div>
-                  ) : (
-                    <>
-                      <span>次へ進む</span>
-                      <ChevronRight size={18} className="ml-2" />
-                    </>
-                  )}
-                </button>
+                {streamingStatus === "streaming" || streamingStatus === "saving" ? (
+                  <div className="px-8 py-3 flex items-center rounded-full bg-gray-100 dark:bg-gray-700">
+                    <Loader2 className="animate-spin mr-2 text-purple-600 dark:text-cyan-400" size={18} />
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {streamingStatus === "streaming" ? "質問を生成中..." : "保存中..."}
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleNext}
+                    className="px-8 py-3 flex items-center rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:transform-none dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 dark:hover:from-cyan-600 dark:hover:to-cyan-600 dark:disabled:bg-gray-600 dark:disabled:text-gray-400"
+                    disabled={processingNext}
+                  >
+                    {processingNext ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white dark:border-gray-900 mr-2"></div>
+                        処理中...
+                      </div>
+                    ) : (
+                      <>
+                        <span>次へ進む</span>
+                        <ChevronRight size={18} className="ml-2" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </>
           </div>
