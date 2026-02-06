@@ -1257,7 +1257,8 @@ export default function FunctionStructuring() {
                 <div className="text-center">
                   <button
                     onClick={handleNext}
-                    className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition-all hover:-translate-y-1 backdrop-blur-md bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500/80 dark:hover:bg-cyan-500 dark:text-gray-900 dark:focus:ring-cyan-400 dark:shadow-[0_0_20px_rgba(34,211,238,0.3)] dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] dark:bg-none"
+                    disabled={processingState === "structuring" || setupPhase === "structuring-functions"}
+                    className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition-all hover:-translate-y-1 backdrop-blur-md bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:transform-none dark:bg-cyan-500/80 dark:hover:bg-cyan-500 dark:text-gray-900 dark:focus:ring-cyan-400 dark:shadow-[0_0_20px_rgba(34,211,238,0.3)] dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] dark:bg-none dark:disabled:bg-gray-600 dark:disabled:text-gray-400"
                   >
                     <span>タスク可視化へ</span>
                     <ChevronRight size={18} className="ml-2" />

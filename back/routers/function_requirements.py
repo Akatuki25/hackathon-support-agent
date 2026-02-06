@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from database import get_db
-from services.function_service import FunctionService
+from services.function import FunctionService
 from typing import Union, List, Dict, Any, Optional
 import uuid
 

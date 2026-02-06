@@ -11,7 +11,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
-from services.question_service import QuestionService, QuestionItem, QuestionOutput
+from services.project import QuestionService, QuestionItem, QuestionOutput
 from database import get_db
 import uuid
 

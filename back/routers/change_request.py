@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from database import get_db
-from services.change_request_service import ChangeRequestService
+from services.project import ChangeRequestService
 
 logger = logging.getLogger(__name__)
 

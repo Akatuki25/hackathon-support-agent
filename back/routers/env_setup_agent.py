@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from database import get_db
-from services.env_setup_agent_service import EnvSetupAgentService
+from services.tech import EnvSetupAgentService
 
 router = APIRouter()
 

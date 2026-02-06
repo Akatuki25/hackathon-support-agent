@@ -16,7 +16,7 @@ import logging
 
 from database import get_db
 from services.chat import ChatRouter, ChatMessage, ChatAction
-from services.base_service import BaseService
+from services.core import BaseService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

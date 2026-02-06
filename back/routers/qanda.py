@@ -6,7 +6,7 @@ from typing import List, Optional
 import uuid
 
 from database import get_db
-from services.question_service import QuestionService
+from services.project import QuestionService
 
 router = APIRouter()  # 例: app.include_router(router, prefix="/api/question")
 

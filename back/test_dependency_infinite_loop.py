@@ -4,7 +4,7 @@
 機能間依存関係のロジックが無限ループを引き起こすか検証
 """
 import asyncio
-from services.task_dependency_service import TaskDependencyService
+from services.task import TaskDependencyService
 from database import SessionLocal
 
 

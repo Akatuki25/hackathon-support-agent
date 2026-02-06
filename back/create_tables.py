@@ -20,6 +20,7 @@ from models.project_base import (
     ChangeRequest,
     DocumentChunk,
 )
+from models.tech_preset import TechDomain, TechStack
 
 def reset_db():
     # 既存のテーブルをすべて削除

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
-from services.technology_service import TechnologyService
+from services.tech import TechnologyService
 from typing import List, Optional
 
 router = APIRouter()

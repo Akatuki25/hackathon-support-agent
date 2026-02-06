@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from database import get_db
-from services.ai_document_service import AIDocumentService
+from services.project import AIDocumentService
 
 
 router = APIRouter()

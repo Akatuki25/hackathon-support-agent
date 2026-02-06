@@ -11,7 +11,7 @@ import pytest
 import uuid
 from pydantic import ValidationError
 
-from services.function_structuring_schemas import (
+from services.function.function_structuring_schemas import (
     FunctionCategory,
     FunctionPriority,
     DependencyType,
