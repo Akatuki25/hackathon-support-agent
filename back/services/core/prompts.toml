@@ -168,10 +168,10 @@ generate_simple_recommendations = """
 
 利用可能な技術選択肢：
 - フロントエンド: React, Vue.js, Next.js, Angular, Svelte, Astro
-- バックエンド: Node.js+Express, FastAPI(Python), Django(Python), Ruby on Rails, Spring Boot(Java), Gin(Go), Laravel(PHP)
+- バックエンド: Node.js + Express, FastAPI (Python), Django (Python), Ruby on Rails, Spring Boot (Java), Gin (Go), ASP.NET Core (C#), Laravel (PHP)
 - データベース: PostgreSQL, MySQL, MongoDB, Redis
-- モバイル: React Native, Flutter, Swift, Kotlin
-- デプロイメント: Vercel, Netlify, AWS, Docker+Heroku
+- モバイル: React Native, Flutter, Swift + UIKit, Swift + SwiftUI, Kotlin + Jetpack Compose, Java + XML
+- デプロイメント: Vercel, Netlify, AWS (EC2/ECS), Docker + Heroku
 
 推薦基準：
 1. プロジェクトの要件との適合性
