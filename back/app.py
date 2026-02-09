@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # APIルーターのインポート
 from routers.project import member , project , project_document, env, task, task_assignment,project_qa,project_member, ai_document as project_ai_document
-from routers import qanda, summary,  framework, directory, environment,  taskDetail, taskChat, chatHanson, graphTask, durationTask, deploy, function_requirements, function_structuring, technology, task_generation, task_quality, complete_task_generation, ai_document, task_hands_on, task_dependency, chatHanson, env_setup_agent, chat, change_request, idea_support, interactive_hands_on
+from routers import qanda, summary, framework, chatHanson, function_requirements, function_structuring, technology, complete_task_generation, ai_document, task_hands_on, task_dependency, env_setup_agent, chat, change_request, idea_support, interactive_hands_on
 
 # ページコンテキスト対応チャットハンドラを登録（ChatRouterにデコレータで自動登録）
 from services.chat.handlers import (
@@ -72,19 +72,10 @@ app.include_router(task.router)
 app.include_router(qanda.router, prefix="/api/question", tags=["Q&A"])
 app.include_router(summary.router, prefix="/api/summary", tags=["Summary"])
 app.include_router(framework.router, prefix="/api/framework", tags=["Framework"])
-app.include_router(directory.router, prefix="/api/directory", tags=["Directory"])
-app.include_router(environment.router, prefix="/api/environment", tags=["Environment"])
-app.include_router(taskDetail.router, prefix="/api/taskDetail", tags=["TaskDetail"])
-app.include_router(taskChat.router, prefix="/api/taskChat", tags=["TaskChat"])
 app.include_router(chatHanson.router, prefix="/api/chatHanson", tags=["ChatHanson"])
-app.include_router(graphTask.router, prefix="/api/graphTask", tags=["GraphTask"])
-app.include_router(durationTask.router, prefix="/api/durationTask", tags=["DurationTask"])
-app.include_router(deploy.router, prefix="/api/deploy", tags=["Deploy"])
 app.include_router(function_requirements.router, prefix="/api/function_requirements", tags=["FunctionRequirements"])
 app.include_router(function_structuring.router, prefix="/api/function_structuring", tags=["FunctionStructuring"])
 app.include_router(technology.router, prefix="/api/technology", tags=["Technology"])
-app.include_router(task_generation.router, prefix="/api/task_generation", tags=["TaskGeneration"])
-app.include_router(task_quality.router, prefix="/api/task_quality", tags=["TaskQuality"])
 app.include_router(complete_task_generation.router, prefix="/api/complete_task_generation", tags=["CompleteTaskGeneration"])
 app.include_router(task_dependency.router, prefix="/api/task_dependencies", tags=["TaskDependency"])
 app.include_router(ai_document.router, prefix="/api/ai_document", tags=["AIDocument"])

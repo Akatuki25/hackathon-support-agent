@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from database import get_db
-from services.function_structuring_workflow import FunctionStructuringWorkflow
+from services.function import FunctionStructuringWorkflow
 from typing import Union, List, Dict, Any, Optional
 import uuid
 

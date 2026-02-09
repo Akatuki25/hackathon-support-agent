@@ -3,11 +3,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
-from services.summary_service import SummaryService
+from services.project import SummaryService, MVPJudgeService
 from typing import Union, List
 from models.project_base import ProjectDocument
 import uuid
-from services.mvp_judge_service import MVPJudgeService
+
 router = APIRouter()
 
 class ProjectIdRequest(BaseModel):

@@ -348,34 +348,52 @@ export default function SummaryQA() {
             </div>
           )}
 
-          {/* 次へ進むボタン */}
-          <div className="mt-8">
-            <div className="backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20">
-              <div className="text-center py-4">
-                <p className="mb-6 text-gray-700 dark:text-gray-300">
-                  仕様書の編集と質問への回答が完了したら、次のステップに進みましょう。
-                </p>
-
-                <button
-                  onClick={handleNext}
-                  className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 dark:hover:from-cyan-600 dark:hover:to-cyan-600"
-                  disabled={processingNext}
-                >
-                  {processingNext ? (
-                    <div className="flex items-center">
-                      <Loader2 className="animate-spin mr-2" size={18} />
-                      処理中...
-                    </div>
-                  ) : (
-                    <>
-                      <span>機能要件の作成へ</span>
-                      <ChevronRight size={18} className="ml-2" />
-                    </>
-                  )}
-                </button>
+          {/* 次へ進むボタン - ストリーミング完了後のみ表示 */}
+          {isStreaming ? (
+            <div className="mt-8">
+              <div className="backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20">
+                <div className="text-center py-4">
+                  <div className="flex items-center justify-center mb-4">
+                    <Loader2 className="animate-spin mr-3 text-purple-600 dark:text-cyan-400" size={24} />
+                    <span className="text-lg font-medium text-purple-700 dark:text-cyan-300">
+                      仕様書を生成中...
+                    </span>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    生成が完了すると次のステップに進めます
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="mt-8">
+              <div className="backdrop-blur-lg rounded-xl p-6 shadow-xl border transition-all bg-white bg-opacity-70 border-purple-500/30 shadow-purple-300/20 dark:bg-gray-800 dark:bg-opacity-70 dark:border-cyan-500/30 dark:shadow-cyan-500/20">
+                <div className="text-center py-4">
+                  <p className="mb-6 text-gray-700 dark:text-gray-300">
+                    仕様書の編集と質問への回答が完了したら、次のステップに進みましょう。
+                  </p>
+
+                  <button
+                    onClick={handleNext}
+                    className="px-8 py-3 flex items-center mx-auto rounded-full shadow-lg focus:outline-none transform transition hover:-translate-y-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white focus:ring-2 focus:ring-purple-400 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:transform-none dark:bg-cyan-500 dark:hover:bg-cyan-600 dark:text-gray-900 dark:focus:ring-cyan-400 dark:from-cyan-500 dark:to-cyan-500 dark:hover:from-cyan-600 dark:hover:to-cyan-600 dark:disabled:bg-gray-600 dark:disabled:text-gray-400"
+                    disabled={processingNext}
+                  >
+                    {processingNext ? (
+                      <div className="flex items-center">
+                        <Loader2 className="animate-spin mr-2" size={18} />
+                        処理中...
+                      </div>
+                    ) : (
+                      <>
+                        <span>機能要件の作成へ</span>
+                        <ChevronRight size={18} className="ml-2" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <HackthonSupportAgent />
         </div>

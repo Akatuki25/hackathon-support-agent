@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
-from services.chat_hanson_service import ChatHansonService
+from services.chat import ChatHansonService
 from uuid import UUID
 
 router = APIRouter()

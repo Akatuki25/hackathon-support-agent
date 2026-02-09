@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from database import get_db
-from services.integrated_task_service import IntegratedTaskService
+from services.task import IntegratedTaskService
 
 
 router = APIRouter()
